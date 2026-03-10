@@ -8,95 +8,114 @@
     {
       "id": "frontmatter-0003-sumario-p-0001",
       "source_index": 42,
-      "text": "O Escritor\t\t\t\t\t\t\t01"
+      "text": "O Escritor\t\t\t\t\t\t\t01",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0002",
       "source_index": 43,
-      "text": "Créditos\t\t\t\t\t\t\t02"
+      "text": "Créditos\t\t\t\t\t\t\t02",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0003",
       "source_index": 44,
-      "text": "Agradecimentos\t\t\t\t\t\t04"
+      "text": "Agradecimentos\t\t\t\t\t\t04",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0004",
       "source_index": 45,
-      "text": "Prefácio\t\t\t\t\t\t\t05/06"
+      "text": "Prefácio\t\t\t\t\t\t\t05/06",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0005",
       "source_index": 46,
-      "text": "Introdução\t\t\t\t\t\t\t06/07"
+      "text": "Introdução\t\t\t\t\t\t\t06/07",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0006",
       "source_index": 47,
-      "text": "Prólogo\t\t\t\t\t\t\t07/08"
+      "text": "Prólogo\t\t\t\t\t\t\t07/08",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0007",
       "source_index": 48,
-      "text": "Capítulo I\t\t\t\t\t\t\t09"
+      "text": "Capítulo I\t\t\t\t\t\t\t09",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0008",
       "source_index": 49,
-      "text": "Conexão Dimensional"
+      "text": "Conexão Dimensional",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0009",
       "source_index": 50,
-      "text": "Capítulo II"
+      "text": "Capítulo II",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0010",
       "source_index": 51,
-      "text": "Supremo Poder Anônimo"
+      "text": "Supremo Poder Anônimo",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0011",
       "source_index": 52,
-      "text": "Capítulo III"
+      "text": "Capítulo III",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0012",
       "source_index": 53,
-      "text": "Reset"
+      "text": "Reset",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0013",
       "source_index": 54,
-      "text": "Capítulo IV"
+      "text": "Capítulo IV",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0014",
       "source_index": 55,
-      "text": "Resistência Dimensional"
+      "text": "Resistência Dimensional",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0015",
       "source_index": 56,
-      "text": "Capitulo V"
+      "text": "Capitulo V",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0016",
       "source_index": 57,
-      "text": "eXilados da Terra"
+      "text": "eXilados da Terra",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0017",
       "source_index": 58,
-      "text": "Epílogo"
+      "text": "Epílogo",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario-p-0018",
       "source_index": 59,
-      "text": "Pósfácio"
+      "text": "Pósfácio",
+      "review_status": "approved_reference"
     }
   ],
   "source_start_index": 42,
   "source_end_index": 59,
-  "paragraph_count": 18
+  "paragraph_count": 18,
+  "review_status": "approved_reference"
 }

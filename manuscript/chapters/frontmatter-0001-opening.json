@@ -8,35 +8,42 @@
     {
       "id": "frontmatter-0001-opening-p-0001",
       "source_index": 5,
-      "text": "e X ilados da Terra"
+      "text": "e X ilados da Terra",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0001-opening-p-0002",
       "source_index": 6,
-      "text": "“passado pacto para o futuro”"
+      "text": "“passado pacto para o futuro”",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0001-opening-p-0003",
       "source_index": 7,
-      "text": "Alexo CamaraTTe"
+      "text": "Alexo CamaraTTe",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0001-opening-p-0004",
       "source_index": 8,
-      "text": "Romance 5 – oescritorondeoleitoresta.com –1ª Edição – Volume 2"
+      "text": "Romance 5 – oescritorondeoleitoresta.com –1ª Edição – Volume 2",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0001-opening-p-0005",
       "source_index": 9,
-      "text": "oescritorondeoleitoresta.com"
+      "text": "oescritorondeoleitoresta.com",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0001-opening-p-0006",
       "source_index": 10,
-      "text": "elescritordondeestaellector.com"
+      "text": "elescritordondeestaellector.com",
+      "review_status": "approved_reference"
     }
   ],
   "source_start_index": 5,
   "source_end_index": 10,
-  "paragraph_count": 6
+  "paragraph_count": 6,
+  "review_status": "approved_reference"
 }

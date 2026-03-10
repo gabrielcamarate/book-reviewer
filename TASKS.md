@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-005 — Mark the approved versus pending boundary
-
-Status: TODO
-
-Description:
-
-Persist the operational point where approved review ends and pending review begins.
-
-Dependencies:
-
-- requires `TASK-004`
-
-Acceptance Criteria:
-
-- the cutoff excerpt is located in structured manuscript state
-- chunks before the cutoff are marked as `approved_reference`
-- chunks from the cutoff onward are marked as `pending_review`
-
----
-
 ## TASK-006 — Generate initial `STYLE_GUIDE.md` from the approved corpus
 
 Status: TODO

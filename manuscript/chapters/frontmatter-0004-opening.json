@@ -8,60 +8,72 @@
     {
       "id": "frontmatter-0004-opening-p-0001",
       "source_index": 63,
-      "text": "A"
+      "text": "A",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0002",
       "source_index": 68,
-      "text": "Gradecimentos"
+      "text": "Gradecimentos",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0003",
       "source_index": 72,
-      "text": "A existência humana"
+      "text": "A existência humana",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0004",
       "source_index": 73,
-      "text": "dimensional... consciente..."
+      "text": "dimensional... consciente...",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0005",
       "source_index": 74,
-      "text": "desperta... despertando... a despertar..."
+      "text": "desperta... despertando... a despertar...",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0006",
       "source_index": 75,
-      "text": "conectada... compartilhada... ascensionada..."
+      "text": "conectada... compartilhada... ascensionada...",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0007",
       "source_index": 76,
-      "text": "a ascensionar... liberta da prisão... da"
+      "text": "a ascensionar... liberta da prisão... da",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0008",
       "source_index": 77,
-      "text": "mentira e ilusão desmascaradas pela verdade absoluta universal."
+      "text": "mentira e ilusão desmascaradas pela verdade absoluta universal.",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0009",
       "source_index": 79,
-      "text": "Soberana Energia Universal"
+      "text": "Soberana Energia Universal",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0010",
       "source_index": 81,
-      "text": "oescritorondeoleitoresta.com"
+      "text": "oescritorondeoleitoresta.com",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening-p-0011",
       "source_index": 82,
-      "text": "elescritordondeestaellector.com"
+      "text": "elescritordondeestaellector.com",
+      "review_status": "approved_reference"
     }
   ],
   "source_start_index": 63,
   "source_end_index": 82,
-  "paragraph_count": 11
+  "paragraph_count": 11,
+  "review_status": "approved_reference"
 }

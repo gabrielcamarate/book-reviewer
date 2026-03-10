@@ -11,7 +11,8 @@
       "source_start_index": 5,
       "source_end_index": 10,
       "paragraph_count": 6,
-      "file": "frontmatter-0001-opening.json"
+      "file": "frontmatter-0001-opening.json",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0002-o-escritor",
@@ -22,7 +23,8 @@
       "source_start_index": 18,
       "source_end_index": 38,
       "paragraph_count": 12,
-      "file": "frontmatter-0002-o-escritor.json"
+      "file": "frontmatter-0002-o-escritor.json",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0003-sumario",
@@ -33,7 +35,8 @@
       "source_start_index": 42,
       "source_end_index": 59,
       "paragraph_count": 18,
-      "file": "frontmatter-0003-sumario.json"
+      "file": "frontmatter-0003-sumario.json",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0004-opening",
@@ -44,7 +47,8 @@
       "source_start_index": 63,
       "source_end_index": 82,
       "paragraph_count": 11,
-      "file": "frontmatter-0004-opening.json"
+      "file": "frontmatter-0004-opening.json",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0005-prefacio",
@@ -55,7 +59,8 @@
       "source_start_index": 89,
       "source_end_index": 96,
       "paragraph_count": 8,
-      "file": "frontmatter-0005-prefacio.json"
+      "file": "frontmatter-0005-prefacio.json",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0006-introducao",
@@ -66,7 +71,8 @@
       "source_start_index": 107,
       "source_end_index": 116,
       "paragraph_count": 10,
-      "file": "frontmatter-0006-introducao.json"
+      "file": "frontmatter-0006-introducao.json",
+      "review_status": "approved_reference"
     },
     {
       "id": "frontmatter-0007-prologo",
@@ -77,7 +83,8 @@
       "source_start_index": 130,
       "source_end_index": 142,
       "paragraph_count": 13,
-      "file": "frontmatter-0007-prologo.json"
+      "file": "frontmatter-0007-prologo.json",
+      "review_status": "approved_reference"
     },
     {
       "id": "chapter-0001-conexao-dimensional",
@@ -88,7 +95,8 @@
       "source_start_index": 148,
       "source_end_index": 618,
       "paragraph_count": 287,
-      "file": "chapter-0001-conexao-dimensional.json"
+      "file": "chapter-0001-conexao-dimensional.json",
+      "review_status": "mixed"
     },
     {
       "id": "chapter-0002-supremo-poder-anonimo",
@@ -99,7 +107,8 @@
       "source_start_index": 630,
       "source_end_index": 1372,
       "paragraph_count": 500,
-      "file": "chapter-0002-supremo-poder-anonimo.json"
+      "file": "chapter-0002-supremo-poder-anonimo.json",
+      "review_status": "pending_review"
     },
     {
       "id": "chapter-0003-guerra-dimensional",
@@ -110,7 +119,8 @@
       "source_start_index": 1375,
       "source_end_index": 2141,
       "paragraph_count": 536,
-      "file": "chapter-0003-guerra-dimensional.json"
+      "file": "chapter-0003-guerra-dimensional.json",
+      "review_status": "pending_review"
     },
     {
       "id": "backmatter-0001-epilogo",
@@ -121,7 +131,8 @@
       "source_start_index": 2148,
       "source_end_index": 2201,
       "paragraph_count": 20,
-      "file": "backmatter-0001-epilogo.json"
+      "file": "backmatter-0001-epilogo.json",
+      "review_status": "pending_review"
     }
   ]
 }
