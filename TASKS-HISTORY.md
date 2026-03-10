@@ -188,3 +188,23 @@ Acceptance Criteria:
 - the cutoff excerpt is located in structured manuscript state
 - chunks before the cutoff are marked as `approved_reference`
 - chunks from the cutoff onward are marked as `pending_review`
+
+---
+
+## TASK-006 — Generate initial `STYLE_GUIDE.md` from the approved corpus
+
+Status: DONE
+
+Description:
+
+Analyze the already revised section and consolidate observable rules about style, literalness, and acceptable intervention level.
+
+Dependencies:
+
+- requires `TASK-005`
+
+Acceptance Criteria:
+
+- `editorial/STYLE_GUIDE.md` created
+- decisions written in operational language
+- clear distinction between confirmed rule and editorial hypothesis

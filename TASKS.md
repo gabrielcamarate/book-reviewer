@@ -35,37 +35,17 @@ Turn the current manuscript into an operational editorial review project with pe
 
 # Current Sprint
 
-Sprint: `Isolation, Foundation, and TDD Alignment`
+Sprint: `Core Editorial Memory Bootstrap`
 
 Goal:
 
-- align the repository with the staged development roadmap
-- finish backend-first project setup before new core features
-- establish AI jail, monorepo foundation, and TDD enforcement
+- derive persistent editorial memory from the approved corpus
+- consolidate style and glossary artifacts before automated review
+- prepare stable chunking for the first `pt-BR` copyedit pass
 
 ---
 
 # Tasks
-
-## TASK-006 — Generate initial `STYLE_GUIDE.md` from the approved corpus
-
-Status: TODO
-
-Description:
-
-Analyze the already revised section and consolidate observable rules about style, literalness, and acceptable intervention level.
-
-Dependencies:
-
-- requires `TASK-005`
-
-Acceptance Criteria:
-
-- `editorial/STYLE_GUIDE.md` created
-- decisions written in operational language
-- clear distinction between confirmed rule and editorial hypothesis
-
----
 
 ## TASK-007 — Generate initial `GLOSSARY.md`
 
