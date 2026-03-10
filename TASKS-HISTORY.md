@@ -148,3 +148,23 @@ Acceptance Criteria:
 - testing toolchain selected and configured
 - first executable test command available
 - governance documents explicitly enforce `test -> feature`
+
+---
+
+## TASK-004 — Segment the manuscript into chapters and paragraphs
+
+Status: DONE
+
+Description:
+
+Convert the raw extraction into a structured representation with chapters, paragraphs, and canonical order.
+
+Dependencies:
+
+- requires `TASK-003A`, `TASK-003B`, and `TASK-003C`
+
+Acceptance Criteria:
+
+- chapters are identifiable
+- paragraphs are preserved in order
+- stable identifiers exist per block

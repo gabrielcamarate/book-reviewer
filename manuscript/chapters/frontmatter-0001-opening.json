@@ -1,0 +1,42 @@
+{
+  "id": "frontmatter-0001-opening",
+  "type": "frontmatter",
+  "order": 1,
+  "title": "Opening",
+  "heading_source_index": null,
+  "paragraphs": [
+    {
+      "id": "frontmatter-0001-opening-p-0001",
+      "source_index": 5,
+      "text": "e X ilados da Terra"
+    },
+    {
+      "id": "frontmatter-0001-opening-p-0002",
+      "source_index": 6,
+      "text": "“passado pacto para o futuro”"
+    },
+    {
+      "id": "frontmatter-0001-opening-p-0003",
+      "source_index": 7,
+      "text": "Alexo CamaraTTe"
+    },
+    {
+      "id": "frontmatter-0001-opening-p-0004",
+      "source_index": 8,
+      "text": "Romance 5 – oescritorondeoleitoresta.com –1ª Edição – Volume 2"
+    },
+    {
+      "id": "frontmatter-0001-opening-p-0005",
+      "source_index": 9,
+      "text": "oescritorondeoleitoresta.com"
+    },
+    {
+      "id": "frontmatter-0001-opening-p-0006",
+      "source_index": 10,
+      "text": "elescritordondeestaellector.com"
+    }
+  ],
+  "source_start_index": 5,
+  "source_end_index": 10,
+  "paragraph_count": 6
+}

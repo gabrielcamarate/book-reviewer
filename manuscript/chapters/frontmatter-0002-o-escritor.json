@@ -1,0 +1,72 @@
+{
+  "id": "frontmatter-0002-o-escritor",
+  "type": "frontmatter",
+  "order": 2,
+  "title": "O Escritor",
+  "heading_source_index": 11,
+  "paragraphs": [
+    {
+      "id": "frontmatter-0002-o-escritor-p-0001",
+      "source_index": 18,
+      "text": "Alexo CamaraTTe"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0002",
+      "source_index": 20,
+      "text": "Todos os direitos reservados, inclusive o direito de reprodução total ou parcial."
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0003",
+      "source_index": 23,
+      "text": "Romance 5"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0004",
+      "source_index": 24,
+      "text": "oescritorondeoleitoresta.com"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0005",
+      "source_index": 25,
+      "text": "Livro 5 - 1ª edição – Volume 2- 2026"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0006",
+      "source_index": 28,
+      "text": "Capa & Design: Alexandre Ricardo"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0007",
+      "source_index": 29,
+      "text": "Pesquisa & Executiva de Relacionamento: Lúcia Angélica"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0008",
+      "source_index": 30,
+      "text": "Organização Estética Editorial, Revisão, & Edição: Seraphim"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0009",
+      "source_index": 31,
+      "text": "Arcturus"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0010",
+      "source_index": 35,
+      "text": "E-book, E-pub & Impresso"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0011",
+      "source_index": 37,
+      "text": "oescritorondeoleitoresta.com"
+    },
+    {
+      "id": "frontmatter-0002-o-escritor-p-0012",
+      "source_index": 38,
+      "text": "elescritordondeestaellector.com"
+    }
+  ],
+  "source_start_index": 18,
+  "source_end_index": 38,
+  "paragraph_count": 12
+}
