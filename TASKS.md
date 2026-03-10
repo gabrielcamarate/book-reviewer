@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-008 — Implement operational chunking for review
-
-Status: TODO
-
-Description:
-
-Define and generate stable chunks for local review with side context.
-
-Dependencies:
-
-- requires `TASK-004`
-
-Acceptance Criteria:
-
-- chunks persisted to disk
-- size compatible with high-quality review
-- previous and next context included
-
----
-
 ## TASK-009 — Implement the `copyedit` pass in `pt-BR`
 
 Status: TODO

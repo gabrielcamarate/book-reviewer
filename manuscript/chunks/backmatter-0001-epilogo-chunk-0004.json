@@ -1,0 +1,46 @@
+{
+  "id": "backmatter-0001-epilogo-chunk-0004",
+  "section_id": "backmatter-0001-epilogo",
+  "section_type": "backmatter",
+  "section_title": "Epílogo",
+  "chunk_order": 4,
+  "review_status": "pending_review",
+  "paragraph_ids": [
+    "backmatter-0001-epilogo-p-0013",
+    "backmatter-0001-epilogo-p-0014",
+    "backmatter-0001-epilogo-p-0015",
+    "backmatter-0001-epilogo-p-0016"
+  ],
+  "source_start_index": 2191,
+  "source_end_index": 2195,
+  "paragraph_count": 4,
+  "base_text": "“a minha raça é universal... o meu sexo é o amor...\n\na minha religião é a consciência...\n\ntodos os gêneros são iguais. “\n\n1ª Edição – Volume 2",
+  "previous_context": [
+    {
+      "paragraph_id": "backmatter-0001-epilogo-p-0011",
+      "source_index": 2186,
+      "review_status": "pending_review",
+      "text": "Alexo CamaraTTe"
+    },
+    {
+      "paragraph_id": "backmatter-0001-epilogo-p-0012",
+      "source_index": 2189,
+      "review_status": "pending_review",
+      "text": "eXilados da Terra..."
+    }
+  ],
+  "next_context": [
+    {
+      "paragraph_id": "backmatter-0001-epilogo-p-0017",
+      "source_index": 2196,
+      "review_status": "pending_review",
+      "text": "Ano 2026"
+    },
+    {
+      "paragraph_id": "backmatter-0001-epilogo-p-0018",
+      "source_index": 2197,
+      "review_status": "pending_review",
+      "text": "oescritorondeoleitoresta.com"
+    }
+  ]
+}

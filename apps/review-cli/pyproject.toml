@@ -13,5 +13,6 @@ editorial-core = { workspace = true }
 
 [project.scripts]
 review-cli = "review_cli.main:main"
+review-chunks = "review_cli.generate_chunks:main"
 review-glossary = "review_cli.generate_glossary:main"
 review-style-guide = "review_cli.generate_style_guide:main"

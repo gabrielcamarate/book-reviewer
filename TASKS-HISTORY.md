@@ -228,3 +228,23 @@ Acceptance Criteria:
 - `editorial/GLOSSARY.md` created
 - terms normalized
 - relevant aliases or variants recorded
+
+---
+
+## TASK-008 — Implement operational chunking for review
+
+Status: DONE
+
+Description:
+
+Define and generate stable chunks for local review with side context.
+
+Dependencies:
+
+- requires `TASK-004`
+
+Acceptance Criteria:
+
+- chunks persisted to disk
+- size compatible with high-quality review
+- previous and next context included

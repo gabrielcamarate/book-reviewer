@@ -1,0 +1,33 @@
+{
+  "id": "backmatter-0001-epilogo-chunk-0005",
+  "section_id": "backmatter-0001-epilogo",
+  "section_type": "backmatter",
+  "section_title": "Epílogo",
+  "chunk_order": 5,
+  "review_status": "pending_review",
+  "paragraph_ids": [
+    "backmatter-0001-epilogo-p-0017",
+    "backmatter-0001-epilogo-p-0018",
+    "backmatter-0001-epilogo-p-0019",
+    "backmatter-0001-epilogo-p-0020"
+  ],
+  "source_start_index": 2196,
+  "source_end_index": 2201,
+  "paragraph_count": 4,
+  "base_text": "Ano 2026\n\noescritorondeoleitoresta.com\n\nelescritordondeestaellector.com\n\nRio de janeiro",
+  "previous_context": [
+    {
+      "paragraph_id": "backmatter-0001-epilogo-p-0015",
+      "source_index": 2193,
+      "review_status": "pending_review",
+      "text": "todos os gêneros são iguais. “"
+    },
+    {
+      "paragraph_id": "backmatter-0001-epilogo-p-0016",
+      "source_index": 2195,
+      "review_status": "pending_review",
+      "text": "1ª Edição – Volume 2"
+    }
+  ],
+  "next_context": []
+}
