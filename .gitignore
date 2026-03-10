@@ -7,5 +7,7 @@ Thumbs.db
 *.docx:Zone.Identifier
 __pycache__/
 *.pyc
+.venv/
+.coverage
 node_modules/
 dist/

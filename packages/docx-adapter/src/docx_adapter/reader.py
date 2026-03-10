@@ -108,4 +108,3 @@ def write_json(path: Path, payload: Any) -> None:
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-

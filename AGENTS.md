@@ -247,6 +247,41 @@ Push guidance:
 
 ---
 
+# Monorepo Foundation (MANDATORY)
+
+This repository follows a monorepo-first backend structure.
+
+Top-level workspace areas:
+
+- `apps/` for runnable applications
+- `packages/` for shared backend packages
+- `manuscript/`, `editorial/`, `reviews/`, and `reports/` for project state and outputs
+
+Current monorepo convention:
+
+- `apps/review-cli` contains the first runnable CLI application
+- `packages/docx-adapter` contains document-format adapters
+- `packages/editorial-core` contains core use cases
+- `packages/editorial-prompts` is reserved for prompt templates
+- `packages/editorial-schemas` is reserved for shared schemas
+
+Configuration and dependency rules:
+
+- prefer Python standard library first
+- add external dependencies only with justification
+- keep workspace configuration in root `pyproject.toml`
+- keep package-local configuration in per-project `pyproject.toml`
+- prefer workspace-local execution over global installation
+
+Default local execution:
+
+```bash
+./scripts/workspace-python.sh -m review_cli.main --help
+./scripts/jail.sh ./scripts/workspace-python.sh -m review_cli.main --help
+```
+
+---
+
 # Editorial Workflow
 
 The editorial pipeline must separate responsibilities.

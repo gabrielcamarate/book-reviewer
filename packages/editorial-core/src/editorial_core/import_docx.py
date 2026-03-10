@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from src.adapters.docx_reader import (
+from docx_adapter.reader import (
     extract_docx_metadata,
     extract_docx_paragraphs,
     write_json,

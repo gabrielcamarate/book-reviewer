@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from src.core.import_docx import import_docx
+from editorial_core.import_docx import import_docx
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -55,6 +55,20 @@ The main workflow is:
 Suggested initial structure:
 
 ```text
+apps/
+  review-cli/
+    src/
+
+packages/
+  docx-adapter/
+    src/
+  editorial-core/
+    src/
+  editorial-prompts/
+    src/
+  editorial-schemas/
+    src/
+
 manuscript/
   source/
   extracted/
@@ -73,18 +87,23 @@ reviews/
   es/
 
 reports/
-
-src/
-  cli/
-  core/
-  adapters/
-  prompts/
-  schemas/
 ```
 
 ---
 
 # Layered Architecture
+
+## Application Layer
+
+Responsibilities:
+
+- provide runnable entrypoints
+- wire command parsing to core use cases
+- remain thin and orchestration-oriented
+
+Current app:
+
+- `apps/review-cli`
 
 ## CLI Layer
 
@@ -100,6 +119,10 @@ Rules:
 - CLI must remain thin
 - no editorial business logic here
 - no complex parsing logic here
+
+Contained in:
+
+- `apps/review-cli`
 
 ## Core Layer
 
@@ -120,6 +143,10 @@ Rules:
 - core must not depend directly on a chat session
 - core should operate on explicit state and files
 
+Contained in:
+
+- `packages/editorial-core`
+
 ## Adapter Layer
 
 Responsibilities:
@@ -135,6 +162,10 @@ Rules:
 - isolate side effects
 - keep provider-specific logic out of core
 
+Contained in:
+
+- `packages/docx-adapter`
+
 ## Prompt Layer
 
 Responsibilities:
@@ -149,6 +180,10 @@ Rules:
 - prompts must be parameterized by persisted context
 - prompts must not be the only source of editorial memory
 
+Contained in:
+
+- `packages/editorial-prompts`
+
 ## Schema Layer
 
 Responsibilities:
@@ -157,6 +192,10 @@ Responsibilities:
 - JSON contracts for review results
 - chunk metadata
 - approval state
+
+Contained in:
+
+- `packages/editorial-schemas`
 
 ---
 

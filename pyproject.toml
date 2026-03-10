@@ -1,0 +1,21 @@
+[project]
+name = "revisor-livro-workspace"
+version = "0.1.0"
+description = "Workspace configuration for the editorial review project."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+  "apps/review-cli",
+  "packages/docx-adapter",
+  "packages/editorial-core",
+  "packages/editorial-prompts",
+  "packages/editorial-schemas",
+]
+
+[tool.revisor_livro]
+package_manager = "uv"
+dependency_strategy = "stdlib-first"
+workspace_execution = "scripts/workspace-python.sh"
+preferred_jail_entrypoint = "scripts/jail.sh"

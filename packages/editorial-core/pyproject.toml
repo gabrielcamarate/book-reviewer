@@ -1,0 +1,10 @@
+[project]
+name = "editorial-core"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "docx-adapter",
+]
+
+[tool.uv.sources]
+docx-adapter = { workspace = true }

@@ -47,22 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-003B — Establish foundation, configs, dependencies, and monorepo layout
-
-Status: TODO
-
-Description:
-
-Restructure the repository foundation so future implementation follows the intended monorepo-first workflow.
-
-Acceptance Criteria:
-
-- monorepo structure defined
-- configs and dependency strategy documented or implemented
-- repository layout aligned with the staged roadmap
-
----
-
 ## TASK-003C — Establish testing foundation and enforce TDD
 
 Status: TODO

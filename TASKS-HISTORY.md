@@ -116,3 +116,19 @@ Acceptance Criteria:
 - container-based workflow defined
 - development commands run inside the isolated environment
 - repository documentation explains the jail workflow
+
+---
+
+## TASK-003B — Establish foundation, configs, dependencies, and monorepo layout
+
+Status: DONE
+
+Description:
+
+Restructure the repository foundation so future implementation follows the intended monorepo-first workflow.
+
+Acceptance Criteria:
+
+- monorepo structure defined
+- configs and dependency strategy documented or implemented
+- repository layout aligned with the staged roadmap
