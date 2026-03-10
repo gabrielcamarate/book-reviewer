@@ -208,3 +208,23 @@ Acceptance Criteria:
 - `editorial/STYLE_GUIDE.md` created
 - decisions written in operational language
 - clear distinction between confirmed rule and editorial hypothesis
+
+---
+
+## TASK-007 — Generate initial `GLOSSARY.md`
+
+Status: DONE
+
+Description:
+
+Extract proper names, recurring concepts, philosophical formulas, acronyms, and preferred spellings.
+
+Dependencies:
+
+- requires `TASK-005`
+
+Acceptance Criteria:
+
+- `editorial/GLOSSARY.md` created
+- terms normalized
+- relevant aliases or variants recorded

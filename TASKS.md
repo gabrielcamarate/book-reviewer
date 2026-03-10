@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-007 — Generate initial `GLOSSARY.md`
-
-Status: TODO
-
-Description:
-
-Extract proper names, recurring concepts, philosophical formulas, acronyms, and preferred spellings.
-
-Dependencies:
-
-- requires `TASK-005`
-
-Acceptance Criteria:
-
-- `editorial/GLOSSARY.md` created
-- terms normalized
-- relevant aliases or variants recorded
-
----
-
 ## TASK-008 — Implement operational chunking for review
 
 Status: TODO
