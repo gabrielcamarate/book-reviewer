@@ -348,3 +348,25 @@ Acceptance Criteria:
 - `pt-BR` export available
 - foundation ready for Spanish export
 - output is reproducible
+
+---
+
+## TASK-014 — Build output interface
+
+Status: DONE
+
+Description:
+
+Build the first output interface only after backend/core flow is stable.
+
+Acceptance Criteria:
+
+- interface type explicitly chosen
+- interface consumes stable backend/core outputs
+- no business logic is moved into the interface layer
+- first interface is `web` local-first
+- architecture remains compatible with a future WhatsApp channel
+
+Dependencies:
+
+- requires `TASK-010` and, preferably, `TASK-011`

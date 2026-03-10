@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-014 — Build output interface
-
-Status: TODO
-
-Description:
-
-Build the first output interface only after backend/core flow is stable.
-
-Acceptance Criteria:
-
-- interface type explicitly chosen
-- interface consumes stable backend/core outputs
-- no business logic is moved into the interface layer
-
-Dependencies:
-
-- requires `TASK-010` and, preferably, `TASK-011`
-
----
-
 ## TASK-015 — Prepare CI/CD and deployment baseline
 
 Status: TODO

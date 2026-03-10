@@ -105,10 +105,16 @@ Responsibilities:
 - provide runnable entrypoints
 - wire command parsing to core use cases
 - remain thin and orchestration-oriented
+- expose local-first operator interfaces over persisted backend state
 
 Current app:
 
 - `apps/review-cli`
+- `apps/review-web`
+
+Future interface note:
+
+- a future WhatsApp or bot channel must consume the same persisted backend/core outputs rather than duplicating editorial logic
 
 ## CLI Layer
 
@@ -128,6 +134,24 @@ Rules:
 Contained in:
 
 - `apps/review-cli`
+
+## Web Interface Layer
+
+Responsibilities:
+
+- expose local-first operational visibility over persisted repository state
+- present summary metrics, recent chunks, consistency findings, and deliverables
+- keep all editorial decisions delegated to existing backend commands and persisted artifacts
+
+Rules:
+
+- no editorial business logic in the web layer
+- no hidden mutable state outside repository artifacts
+- future channels such as WhatsApp must reuse the same backend/core contracts
+
+Contained in:
+
+- `apps/review-web`
 
 ## Core Layer
 

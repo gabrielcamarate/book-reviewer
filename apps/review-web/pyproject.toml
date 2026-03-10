@@ -1,0 +1,13 @@
+[project]
+name = "review-web"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "editorial-core",
+]
+
+[tool.uv.sources]
+editorial-core = { workspace = true }
+
+[project.scripts]
+review-web = "review_web.server:main"

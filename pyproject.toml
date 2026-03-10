@@ -8,6 +8,7 @@ dependencies = []
 [tool.uv.workspace]
 members = [
   "apps/review-cli",
+  "apps/review-web",
   "packages/docx-adapter",
   "packages/editorial-core",
   "packages/editorial-prompts",

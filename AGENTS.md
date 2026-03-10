@@ -75,6 +75,11 @@ Stage 6: Output Interfaces
 - mobile
 - bot
 
+Current interface decision:
+
+- build `web` first as a local-first interface over the stable backend
+- keep future `bot` integration possible, including WhatsApp, without moving business logic out of the backend/core
+
 Stage 7: Deploy
 
 - CI/CD
@@ -261,6 +266,7 @@ Top-level workspace areas:
 Current monorepo convention:
 
 - `apps/review-cli` contains the first runnable CLI application
+- `apps/review-web` contains the first local-first operator interface
 - `packages/docx-adapter` contains document-format adapters
 - `packages/editorial-core` contains core use cases
 - `packages/editorial-prompts` is reserved for prompt templates
@@ -278,6 +284,7 @@ Default local execution:
 
 ```bash
 ./scripts/workspace-python.sh -m review_cli.main --help
+./scripts/workspace-python.sh -m review_web.server --help
 ./scripts/jail.sh ./scripts/workspace-python.sh -m review_cli.main --help
 ```
 
