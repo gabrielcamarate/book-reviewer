@@ -268,3 +268,23 @@ Acceptance Criteria:
 - structured chunk input
 - structured output with suggestion and reason
 - no irreversible automatic manuscript mutation
+
+---
+
+## TASK-010 — Implement review approval and application
+
+Status: DONE
+
+Description:
+
+Allow approved suggestions to be consolidated into manuscript state.
+
+Dependencies:
+
+- requires `TASK-009`
+
+Acceptance Criteria:
+
+- approved review is recorded
+- consolidated text is updated
+- audit trail is preserved

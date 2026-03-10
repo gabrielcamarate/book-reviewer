@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-010 — Implement review approval and application
-
-Status: TODO
-
-Description:
-
-Allow approved suggestions to be consolidated into manuscript state.
-
-Dependencies:
-
-- requires `TASK-009`
-
-Acceptance Criteria:
-
-- approved review is recorded
-- consolidated text is updated
-- audit trail is preserved
-
----
-
 ## TASK-011 — Implement global consistency checking
 
 Status: TODO

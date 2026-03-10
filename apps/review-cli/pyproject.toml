@@ -17,6 +17,7 @@ editorial-schemas = { workspace = true }
 
 [project.scripts]
 review-cli = "review_cli.main:main"
+review-approve = "review_cli.apply_review:main"
 review-chunks = "review_cli.generate_chunks:main"
 review-glossary = "review_cli.generate_glossary:main"
 review-copyedit = "review_cli.run_copyedit:main"

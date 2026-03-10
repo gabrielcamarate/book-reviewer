@@ -43,7 +43,7 @@ The main workflow is:
 4. mark approved versus pending material
 5. learn style from the approved corpus
 6. review pending chunks in `pt-BR`
-7. approve and apply changes
+7. approve and apply changes into consolidated manuscript state
 8. run global consistency checks
 9. translate to Spanish
 10. export `.docx`
@@ -74,6 +74,7 @@ manuscript/
   extracted/
   chapters/
   chunks/
+  consolidated/
 
 editorial/
   STYLE_GUIDE.md
@@ -210,6 +211,7 @@ Primary entities:
 - `ReviewSuggestion`
 - `ReviewPass`
 - `Approval`
+- `ConsolidatedSection`
 - `ExportJob`
 
 Each `Chunk` should include at minimum:
@@ -230,6 +232,26 @@ Suggested statuses:
 - `reviewed`
 - `approved`
 - `exported`
+
+---
+
+# Consolidated State
+
+The repository must distinguish between source segmentation and approved manuscript state.
+
+Rules:
+
+- `manuscript/chapters/` remains the segmented source derived from the imported manuscript and review-boundary processing
+- approved applications must not overwrite `manuscript/chapters/`
+- `manuscript/consolidated/` stores the mutable editorial state after approved review application
+- consolidated paragraphs should preserve both `source_text` and current `text`
+- each approved application must be traceable back to a persisted review file and approval file
+
+Expected consolidated artifacts:
+
+- `manuscript/consolidated/index.json`
+- per-section JSON files mirroring source section identifiers
+- paragraph-level audit metadata for applied reviews
 
 ---
 
@@ -305,6 +327,7 @@ This memory must be converted into explicit artifacts under `editorial/`, not ke
 # Editorial Safety Rules
 
 - never apply changes without recording origin and reason
+- never overwrite segmented source files when consolidating approved review
 - never translate before the `pt-BR` text is stable
 - never mix approved corpus and pending corpus without explicit markers
 - never assume every repetition is an error
