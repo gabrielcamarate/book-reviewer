@@ -328,3 +328,23 @@ Acceptance Criteria:
 - depends on reviewed `pt-BR`
 - respects glossary and style
 - produces persisted outputs per chapter or chunk
+
+---
+
+## TASK-013 — Implement final export
+
+Status: DONE
+
+Description:
+
+Rebuild the reviewed work into a final delivery format.
+
+Dependencies:
+
+- requires `TASK-010`
+
+Acceptance Criteria:
+
+- `pt-BR` export available
+- foundation ready for Spanish export
+- output is reproducible

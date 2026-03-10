@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-013 — Implement final export
-
-Status: TODO
-
-Description:
-
-Rebuild the reviewed work into a final delivery format.
-
-Dependencies:
-
-- requires `TASK-010`
-
-Acceptance Criteria:
-
-- `pt-BR` export available
-- foundation ready for Spanish export
-- output is reproducible
-
----
-
 ## TASK-014 — Build output interface
 
 Status: TODO

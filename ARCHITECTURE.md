@@ -88,6 +88,10 @@ reviews/
   es/
 
 reports/
+
+deliverables/
+  ptbr/
+  es/
 ```
 
 ---
@@ -154,6 +158,7 @@ Responsibilities:
 
 - file I/O
 - `.docx` parsing
+- `.docx` export
 - model calls
 - diff generation
 - final export

@@ -256,6 +256,7 @@ Top-level workspace areas:
 - `apps/` for runnable applications
 - `packages/` for shared backend packages
 - `manuscript/`, `editorial/`, `reviews/`, and `reports/` for project state and outputs
+- `deliverables/` for exported manuscript outputs
 
 Current monorepo convention:
 
