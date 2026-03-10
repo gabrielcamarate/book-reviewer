@@ -29,23 +29,71 @@ Task status legend:
 
 # Current Objective
 
-Turn the current manuscript into an operational editorial review project with persistent memory, starting from `.docx` ingestion, text segmentation, and style learning from the already approved section.
+Turn the current manuscript into an operational editorial review project with persistent memory, following a staged model: isolation and governance first, foundation second, testing third, core backend fourth, interface later.
 
 ---
 
 # Current Sprint
 
-Sprint: `Editorial Pipeline Foundation`
+Sprint: `Isolation, Foundation, and TDD Alignment`
 
 Goal:
 
-- move from a single `.docx` file to a reproducible workflow
-- persist editorial context outside the chat
-- prepare pending `pt-BR` review work
+- align the repository with the staged development roadmap
+- finish backend-first project setup before new core features
+- establish AI jail, monorepo foundation, and TDD enforcement
 
 ---
 
 # Tasks
+
+## TASK-003A — Establish AI jail and containerized workflow
+
+Status: TODO
+
+Description:
+
+Create the isolated execution environment and governance baseline for assisted development.
+
+Acceptance Criteria:
+
+- container-based workflow defined
+- development commands run inside the isolated environment
+- repository documentation explains the jail workflow
+
+---
+
+## TASK-003B — Establish foundation, configs, dependencies, and monorepo layout
+
+Status: TODO
+
+Description:
+
+Restructure the repository foundation so future implementation follows the intended monorepo-first workflow.
+
+Acceptance Criteria:
+
+- monorepo structure defined
+- configs and dependency strategy documented or implemented
+- repository layout aligned with the staged roadmap
+
+---
+
+## TASK-003C — Establish testing foundation and enforce TDD
+
+Status: TODO
+
+Description:
+
+Create the testing baseline and make test-first development mandatory for upcoming feature work.
+
+Acceptance Criteria:
+
+- testing toolchain selected and configured
+- first executable test command available
+- governance documents explicitly enforce `test -> feature`
+
+---
 
 ## TASK-004 — Segment the manuscript into chapters and paragraphs
 
@@ -54,6 +102,10 @@ Status: TODO
 Description:
 
 Convert the raw extraction into a structured representation with chapters, paragraphs, and canonical order.
+
+Dependencies:
+
+- requires `TASK-003A`, `TASK-003B`, and `TASK-003C`
 
 Acceptance Criteria:
 
@@ -71,6 +123,10 @@ Description:
 
 Persist the operational point where approved review ends and pending review begins.
 
+Dependencies:
+
+- requires `TASK-004`
+
 Acceptance Criteria:
 
 - the cutoff excerpt is located in structured manuscript state
@@ -86,6 +142,10 @@ Status: TODO
 Description:
 
 Analyze the already revised section and consolidate observable rules about style, literalness, and acceptable intervention level.
+
+Dependencies:
+
+- requires `TASK-005`
 
 Acceptance Criteria:
 
@@ -103,6 +163,10 @@ Description:
 
 Extract proper names, recurring concepts, philosophical formulas, acronyms, and preferred spellings.
 
+Dependencies:
+
+- requires `TASK-005`
+
 Acceptance Criteria:
 
 - `editorial/GLOSSARY.md` created
@@ -118,6 +182,10 @@ Status: TODO
 Description:
 
 Define and generate stable chunks for local review with side context.
+
+Dependencies:
+
+- requires `TASK-004`
 
 Acceptance Criteria:
 
@@ -135,6 +203,10 @@ Description:
 
 Create the first automated conservative review flow for pending chunks.
 
+Dependencies:
+
+- requires `TASK-003C`, `TASK-006`, `TASK-007`, and `TASK-008`
+
 Acceptance Criteria:
 
 - structured chunk input
@@ -150,6 +222,10 @@ Status: TODO
 Description:
 
 Allow approved suggestions to be consolidated into manuscript state.
+
+Dependencies:
+
+- requires `TASK-009`
 
 Acceptance Criteria:
 
@@ -167,6 +243,10 @@ Description:
 
 Create a pass that detects terminological, naming, and conceptual inconsistencies in the consolidated manuscript.
 
+Dependencies:
+
+- requires `TASK-010`
+
 Acceptance Criteria:
 
 - report written to `reports/`
@@ -182,6 +262,10 @@ Status: TODO
 Description:
 
 Generate an equivalent Spanish version from the consolidated `pt-BR` text.
+
+Dependencies:
+
+- requires `TASK-010` and `TASK-011`
 
 Acceptance Criteria:
 
@@ -199,6 +283,57 @@ Description:
 
 Rebuild the reviewed work into a final delivery format.
 
+Dependencies:
+
+- requires `TASK-010`
+
+Acceptance Criteria:
+
+- `pt-BR` export available
+- foundation ready for Spanish export
+- output is reproducible
+
+---
+
+## TASK-014 — Build output interface
+
+Status: TODO
+
+Description:
+
+Build the first output interface only after backend/core flow is stable.
+
+Acceptance Criteria:
+
+- interface type explicitly chosen
+- interface consumes stable backend/core outputs
+- no business logic is moved into the interface layer
+
+Dependencies:
+
+- requires `TASK-010` and, preferably, `TASK-011`
+
+---
+
+## TASK-015 — Prepare CI/CD and deployment baseline
+
+Status: TODO
+
+Description:
+
+Create the delivery pipeline and production readiness workflow.
+
+Acceptance Criteria:
+
+- CI/CD script or workflow defined
+- code validation and test automation included
+- security or vulnerability scanning included
+- deployment path documented
+
+Dependencies:
+
+- requires stable backend/core workflow and test foundation
+
 Acceptance Criteria:
 
 - `pt-BR` export available
@@ -213,3 +348,4 @@ Acceptance Criteria:
 - there is no pre-review versus post-review diff for the already revised section
 - the already reviewed corpus must be treated as the primary editorial reference
 - completed tasks belong in `TASKS-HISTORY.md`, not in this file
+- interface work belongs after backend/core stabilization, not before

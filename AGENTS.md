@@ -13,6 +13,7 @@ If there is any conflict between default agent behavior and this document, this 
 - Plan before changing code or structural documentation
 - Work in small, verifiable steps
 - Persist editorial context in files, never depend on chat history
+- Build backend/core before building output interfaces
 - Preserve the author's voice
 - Prefer conservative revision over free rewriting
 - Treat glossary, characters, world concepts, and style decisions as persistent state
@@ -32,6 +33,62 @@ Build a reproducible workflow to:
 - validate global consistency across the book
 - generate an equivalent Spanish version only after the `pt-BR` text is consolidated
 - export final deliverables back to `.docx`
+
+---
+
+# Development Roadmap (MANDATORY)
+
+This project follows a staged development model.
+
+Stage 1: AI Jail and Governance
+
+- isolate execution with container-based workflow
+- define safety and governance before expanding implementation
+
+Stage 2: Foundation
+
+- finalize architecture
+- define configs and dependencies
+- establish monorepo structure
+- keep `AGENTS.md` as the complete operational source for these rules
+
+Stage 3: TDD
+
+- tests must be written before new feature code
+- if a new function or module requires behavior validation, test-first is mandatory
+- if code was added without tests and the task requires testable behavior, that gap must be fixed before moving forward
+
+Stage 4: Core Backend
+
+- implement core features only after stages 1 through 3 are in place
+- follow `test -> feature`, never `feature -> test`
+
+Stage 5: Optimization
+
+- heavy processing
+- jobs and queues
+- refactoring and performance work
+
+Stage 6: Output Interfaces
+
+- web
+- mobile
+- bot
+
+Stage 7: Deploy
+
+- CI/CD
+- code validation and linting
+- test automation
+- vulnerability scanning
+- production setup
+- deployment
+
+Rules:
+
+- stages do not represent literal calendar days
+- backend/core work comes before output interface work
+- no interface-first implementation unless the user explicitly overrides this roadmap
 
 ---
 
@@ -108,10 +165,11 @@ Standard flow:
 
 1. Plan
 2. Inspect current state
-3. Implement the smallest useful increment
-4. Verify locally
-5. Update structural documentation when needed
-6. If the task is complete, move it from `TASKS.md` to `TASKS-HISTORY.md`
+3. Confirm the current work is allowed by the active roadmap stage
+4. Implement the smallest useful increment
+5. Verify locally
+6. Update structural documentation when needed
+7. If the task is complete, move it from `TASKS.md` to `TASKS-HISTORY.md`
 
 Task board rules:
 
@@ -196,6 +254,19 @@ Principles:
 - reproducible and auditable operations
 
 Core logic must not depend on a conversational interface to function.
+
+---
+
+# TDD Policy (MANDATORY)
+
+From the testing stage onward, the repository must follow test-first development for feature work.
+
+Rules:
+
+- do not implement new feature behavior before writing the test that proves it
+- documentation-only work may be committed without tests
+- environment bootstrap and governance work may proceed without strict TDD when appropriate
+- once the testing foundation exists, feature tasks without tests must be treated as incomplete
 
 ---
 

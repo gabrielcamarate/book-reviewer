@@ -84,3 +84,19 @@ Acceptance Criteria:
 - `.docx` file can be read
 - relevant text and metadata are extracted
 - outputs are persisted in reproducible files
+
+---
+
+## TASK-003D — Align governance with the staged development roadmap
+
+Status: DONE
+
+Description:
+
+Align repository governance with the staged development model: AI jail first, foundation second, TDD before new features, backend/core before interfaces, and deployment last.
+
+Acceptance Criteria:
+
+- `AGENTS.md` defines the staged roadmap explicitly
+- `TASKS.md` prioritizes isolation, foundation, and TDD before new core features
+- backlog makes backend-first execution explicit
