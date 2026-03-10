@@ -370,3 +370,24 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-010` and, preferably, `TASK-011`
+
+---
+
+## TASK-015 — Prepare CI/CD and deployment baseline
+
+Status: DONE
+
+Description:
+
+Create the delivery pipeline and production readiness workflow.
+
+Acceptance Criteria:
+
+- CI/CD script or workflow defined
+- code validation and test automation included
+- security or vulnerability scanning included
+- deployment path documented
+
+Dependencies:
+
+- requires stable backend/core workflow and test foundation

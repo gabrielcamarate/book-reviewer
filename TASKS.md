@@ -47,33 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-015 — Prepare CI/CD and deployment baseline
-
-Status: TODO
-
-Description:
-
-Create the delivery pipeline and production readiness workflow.
-
-Acceptance Criteria:
-
-- CI/CD script or workflow defined
-- code validation and test automation included
-- security or vulnerability scanning included
-- deployment path documented
-
-Dependencies:
-
-- requires stable backend/core workflow and test foundation
-
-Acceptance Criteria:
-
-- `pt-BR` export available
-- foundation ready for Spanish export
-- output is reproducible
-
----
-
 # Notes for Agents
 
 - the current manuscript is the only available source of truth

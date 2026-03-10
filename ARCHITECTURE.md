@@ -16,6 +16,7 @@ The system must be:
 - agent-friendly
 - safe for incremental review
 - prepared for both `pt-BR` and Spanish outputs
+- ready for CI validation before production deployment
 
 ---
 

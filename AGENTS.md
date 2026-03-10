@@ -89,6 +89,11 @@ Stage 7: Deploy
 - production setup
 - deployment
 
+Current deploy baseline:
+
+- GitHub Actions CI validates bytecode compilation, unit tests, and `bandit`
+- deployment path remains documented and staged in `DEPLOYMENT.md`
+
 Rules:
 
 - stages do not represent literal calendar days
@@ -187,6 +192,7 @@ Expected artifacts over time:
 - `manuscript/` with extracted book structure
 - `reviews/` with per-chunk and per-chapter review outputs
 - `reports/` with audits and validation reports
+- `DEPLOYMENT.md` with the current delivery path and CI/deploy baseline
 
 No agent should depend on implicit memory from earlier turns when the information can be persisted in these files.
 
