@@ -1,0 +1,298 @@
+# Project Architecture Guide
+
+This document describes the target architecture for the AI-assisted editorial review system for the manuscript `eXilados da Terra`.
+
+It works together with `AGENTS.md` and `TASKS.md`.
+
+---
+
+# Architectural Goals
+
+The system must be:
+
+- deterministic where possible
+- auditable
+- file-oriented
+- agent-friendly
+- safe for incremental review
+- prepared for both `pt-BR` and Spanish outputs
+
+---
+
+# Core Premise
+
+Editorial context must not live in a conversation.
+
+Editorial context must live in:
+
+- extracted manuscript files
+- persistent editorial guides
+- review reports
+- recorded style decisions
+- structured per-chunk outputs
+
+---
+
+# Primary Data Flow
+
+The main workflow is:
+
+1. import `livro.docx`
+2. extract manuscript structure
+3. segment into chapters, paragraphs, and chunks
+4. mark approved versus pending material
+5. learn style from the approved corpus
+6. review pending chunks in `pt-BR`
+7. approve and apply changes
+8. run global consistency checks
+9. translate to Spanish
+10. export `.docx`
+
+---
+
+# Target Directory Structure
+
+Suggested initial structure:
+
+```text
+manuscript/
+  source/
+  extracted/
+  chapters/
+  chunks/
+
+editorial/
+  STYLE_GUIDE.md
+  GLOSSARY.md
+  CHARACTERS.md
+  WORLD_RULES.md
+  DECISIONS.md
+
+reviews/
+  ptbr/
+  es/
+
+reports/
+
+src/
+  cli/
+  core/
+  adapters/
+  prompts/
+  schemas/
+```
+
+---
+
+# Layered Architecture
+
+## CLI Layer
+
+Responsibilities:
+
+- accept commands
+- validate arguments
+- trigger use cases
+- print output paths and concise summaries
+
+Rules:
+
+- CLI must remain thin
+- no editorial business logic here
+- no complex parsing logic here
+
+## Core Layer
+
+Responsibilities:
+
+- import manuscript content
+- segment chapters and chunks
+- locate the approved/pending boundary
+- build review context
+- orchestrate editorial passes
+- consolidate suggestions
+- run consistency checks
+- prepare Spanish translation
+
+Rules:
+
+- core must be testable
+- core must not depend directly on a chat session
+- core should operate on explicit state and files
+
+## Adapter Layer
+
+Responsibilities:
+
+- file I/O
+- `.docx` parsing
+- model calls
+- diff generation
+- final export
+
+Rules:
+
+- isolate side effects
+- keep provider-specific logic out of core
+
+## Prompt Layer
+
+Responsibilities:
+
+- instruction templates for `copyedit`
+- instruction templates for `style`
+- instruction templates for `consistency`
+- instruction templates for `translation-es`
+
+Rules:
+
+- prompts must be parameterized by persisted context
+- prompts must not be the only source of editorial memory
+
+## Schema Layer
+
+Responsibilities:
+
+- input and output formats
+- JSON contracts for review results
+- chunk metadata
+- approval state
+
+---
+
+# State Model
+
+Primary entities:
+
+- `Manuscript`
+- `Chapter`
+- `Paragraph`
+- `Chunk`
+- `ReviewSuggestion`
+- `ReviewPass`
+- `Approval`
+- `ExportJob`
+
+Each `Chunk` should include at minimum:
+
+- stable identifier
+- chapter reference
+- position
+- base text
+- short previous context
+- short next context
+- status
+
+Suggested statuses:
+
+- `approved_reference`
+- `pending_review`
+- `in_review`
+- `reviewed`
+- `approved`
+- `exported`
+
+---
+
+# Approved vs Pending Boundary
+
+The system must support an explicit editorial checkpoint.
+
+Initial assumption:
+
+- everything before the excerpt `"Todo cuidado é pouco, tratando-se do Sistema Terra estabelecido"` may be treated as approved reference corpus
+- that excerpt and everything after it should be treated as pending until validated more precisely
+
+This boundary must be persisted in state, not inferred from scratch on every run.
+
+---
+
+# Chunking Strategy
+
+The model must not operate on the entire book at once.
+
+Requirements:
+
+- chunks small enough for high-quality review
+- enough side context to preserve continuity
+- stable identifiers per block
+- reliable chapter recomposition
+
+Suggested starting approach:
+
+- chunk by paragraph groups
+- target window roughly equivalent to 12 to 20 useful lines
+- light contextual overlap
+
+---
+
+# Review Strategy
+
+The editorial pipeline should use independent passes.
+
+## Pass 1: Copyedit
+
+Fix form without distorting voice.
+
+## Pass 2: Style
+
+Improve fluency, rhythm, and clarity while preserving literary intent.
+
+## Pass 3: Consistency
+
+Check terms, names, repeated formulas, internal philosophy, and coherence.
+
+## Pass 4: Translation ES
+
+Translate from the consolidated `pt-BR` text using a literary Spanish register compatible with the intended style.
+
+---
+
+# Editorial Memory
+
+The system should reuse the approved section to infer:
+
+- punctuation patterns
+- lexical preferences
+- acceptable intervention level
+- recurring philosophical formulas
+- preferred spellings
+- dialogue treatment patterns
+
+This memory must be converted into explicit artifacts under `editorial/`, not kept only inside prompts.
+
+---
+
+# Editorial Safety Rules
+
+- never apply changes without recording origin and reason
+- never translate before the `pt-BR` text is stable
+- never mix approved corpus and pending corpus without explicit markers
+- never assume every repetition is an error
+- never assume every grammatical deviation is intentional
+
+The system must allow human intervention before final consolidation.
+
+---
+
+# Expected Evolution
+
+Phase 1:
+
+- `.docx` ingestion
+- manuscript structuring
+- review boundary marking
+- initial style learning
+
+Phase 2:
+
+- per-chunk `pt-BR` review
+- approval and application flow
+- consistency reports
+
+Phase 3:
+
+- literary Spanish translation
+- final export
+
+Future architectural changes must be documented here.
