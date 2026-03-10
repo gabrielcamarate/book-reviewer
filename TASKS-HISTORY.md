@@ -100,3 +100,19 @@ Acceptance Criteria:
 - `AGENTS.md` defines the staged roadmap explicitly
 - `TASKS.md` prioritizes isolation, foundation, and TDD before new core features
 - backlog makes backend-first execution explicit
+
+---
+
+## TASK-003A — Establish AI jail and containerized workflow
+
+Status: DONE
+
+Description:
+
+Create the isolated execution environment and governance baseline for assisted development.
+
+Acceptance Criteria:
+
+- container-based workflow defined
+- development commands run inside the isolated environment
+- repository documentation explains the jail workflow

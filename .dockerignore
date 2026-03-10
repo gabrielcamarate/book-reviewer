@@ -1,0 +1,11 @@
+.git
+__pycache__
+*.pyc
+.pytest_cache
+manuscript/extracted
+reviews
+reports
+dist
+node_modules
+*.log
+livro.docx

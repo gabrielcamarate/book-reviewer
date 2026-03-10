@@ -47,22 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-003A — Establish AI jail and containerized workflow
-
-Status: TODO
-
-Description:
-
-Create the isolated execution environment and governance baseline for assisted development.
-
-Acceptance Criteria:
-
-- container-based workflow defined
-- development commands run inside the isolated environment
-- repository documentation explains the jail workflow
-
----
-
 ## TASK-003B — Establish foundation, configs, dependencies, and monorepo layout
 
 Status: TODO

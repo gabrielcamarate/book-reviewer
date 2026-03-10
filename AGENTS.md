@@ -92,6 +92,43 @@ Rules:
 
 ---
 
+# AI Jail Workflow (MANDATORY)
+
+This repository must use an isolated container-based workflow before expanding feature work.
+
+Required artifacts:
+
+- `Dockerfile`
+- `docker-compose.yml`
+- `scripts/jail.sh`
+
+Rules:
+
+- development commands should run inside the jail whenever feasible
+- the host machine should be treated as orchestration only
+- repository paths are mounted into the container workspace
+- local environment drift should not be the default execution path for core development
+
+Default usage:
+
+```bash
+./scripts/jail.sh
+./scripts/jail.sh python3 -m src.cli.import_docx --help
+./scripts/jail.sh python3 -m src.cli.import_docx
+```
+
+Verification baseline:
+
+- `docker compose config`
+- at least one project development command must be runnable through the jail workflow
+
+Notes:
+
+- if image build requires network access and the environment blocks it, validate the jail configuration structurally and record the limitation
+- later tasks may expand this jail into a richer dev environment, but the repository must already define the isolated path
+
+---
+
 # Editorial Source of Truth
 
 The current source of truth is:
