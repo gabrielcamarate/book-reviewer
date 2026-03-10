@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-012 — Implement the literary Spanish translation pipeline
-
-Status: TODO
-
-Description:
-
-Generate an equivalent Spanish version from the consolidated `pt-BR` text.
-
-Dependencies:
-
-- requires `TASK-010` and `TASK-011`
-
-Acceptance Criteria:
-
-- depends on reviewed `pt-BR`
-- respects glossary and style
-- produces persisted outputs per chapter or chunk
-
----
-
 ## TASK-013 — Implement final export
 
 Status: TODO

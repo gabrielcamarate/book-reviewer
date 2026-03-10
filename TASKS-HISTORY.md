@@ -308,3 +308,23 @@ Acceptance Criteria:
 - report written to `reports/`
 - inconsistencies grouped by type
 - no silent automatic mutation
+
+---
+
+## TASK-012 — Implement the literary Spanish translation pipeline
+
+Status: DONE
+
+Description:
+
+Generate an equivalent Spanish version from the consolidated `pt-BR` text.
+
+Dependencies:
+
+- requires `TASK-010` and `TASK-011`
+
+Acceptance Criteria:
+
+- depends on reviewed `pt-BR`
+- respects glossary and style
+- produces persisted outputs per chapter or chunk

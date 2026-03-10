@@ -1,0 +1,39 @@
+{
+  "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+  "pass": "translation-es",
+  "source_language": "pt-BR",
+  "target_language": "es",
+  "status": "proposed",
+  "model": "gpt-5-codex",
+  "source": {
+    "section_id": "chapter-0001-conexao-dimensional",
+    "section_title": "Capítulo 1: Conexão Dimensional.",
+    "paragraph_ids": [
+      "chapter-0001-conexao-dimensional-p-0274",
+      "chapter-0001-conexao-dimensional-p-0275",
+      "chapter-0001-conexao-dimensional-p-0276"
+    ],
+    "source_start_index": 596,
+    "source_end_index": 600
+  },
+  "translations": [
+    {
+      "paragraph_id": "chapter-0001-conexao-dimensional-p-0274",
+      "translated_text": "▬ Toda precaución es poca cuando se trata del Sistema Tierra establecido ― advierte ― Por lo que entiendo, o el humano despierta o irá a habitar otros mundos compatibles con su evolución. ▬ definitiva.",
+      "rationale": "",
+      "confidence": 0.67
+    },
+    {
+      "paragraph_id": "chapter-0001-conexao-dimensional-p-0275",
+      "translated_text": "▬ Verdad ― Carol brama ternura ― Corresponde al terrícola mantener el corazón abierto para tener y ser Dios, o mejor, la pareja creadora del universo, bajo la Ley irreversible del amor condicional. ▬ aclara.",
+      "rationale": "",
+      "confidence": 0.67
+    },
+    {
+      "paragraph_id": "chapter-0001-conexao-dimensional-p-0276",
+      "translated_text": "▬ Recuerdo mi encuentro con Jesús Cristo en la Isla de Gravatás, en la piel y en la existencia de Joseph Harrison ― Tom Harrison se refiere a su propio espíritu despojado del velo del olvido impuesto por la reencarnación ― Diciendo: «Dios perdona y no castiga» ― Lagrimea la felicidad de comprensión del espíritu de Joseph/Tom ― Multidimensionales: Alan Kardec, Bezerra de Menezes, Chico Xavier y el propio Gobernador Espiritual nos alertan hasta hoy de que nada sucede por acaso.",
+      "rationale": "",
+      "confidence": 0.56
+    }
+  ]
+}
