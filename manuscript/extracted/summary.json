@@ -1,0 +1,7 @@
+{
+  "source_file": "livro.docx",
+  "output_dir": "manuscript/extracted",
+  "paragraph_count": 2208,
+  "non_empty_paragraph_count": 1471,
+  "first_non_empty_excerpt": "e X ilados da Terra"
+}

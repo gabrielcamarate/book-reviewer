@@ -1,0 +1,21 @@
+{
+  "source_file": "livro.docx",
+  "core": {
+    "title": null,
+    "subject": null,
+    "creator": "Alexo CamaraTTe",
+    "description": null,
+    "last_modified_by": "Alexo CamaraTTe",
+    "revision": "124",
+    "created_at": "2024-07-23T14:20:00Z",
+    "modified_at": "2026-03-06T15:06:00Z"
+  },
+  "app": {
+    "application": "Microsoft Office Word",
+    "pages": "386",
+    "words": "93522",
+    "characters": "524893",
+    "lines": "11031",
+    "paragraphs": "1471"
+  }
+}

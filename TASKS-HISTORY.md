@@ -68,3 +68,19 @@ Acceptance Criteria:
 
 - initial directories created
 - structure aligned with `ARCHITECTURE.md`
+
+---
+
+## TASK-003 — Implement `.docx` ingestion
+
+Status: DONE
+
+Description:
+
+Create the first command or script capable of reading `livro.docx` and extracting raw operational content.
+
+Acceptance Criteria:
+
+- `.docx` file can be read
+- relevant text and metadata are extracted
+- outputs are persisted in reproducible files

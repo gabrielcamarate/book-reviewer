@@ -5,5 +5,7 @@ Thumbs.db
 *.swp
 *.swo
 *.docx:Zone.Identifier
+__pycache__/
+*.pyc
 node_modules/
 dist/

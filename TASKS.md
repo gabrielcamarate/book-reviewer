@@ -47,22 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-003 — Implement `.docx` ingestion
-
-Status: TODO
-
-Description:
-
-Create the first command or script capable of reading `livro.docx` and extracting raw operational content.
-
-Acceptance Criteria:
-
-- `.docx` file can be read
-- relevant text and metadata are extracted
-- outputs are persisted in reproducible files
-
----
-
 ## TASK-004 — Segment the manuscript into chapters and paragraphs
 
 Status: TODO
