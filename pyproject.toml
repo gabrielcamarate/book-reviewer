@@ -19,3 +19,7 @@ package_manager = "uv"
 dependency_strategy = "stdlib-first"
 workspace_execution = "scripts/workspace-python.sh"
 preferred_jail_entrypoint = "scripts/jail.sh"
+
+[tool.revisor_livro.tests]
+framework = "unittest"
+command = "./scripts/test.sh"

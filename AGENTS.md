@@ -340,6 +340,11 @@ Rules:
 - environment bootstrap and governance work may proceed without strict TDD when appropriate
 - once the testing foundation exists, feature tasks without tests must be treated as incomplete
 
+Current testing baseline:
+
+- framework: `unittest`
+- command: `./scripts/test.sh`
+
 ---
 
 # Definition of Done

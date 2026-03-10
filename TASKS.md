@@ -47,22 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-003C — Establish testing foundation and enforce TDD
-
-Status: TODO
-
-Description:
-
-Create the testing baseline and make test-first development mandatory for upcoming feature work.
-
-Acceptance Criteria:
-
-- testing toolchain selected and configured
-- first executable test command available
-- governance documents explicitly enforce `test -> feature`
-
----
-
 ## TASK-004 — Segment the manuscript into chapters and paragraphs
 
 Status: TODO
