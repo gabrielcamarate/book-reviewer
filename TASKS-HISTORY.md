@@ -288,3 +288,23 @@ Acceptance Criteria:
 - approved review is recorded
 - consolidated text is updated
 - audit trail is preserved
+
+---
+
+## TASK-011 — Implement global consistency checking
+
+Status: DONE
+
+Description:
+
+Create a pass that detects terminological, naming, and conceptual inconsistencies in the consolidated manuscript.
+
+Dependencies:
+
+- requires `TASK-010`
+
+Acceptance Criteria:
+
+- report written to `reports/`
+- inconsistencies grouped by type
+- no silent automatic mutation

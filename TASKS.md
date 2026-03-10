@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-011 — Implement global consistency checking
-
-Status: TODO
-
-Description:
-
-Create a pass that detects terminological, naming, and conceptual inconsistencies in the consolidated manuscript.
-
-Dependencies:
-
-- requires `TASK-010`
-
-Acceptance Criteria:
-
-- report written to `reports/`
-- inconsistencies grouped by type
-- no silent automatic mutation
-
----
-
 ## TASK-012 — Implement the literary Spanish translation pipeline
 
 Status: TODO

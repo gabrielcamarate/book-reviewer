@@ -1,0 +1,1877 @@
+{
+  "scope": {
+    "section_count": 1,
+    "paragraph_count": 287,
+    "glossary_entry_count": 100
+  },
+  "finding_count": 276,
+  "findings_by_type": {
+    "alias_usage": [
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0004",
+        "entry_title": "CGU",
+        "preferred_form": "CGU",
+        "observed_variant": "Controladoria Geral da União"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0020",
+        "entry_title": "CGU",
+        "preferred_form": "CGU",
+        "observed_variant": "Controladoria Geral da União"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0004",
+        "entry_title": "CSG",
+        "preferred_form": "CSG",
+        "observed_variant": "Conselho de Segurança Global"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0020",
+        "entry_title": "CSG",
+        "preferred_form": "CSG",
+        "observed_variant": "Conselho de Segurança Global"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0032",
+        "entry_title": "ESD",
+        "preferred_form": "ESD",
+        "observed_variant": "Escola dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0222",
+        "entry_title": "ESD",
+        "preferred_form": "ESD",
+        "observed_variant": "Escola dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0257",
+        "entry_title": "ESD",
+        "preferred_form": "ESD",
+        "observed_variant": "Escola dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0004",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0008",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0011",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0021",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0022",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0032",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0049",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0061",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0176",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0191",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0192",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0194",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0241",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0253",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0277",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0281",
+        "entry_title": "IMSD",
+        "preferred_form": "IMSD",
+        "observed_variant": "Independência Mundial dos Servos de Deus"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0004",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0023",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0039",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0192",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0254",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0256",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0281",
+        "entry_title": "PREPARADO",
+        "preferred_form": "PREPARADO",
+        "observed_variant": "Presídio do Pecador Restaurado Dotado do Onicriador"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0015",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0038",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0039",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0044",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0048",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0049",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0054",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0070",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0076",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0079",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0096",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0099",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0118",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0124",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0131",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0135",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0139",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0146",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0163",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0173",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0177",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0181",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0188",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0201",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0211",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0223",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0231",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0236",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0237",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0242",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0245",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0250",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0253",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0255",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0256",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0258",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0260",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0272",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0277",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0281",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberana Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0080",
+        "entry_title": "SEU",
+        "preferred_form": "SEU",
+        "observed_variant": "Soberania Energia Universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0012",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0049",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0153",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0155",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0176",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0181",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0191",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0238",
+        "entry_title": "SPA",
+        "preferred_form": "SPA",
+        "observed_variant": "Supremo Poder Anônimo"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0012",
+        "entry_title": "SUTA",
+        "preferred_form": "SUTA",
+        "observed_variant": "Senhor Universal das Trevas"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0004",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0007",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0008",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0011",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0021",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0022",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0032",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0035",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0041",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0049",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0060",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0061",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0076",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0145",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0176",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0186",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0191",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0192",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0193",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0194",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0241",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0253",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0257",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0271",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0277",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0281",
+        "entry_title": "Independência Mundial dos Servos de Deus",
+        "preferred_form": "Independência Mundial dos Servos de Deus",
+        "observed_variant": "IMSD"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0015",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0038",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0044",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0048",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0049",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0054",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0070",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0076",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0079",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0080",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0096",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0099",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0110",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0118",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0124",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0131",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0135",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0139",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0146",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0147",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0148",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0153",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0159",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0163",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0173",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0177",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0181",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0188",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0201",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0205",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0211",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0214",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0215",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0223",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0231",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0236",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0237",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0242",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0245",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0250",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0253",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0255",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0256",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0258",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0260",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0272",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0277",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0281",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0284",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0285",
+        "entry_title": "Soberana Energia Universal",
+        "preferred_form": "Soberana Energia Universal",
+        "observed_variant": "SEU"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0012",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0049",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0153",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0155",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0176",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0181",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0191",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0238",
+        "entry_title": "Supremo Poder Anônimo",
+        "preferred_form": "Supremo Poder Anônimo",
+        "observed_variant": "SPA"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0015",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0035",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0038",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0048",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0050",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0078",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0123",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0152",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha raça humana é universal"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0035",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0038",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0050",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0078",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0110",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0152",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0173",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0243",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0249",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "a minha religião é a consciência"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0015",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0035",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0038",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0048",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0050",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0078",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0110",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0123",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0152",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0243",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0249",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0280",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "o meu sexo é o amor"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0015",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "todos os gêneros são iguais"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0035",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "todos os gêneros são iguais"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0038",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "todos os gêneros são iguais"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "todos os gêneros são iguais"
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0050",
+        "entry_title": "Philosophical Formula",
+        "preferred_form": "a minha raça humana é universal... o meu sexo é o amor... a minha religião é a consciência... todos os gêneros são iguais.",
+        "observed_variant": "todos os gêneros são iguais"
+      }
+    ],
+    "quote_anomalies": [
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0009",
+        "opening_quotes": 1,
+        "closing_quotes": 0
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0049",
+        "opening_quotes": 1,
+        "closing_quotes": 0
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "opening_quotes": 3,
+        "closing_quotes": 4
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0175",
+        "opening_quotes": 3,
+        "closing_quotes": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0183",
+        "opening_quotes": 0,
+        "closing_quotes": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0192",
+        "opening_quotes": 2,
+        "closing_quotes": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0194",
+        "opening_quotes": 1,
+        "closing_quotes": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0277",
+        "opening_quotes": 1,
+        "closing_quotes": 0
+      }
+    ],
+    "spacing_anomalies": [
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0010",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0011",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0015",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0044",
+        "issue": "double_space",
+        "occurrences": 3
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0047",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0048",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0052",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0060",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0070",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0073",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0080",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0083",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0090",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0091",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0104",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0109",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0114",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0115",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0118",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0122",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0149",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0155",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0159",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0170",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0173",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0175",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0176",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0187",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0192",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0195",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0202",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0205",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0209",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0219",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0222",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0227",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0240",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0245",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0253",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0254",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0257",
+        "issue": "double_space",
+        "occurrences": 4
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0258",
+        "issue": "double_space",
+        "occurrences": 3
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0262",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0267",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0272",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0277",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0280",
+        "issue": "double_space",
+        "occurrences": 1
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0281",
+        "issue": "double_space",
+        "occurrences": 2
+      },
+      {
+        "section_id": "chapter-0001-conexao-dimensional",
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0283",
+        "issue": "double_space",
+        "occurrences": 2
+      }
+    ],
+    "similar_proper_names": [
+      {
+        "left": "Guerreiro de Luz",
+        "right": "Novos Guerreiros de Luz",
+        "similarity": 0.821
+      },
+      {
+        "left": "Igreja Católica Apostólica Ortodoxa",
+        "right": "Igreja Católica Apostólica Romana",
+        "similarity": 0.853
+      },
+      {
+        "left": "Lauro Cesar Muniz Barreto",
+        "right": "Lauro Muniz Barreto",
+        "similarity": 0.864
+      },
+      {
+        "left": "Resistência Dimensional",
+        "right": "Resistência Multidimensional",
+        "similarity": 0.863
+      },
+      {
+        "left": "Roberto Evaristo de Macedo",
+        "right": "Roberto Evaristo de Macedo Soares",
+        "similarity": 0.881
+      },
+      {
+        "left": "Tom Harris",
+        "right": "Tom Harrison",
+        "similarity": 0.909
+      },
+      {
+        "left": "União Africana",
+        "right": "União Americana",
+        "similarity": 0.897
+      },
+      {
+        "left": "União Americana",
+        "right": "União Anglo Americana",
+        "similarity": 0.833
+      }
+    ]
+  }
+}
