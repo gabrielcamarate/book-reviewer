@@ -10,6 +10,23 @@ from typing import Any
 LONG_PARAGRAPH_THRESHOLD = 200
 VERY_LONG_PARAGRAPH_THRESHOLD = 400
 ALL_CAPS_RE = re.compile(r"\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ]{2,}\b")
+NON_PROSE_FRONTMATTER_TITLES = {
+    "opening",
+    "sumário",
+    "sumario",
+    "créditos",
+    "creditos",
+}
+
+
+def _normalize_title(text: str) -> str:
+    return " ".join(text.split()).strip().casefold()
+
+
+def _should_include_section(section_payload: dict[str, Any]) -> bool:
+    if section_payload["type"] != "frontmatter":
+        return True
+    return _normalize_title(section_payload["title"]) not in NON_PROSE_FRONTMATTER_TITLES
 
 
 def _load_approved_reference(chapters_dir: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -22,6 +39,8 @@ def _load_approved_reference(chapters_dir: Path) -> tuple[list[dict[str, Any]], 
     for section_entry in index_payload["sections"]:
         section_path = chapters_dir / section_entry["file"]
         section_payload = json.loads(section_path.read_text(encoding="utf-8"))
+        if not _should_include_section(section_payload):
+            continue
 
         approved_in_section = [
             paragraph

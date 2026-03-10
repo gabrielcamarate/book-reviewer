@@ -3,13 +3,13 @@
 Initial deterministic style guide derived from the approved reference corpus persisted in `manuscript/chapters`.
 
 ## Corpus Scope
-- Approved reference sections: `8`
-- Approved reference paragraphs: `351`
-- Average paragraph length: `307.5` characters
-- Median paragraph length: `236` characters
+- Approved reference sections: `5`
+- Approved reference paragraphs: `316`
+- Average paragraph length: `339.0` characters
+- Median paragraph length: `250.5` characters
 - Paragraphs with `200+` characters: `200`
 - Paragraphs with `400+` characters: `70`
-- Corpus sections: `frontmatter-0001-opening` (Opening), `frontmatter-0002-o-escritor` (O Escritor), `frontmatter-0003-sumario` (Sumário), `frontmatter-0004-opening` (Opening), `frontmatter-0005-prefacio` (Prefácio), `frontmatter-0006-introducao` (Introdução), `frontmatter-0007-prologo` (Prólogo), `chapter-0001-conexao-dimensional` (Capítulo 1: Conexão Dimensional.)
+- Corpus sections: `frontmatter-0002-o-escritor` (O Escritor), `frontmatter-0005-prefacio` (Prefácio), `frontmatter-0006-introducao` (Introdução), `frontmatter-0007-prologo` (Prólogo), `chapter-0001-conexao-dimensional` (Capítulo 1: Conexão Dimensional.)
 
 ## Confirmed Rules
 ### 1. Preserve dialogue turns marked with `▬`.
@@ -17,7 +17,7 @@ Initial deterministic style guide derived from the approved reference corpus per
 - Operational rule: Do not normalize this marker into quotation marks or simple leading hyphens during copyedit.
 
 ### 2. Preserve ellipsis chains `...`.
-- Evidence: Observed in `55` approved paragraphs, including `frontmatter-0004-opening-p-0004`, `frontmatter-0004-opening-p-0005`, `frontmatter-0004-opening-p-0006`.
+- Evidence: Observed in `51` approved paragraphs, including `frontmatter-0005-prefacio-p-0003`, `chapter-0001-conexao-dimensional-p-0005`, `chapter-0001-conexao-dimensional-p-0009`.
 - Operational rule: Keep ellipsis when they signal cadence, conceptual accumulation, hesitation, or formulaic repetition.
 
 ### 3. Preserve em dash and horizontal bar insertions.
@@ -29,11 +29,11 @@ Initial deterministic style guide derived from the approved reference corpus per
 - Operational rule: Do not silently recase acronym-like terms; confirm glossary intent before normalizing capitalization.
 
 ### 5. Preserve long periodic prose when grammar remains sound.
-- Evidence: Median approved paragraph length is `236` characters, with `200` paragraphs at or above `200` characters.
+- Evidence: Median approved paragraph length is `250.5` characters, with `200` paragraphs at or above `200` characters.
 - Operational rule: Prefer conservative punctuation and agreement fixes over sentence splitting or structural compression.
 
 ## Observed Patterns
-- Approved reference currently spans `8` sections and `351` paragraphs across `chapter`: 273, `frontmatter`: 78.
+- Approved reference currently spans `5` sections and `316` paragraphs across `chapter`: 273, `frontmatter`: 43.
 - The corpus alternates dense exposition with marked dialogue and attribution beats, so copyedit must preserve rhythm rather than flatten paragraph texture.
 - Direct quotation appears alongside dash-led dialogue, which indicates mixed speech presentation rather than a single dialogue convention.
 - Institutional and cosmological terms are frequently encoded as uppercase abbreviations, often close to expanded forms.
