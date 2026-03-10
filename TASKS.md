@@ -47,21 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-002 — Initialize the pipeline directory structure
-
-Status: TODO
-
-Description:
-
-Create the minimum directory structure for manuscript assets, editorial guides, reviews, reports, and source code.
-
-Acceptance Criteria:
-
-- initial directories created
-- structure aligned with `ARCHITECTURE.md`
-
----
-
 ## TASK-003 — Implement `.docx` ingestion
 
 Status: TODO

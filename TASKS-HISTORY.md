@@ -53,3 +53,18 @@ Acceptance Criteria:
 - dedicated working branch created
 - governance documents define branch, commit, and push rules
 - first repository commit created for the current documented baseline
+
+---
+
+## TASK-002 — Initialize the pipeline directory structure
+
+Status: DONE
+
+Description:
+
+Create the minimum directory structure for manuscript assets, editorial guides, reviews, reports, and source code.
+
+Acceptance Criteria:
+
+- initial directories created
+- structure aligned with `ARCHITECTURE.md`
