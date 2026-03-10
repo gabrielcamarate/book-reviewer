@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-009 — Implement the `copyedit` pass in `pt-BR`
-
-Status: TODO
-
-Description:
-
-Create the first automated conservative review flow for pending chunks.
-
-Dependencies:
-
-- requires `TASK-003C`, `TASK-006`, `TASK-007`, and `TASK-008`
-
-Acceptance Criteria:
-
-- structured chunk input
-- structured output with suggestion and reason
-- no irreversible automatic manuscript mutation
-
----
-
 ## TASK-010 — Implement review approval and application
 
 Status: TODO

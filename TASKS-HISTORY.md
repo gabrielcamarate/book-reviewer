@@ -248,3 +248,23 @@ Acceptance Criteria:
 - chunks persisted to disk
 - size compatible with high-quality review
 - previous and next context included
+
+---
+
+## TASK-009 — Implement the `copyedit` pass in `pt-BR`
+
+Status: DONE
+
+Description:
+
+Create the first automated conservative review flow for pending chunks.
+
+Dependencies:
+
+- requires `TASK-003C`, `TASK-006`, `TASK-007`, and `TASK-008`
+
+Acceptance Criteria:
+
+- structured chunk input
+- structured output with suggestion and reason
+- no irreversible automatic manuscript mutation

@@ -1,0 +1,69 @@
+{
+  "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+  "pass": "copyedit",
+  "language": "pt-BR",
+  "status": "proposed",
+  "model": "gpt-5-codex",
+  "source": {
+    "section_id": "chapter-0001-conexao-dimensional",
+    "section_title": "Capítulo 1: Conexão Dimensional.",
+    "paragraph_ids": [
+      "chapter-0001-conexao-dimensional-p-0274",
+      "chapter-0001-conexao-dimensional-p-0275",
+      "chapter-0001-conexao-dimensional-p-0276"
+    ],
+    "source_start_index": 596,
+    "source_end_index": 600
+  },
+  "suggestions": [
+    {
+      "original": "Pelo que entendo ou o humano desperta ou irá habitar outros mundos compatíveis com a sua evolução.",
+      "suggested": "Pelo que entendo, ou o humano desperta ou irá habitar outros mundos compatíveis com a sua evolução.",
+      "change_type": "pontuação",
+      "reason": "A vírgula após a oração introdutória evita ambiguidade na estrutura alternativa subsequente.",
+      "confidence": 0.64
+    },
+    {
+      "original": "― Previne ―",
+      "suggested": "― previne ―",
+      "change_type": "capitalização",
+      "reason": "Verbos de elocução intercalados na fala permanecem em minúsculas para manter a continuidade sintática.",
+      "confidence": 0.57
+    },
+    {
+      "original": "ou melhor o casal criador do universo",
+      "suggested": "ou melhor, o casal criador do universo",
+      "change_type": "pontuação",
+      "reason": "A vírgula isola o aposto explicativo, facilitando a leitura sem alterar o sentido.",
+      "confidence": 0.71
+    },
+    {
+      "original": "sob a Lei, irreversível, do amor condicional.",
+      "suggested": "sob a Lei irreversível do amor condicional.",
+      "change_type": "pontuação",
+      "reason": "A retirada das vírgulas elimina a intercalação indevida entre adjetivo e substantivo, preservando o fluxo.",
+      "confidence": 0.55
+    },
+    {
+      "original": "na Ilha de Gravatás na pele e na existência de Joseph Harrison",
+      "suggested": "na Ilha de Gravatás, na pele e na existência de Joseph Harrison",
+      "change_type": "pontuação",
+      "reason": "A vírgula separa circunstâncias sucessivas, evitando leitura atropelada do adjunto adverbial composto.",
+      "confidence": 0.63
+    },
+    {
+      "original": "Dizendo: ”Deus perdoa e não castiga”",
+      "suggested": "Dizendo: “Deus perdoa e não castiga”",
+      "change_type": "pontuação",
+      "reason": "A abertura correta das aspas garante o pareamento do discurso direto citado.",
+      "confidence": 0.68
+    },
+    {
+      "original": "Chico Xavier e, o próprio Governador Espiritual, nos alertam até hoje, de que nada acontece por acaso.",
+      "suggested": "Chico Xavier e o próprio Governador Espiritual nos alertam até hoje de que nada acontece por acaso.",
+      "change_type": "pontuação",
+      "reason": "A remoção das vírgulas indevidas restabelece a fluidez do sujeito composto e da locução \"de que\".",
+      "confidence": 0.66
+    }
+  ]
+}
