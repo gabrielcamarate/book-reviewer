@@ -13,7 +13,14 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _approval_path(review_path: Path) -> Path:
-    base_name = review_path.name.removesuffix(".copyedit.json")
+    review_name = review_path.name
+    if review_name.endswith(".copyedit.json"):
+        base_name = review_name.removesuffix(".copyedit.json")
+        return review_path.with_name(f"{base_name}.approval.json")
+    if review_name.endswith(".style.json"):
+        base_name = review_name.removesuffix(".style.json")
+        return review_path.with_name(f"{base_name}.style.approval.json")
+    base_name = review_name.removesuffix(".json")
     return review_path.with_name(f"{base_name}.approval.json")
 
 
@@ -109,6 +116,7 @@ def _apply_suggestion(
     *,
     suggestion: dict[str, Any],
     suggestion_index: int,
+    review_pass: str,
     target_paragraph_ids: set[str],
     consolidated_payload: dict[str, Any],
     review_path: Path,
@@ -129,6 +137,7 @@ def _apply_suggestion(
             {
                 "approval_file": approval_path.name,
                 "review_file": review_path.name,
+                "pass": review_pass,
                 "suggestion_index": suggestion_index,
                 "change_type": suggestion["change_type"],
                 "reason": suggestion["reason"],
@@ -187,6 +196,7 @@ def apply_review_approval(
         applied = _apply_suggestion(
             suggestion=suggestion,
             suggestion_index=index,
+            review_pass=review_payload["pass"],
             target_paragraph_ids=target_paragraph_ids,
             consolidated_payload=consolidated_payload,
             review_path=review_path,

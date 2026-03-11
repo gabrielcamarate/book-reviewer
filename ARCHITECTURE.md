@@ -288,6 +288,8 @@ Expected consolidated artifacts:
 - per-section JSON files mirroring source section identifiers
 - paragraph-level audit metadata for applied reviews
 
+Applied review audit metadata must preserve pass origin explicitly, so `copyedit` and `style` changes remain distinguishable in the consolidated manuscript state.
+
 ---
 
 # Approved vs Pending Boundary

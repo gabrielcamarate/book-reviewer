@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-040 — Add approval and application flow for the `style` pass
-
-Status: TODO
-
-Description:
-
-Allow style suggestions to be selectively approved and applied without bypassing the existing audit trail.
-
-Acceptance Criteria:
-
-- style suggestions can be approved partially
-- consolidated state records style-origin changes separately from copyedit
-- audit trail remains reproducible
-
-Dependencies:
-
-- requires `TASK-039`
-
----
-
 ## TASK-041 — Expose the `style` pass in the web interface
 
 Status: TODO
