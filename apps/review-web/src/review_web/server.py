@@ -16,6 +16,7 @@ from review_web.dashboard import (
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
+    build_search_state,
     build_world_rules_state,
     render_characters_html,
     render_chapter_detail_html,
@@ -23,6 +24,7 @@ from review_web.dashboard import (
     render_consistency_detail_html,
     render_decisions_html,
     render_dashboard_html,
+    render_search_html,
     render_world_rules_html,
 )
 from review_web.actions import (
@@ -59,6 +61,25 @@ def _build_loader(
             reviews_ptbr_dir=reviews_ptbr_dir,
             reviews_es_dir=reviews_es_dir,
             deliverables_dir=deliverables_dir,
+            decisions_path=decisions_path,
+        )
+
+    return _load
+
+
+def _build_search_loader(
+    *,
+    chunks_dir: Path,
+    consolidated_dir: Path,
+    glossary_path: Path,
+    decisions_path: Path,
+) -> Callable[[str], dict[str, object]]:
+    def _load(query: str) -> dict[str, object]:
+        return build_search_state(
+            query=query,
+            chunks_dir=chunks_dir,
+            consolidated_dir=consolidated_dir,
+            glossary_path=glossary_path,
             decisions_path=decisions_path,
         )
 
@@ -324,6 +345,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     decisions_loader: Callable[[], dict[str, object]] | None = None
     characters_loader: Callable[[], dict[str, object]] | None = None
     world_rules_loader: Callable[[], dict[str, object]] | None = None
+    search_loader: Callable[[str], dict[str, object]] | None = None
     copyedit_action: Callable[[str], dict[str, object]] | None = None
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     consistency_action: Callable[[], dict[str, object]] | None = None
@@ -341,6 +363,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if self.path == "/":
             state = self.dashboard_loader()
             payload = render_dashboard_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path.startswith("/search"):
+            if self.search_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "search loader not configured")
+                return
+            raw_query = self.path.partition("?")[2]
+            query = parse_qs(raw_query).get("q", [""])[0]
+            state = self.search_loader(query)
+            payload = render_search_html(state).encode("utf-8")
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
@@ -611,6 +648,7 @@ def build_handler(
     decisions_loader: Callable[[], dict[str, object]],
     characters_loader: Callable[[], dict[str, object]],
     world_rules_loader: Callable[[], dict[str, object]],
+    search_loader: Callable[[str], dict[str, object]],
     copyedit_action: Callable[[str], dict[str, object]],
     approval_action: Callable[[str, list[int] | None], dict[str, object]],
     consistency_action: Callable[[], dict[str, object]],
@@ -630,6 +668,7 @@ def build_handler(
     ConfiguredDashboardHandler.decisions_loader = staticmethod(decisions_loader)
     ConfiguredDashboardHandler.characters_loader = staticmethod(characters_loader)
     ConfiguredDashboardHandler.world_rules_loader = staticmethod(world_rules_loader)
+    ConfiguredDashboardHandler.search_loader = staticmethod(search_loader)
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
     ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
@@ -701,6 +740,12 @@ def main() -> int:
         ),
         _build_world_rules_loader(
             world_rules_path=args.world_rules,
+        ),
+        _build_search_loader(
+            chunks_dir=args.chunks_dir,
+            consolidated_dir=args.consolidated_dir,
+            glossary_path=args.glossary,
+            decisions_path=args.decisions,
         ),
         _build_copyedit_action(
             chunks_dir=args.chunks_dir,

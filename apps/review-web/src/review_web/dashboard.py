@@ -8,6 +8,7 @@ from typing import Any
 
 from editorial_core.characters import read_characters_registry
 from editorial_core.decisions import read_editorial_decisions
+from editorial_core.search import search_repository_state
 from editorial_core.translation_es import STABLE_REVIEW_STATUSES
 from editorial_core.world_rules import read_world_rules_registry
 
@@ -403,6 +404,23 @@ def build_world_rules_state(*, world_rules_path: Path) -> dict[str, Any]:
     }
 
 
+def build_search_state(
+    *,
+    query: str,
+    chunks_dir: Path,
+    consolidated_dir: Path,
+    glossary_path: Path,
+    decisions_path: Path,
+) -> dict[str, Any]:
+    return search_repository_state(
+        query=query,
+        chunks_dir=chunks_dir,
+        consolidated_dir=consolidated_dir,
+        glossary_path=glossary_path,
+        decisions_path=decisions_path,
+    )
+
+
 def build_chapter_detail_state(
     *,
     chapter_id: str,
@@ -611,6 +629,10 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
       <header>
         <h1>Painel de Revisão Editorial</h1>
         <p>Interface web local sobre o backend persistido de revisão editorial.</p>
+        <form method="get" action="/search" style="margin-top: 18px;">
+          <label>Buscar no projeto<br><input type="text" name="q" placeholder="Sistema Terra, Joseph Harrison..." style="width: min(520px, 100%);"></label>
+          <button type="submit">Buscar</button>
+        </form>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
           <form method="post" action="/exports/pt-BR/run" style="margin: 0;">
             <button type="submit">Gerar Export pt-BR</button>
@@ -809,6 +831,78 @@ def render_world_rules_html(state: dict[str, Any]) -> str:
       </div>
     """
     return _render_page("Registro de Regras do Mundo", body)
+
+
+def render_search_html(state: dict[str, Any]) -> str:
+    chapter_items = "".join(
+        (
+            "<li>"
+            f"<a href=\"{html.escape(item['link'])}\"><strong>{html.escape(item['title'])}</strong></a>"
+            "</li>"
+        )
+        for item in state["chapter_matches"]
+    ) or "<li>Nenhum capítulo correspondente.</li>"
+
+    chunk_items = "".join(
+        (
+            "<li>"
+            f"<a class=\"chunk-link\" href=\"{html.escape(item['link'])}\">{html.escape(item['chunk_id'])}</a><br>"
+            f"<span class=\"muted\">{html.escape(item['section_title'])}</span><br>"
+            f"<span>{html.escape(item['excerpt'])}</span>"
+            "</li>"
+        )
+        for item in state["chunk_matches"]
+    ) or "<li>Nenhum chunk correspondente.</li>"
+
+    glossary_items = "".join(
+        (
+            "<li>"
+            f"<a href=\"{html.escape(item['link'])}\"><strong>{html.escape(item['title'])}</strong></a><br>"
+            f"<span>{html.escape(item['excerpt'])}</span>"
+            "</li>"
+        )
+        for item in state["glossary_matches"]
+    ) or "<li>Nenhum termo correspondente no glossário.</li>"
+
+    decision_items = "".join(
+        (
+            "<li>"
+            f"<a href=\"{html.escape(item['link'])}\"><strong>{html.escape(item['title'])}</strong></a><br>"
+            f"<code>{html.escape(item.get('scope', 'global'))}</code><br>"
+            f"<span>{html.escape(item.get('rationale', ''))}</span>"
+            "</li>"
+        )
+        for item in state["decision_matches"]
+    ) or "<li>Nenhuma decisão correspondente.</li>"
+
+    body = f"""
+      <nav><a href=\"/\">← Painel</a></nav>
+      <section>
+        <h1>Resultados da Busca</h1>
+        <p class=\"muted\">Consulta: <code>{html.escape(state['query'])}</code> · Resultados: <code>{state['result_count']}</code></p>
+      </section>
+      <div class="layout" style="margin-top: 18px;">
+        <section>
+          <h2>Capítulos</h2>
+          <ul>{chapter_items}</ul>
+        </section>
+        <section>
+          <h2>Chunks</h2>
+          <ul>{chunk_items}</ul>
+        </section>
+      </div>
+      <div class="layout" style="margin-top: 18px;">
+        <section id="glossary-results">
+          <h2>Glossário</h2>
+          <ul>{glossary_items}</ul>
+        </section>
+        <section>
+          <h2>Decisões Editoriais</h2>
+          <ul>{decision_items}</ul>
+        </section>
+      </div>
+    """
+    return _render_page("Resultados da Busca", body)
 
 
 def render_chapter_detail_html(state: dict[str, Any]) -> str:

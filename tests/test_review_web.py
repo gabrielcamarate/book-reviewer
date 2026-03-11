@@ -12,6 +12,7 @@ from review_web.dashboard import (
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
+    build_search_state,
     build_world_rules_state,
     compute_export_readiness,
     render_characters_html,
@@ -20,6 +21,7 @@ from review_web.dashboard import (
     render_consistency_detail_html,
     render_decisions_html,
     render_dashboard_html,
+    render_search_html,
     render_world_rules_html,
 )
 from review_web.actions import (
@@ -698,6 +700,98 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(summary["organization_count"], 1)
             self.assertEqual(summary["concept_count"], 1)
             self.assertTrue(world_rules_path.exists())
+
+    def test_build_search_state_groups_matches_and_links_back_to_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            glossary_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["p-1"],
+                        "base_text": "O Sistema Terra exige prudência.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            glossary_path.write_text(
+                "# Glossary\n\n## Concepts and Formulas\n\n### Sistema Terra\n- Preferred form: `Sistema Terra`\n",
+                encoding="utf-8",
+            )
+            decisions_path.write_text(
+                "# Editorial Decisions\n\n## Preservar Sistema Terra\n- Timestamp: 2026-03-10T10:00:00\n- Scope: chapter-0001-conexao-dimensional-chunk-0001\n- Rationale: Base cosmológica.\n",
+                encoding="utf-8",
+            )
+
+            state = build_search_state(
+                query="Sistema Terra",
+                chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+            )
+
+            self.assertEqual(state["result_count"], 3)
+            self.assertEqual(state["chunk_matches"][0]["link"], "/chunks/chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(state["decision_matches"][0]["link"], "/chunks/chapter-0001-conexao-dimensional-chunk-0001")
+
+            html = render_search_html(state)
+            self.assertIn("Resultados da Busca", html)
+            self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001", html)
+            self.assertIn("#glossary-results", html)
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

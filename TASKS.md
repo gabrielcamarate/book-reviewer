@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-029 — Add operator search across chapters, chunks, glossary, and decisions
-
-Status: TODO
-
-Description:
-
-Provide a local search workflow for navigating manuscript state and editorial memory.
-
-Acceptance Criteria:
-
-- operator can search chunk text and identifiers
-- search can surface glossary and decision references
-- results link back into the web workflow
-
-Dependencies:
-
-- requires `TASK-027` and `TASK-028`
-
----
-
 ## TASK-030 — Add review queue controls and resumable operator workflow
 
 Status: TODO

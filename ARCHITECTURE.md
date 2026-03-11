@@ -365,6 +365,12 @@ Current persisted editorial memory includes:
 
 The web layer may inspect and regenerate these artifacts, but it must not replace the repository as the source of truth.
 
+Operator navigation is expected to remain local-first and deterministic:
+
+- search reads repository artifacts directly
+- search results link back to chunk, chapter, glossary, and decision workflows
+- no external search index or hidden database is required for the initial operator experience
+
 ---
 
 # Editorial Safety Rules
