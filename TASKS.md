@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-032 — Add preview deployment path for the local web interface
-
-Status: TODO
-
-Description:
-
-Define and implement the first preview deployment path for the web interface.
-
-Acceptance Criteria:
-
-- preview deployment target explicitly chosen
-- deployment steps are scripted or documented
-- preview path does not bypass repository-backed state rules
-
-Dependencies:
-
-- requires `TASK-015`
-
----
-
 ## TASK-033 — Harden security and repository validation for the web workflow
 
 Status: TODO

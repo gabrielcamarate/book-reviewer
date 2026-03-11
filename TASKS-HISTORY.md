@@ -712,3 +712,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-025` and `TASK-030`
+
+---
+
+## TASK-032 — Add preview deployment path for the local web interface
+
+Status: DONE
+
+Description:
+
+Define and implement the first preview deployment path for the web interface.
+
+Acceptance Criteria:
+
+- preview deployment target explicitly chosen
+- deployment steps are scripted or documented
+- preview path does not bypass repository-backed state rules
+
+Dependencies:
+
+- requires `TASK-015`
