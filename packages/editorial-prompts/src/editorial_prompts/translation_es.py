@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
+TRANSLATION_ES_PROMPT_TEMPLATE_ID = "translation-es"
+TRANSLATION_ES_PROMPT_VERSION = "2026-03-10.1"
+
 
 def build_translation_es_prompt(
     *,
@@ -13,7 +16,7 @@ def build_translation_es_prompt(
     decisions_text: str,
 ) -> str:
     prompt_payload = {
-        "task": "translation-es",
+        "task": TRANSLATION_ES_PROMPT_TEMPLATE_ID,
         "rules": [
             "Translate from pt-BR into literary Spanish with conservative intervention.",
             "Preserve meaning, tone, cadence, and authorial literalness whenever possible.",

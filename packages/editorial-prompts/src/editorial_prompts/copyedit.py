@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
+COPYEDIT_PROMPT_TEMPLATE_ID = "copyedit-ptbr"
+COPYEDIT_PROMPT_VERSION = "2026-03-10.1"
+
 
 def build_copyedit_prompt(
     *,
@@ -12,7 +15,7 @@ def build_copyedit_prompt(
     decisions_text: str,
 ) -> str:
     prompt_payload = {
-        "task": "copyedit-ptbr",
+        "task": COPYEDIT_PROMPT_TEMPLATE_ID,
         "rules": [
             "Preserve the author's voice and literalness.",
             "Apply conservative copyedit only: spelling, grammar, punctuation, agreement, and syntax.",

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 
+COPYEDIT_SCHEMA_NAME = "copyedit-output"
+COPYEDIT_SCHEMA_VERSION = "2026-03-10.1"
+
+
 def copyedit_output_schema() -> dict[str, object]:
     suggestion_schema: dict[str, object] = {
         "type": "object",

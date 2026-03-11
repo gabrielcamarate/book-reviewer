@@ -832,3 +832,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-033`
+
+---
+
+## TASK-038 — Version prompt and model configuration explicitly
+
+Status: DONE
+
+Description:
+
+Persist prompt and model settings so review provenance remains auditable across runs.
+
+Acceptance Criteria:
+
+- prompt versioning strategy is persisted
+- model selection is recorded with review artifacts
+- changing prompt or model inputs becomes traceable
+
+Dependencies:
+
+- requires `TASK-009` and `TASK-012`

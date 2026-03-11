@@ -208,6 +208,11 @@ class TranslationEsPassTest(unittest.TestCase):
             self.assertEqual(persisted["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0002")
             self.assertEqual(persisted["pass"], "translation-es")
             self.assertEqual(persisted["target_language"], "es")
+            self.assertEqual(persisted["provenance"]["model"]["name"], "gpt-5-codex")
+            self.assertEqual(persisted["provenance"]["prompt"]["template_id"], "translation-es")
+            self.assertIn("version", persisted["provenance"]["prompt"])
+            self.assertEqual(persisted["provenance"]["schema"]["name"], "translation-es-output")
+            self.assertIn("decisions", persisted["provenance"]["context_inputs"])
             self.assertEqual(
                 persisted["translations"][0]["paragraph_id"],
                 "chapter-0001-conexao-dimensional-p-0002",

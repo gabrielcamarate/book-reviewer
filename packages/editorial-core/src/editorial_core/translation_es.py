@@ -5,8 +5,17 @@ from pathlib import Path
 from typing import Any, Callable
 
 from docx_adapter.reader import write_json
-from editorial_prompts.translation_es import build_translation_es_prompt
-from editorial_schemas.translation_es import translation_es_output_schema
+from editorial_core.provenance import build_llm_provenance
+from editorial_prompts.translation_es import (
+    TRANSLATION_ES_PROMPT_TEMPLATE_ID,
+    TRANSLATION_ES_PROMPT_VERSION,
+    build_translation_es_prompt,
+)
+from editorial_schemas.translation_es import (
+    TRANSLATION_ES_SCHEMA_NAME,
+    TRANSLATION_ES_SCHEMA_VERSION,
+    translation_es_output_schema,
+)
 
 Runner = Callable[..., dict[str, object]]
 STABLE_REVIEW_STATUSES = {"approved", "approved_reference"}
@@ -170,16 +179,33 @@ def run_translation_es_pass(
         reviews_dir=reviews_dir,
         chunk_id=chunk_id,
     )
+    style_guide_text = _read_optional_text(style_guide_path)
+    glossary_text = _read_optional_text(glossary_path)
+    decisions_text = _read_optional_text(decisions_path)
     prompt = build_translation_es_prompt(
         chunk_payload=chunk_payload,
         source_paragraphs=source_paragraphs,
-        style_guide_text=_read_optional_text(style_guide_path),
-        glossary_text=_read_optional_text(glossary_path),
-        decisions_text=_read_optional_text(decisions_path),
+        style_guide_text=style_guide_text,
+        glossary_text=glossary_text,
+        decisions_text=decisions_text,
     )
     schema = translation_es_output_schema()
     runner_payload = runner(prompt=prompt, schema=schema, model=model)
     translations = _validate_response(runner_payload, chunk_payload["paragraph_ids"])
+    provenance = build_llm_provenance(
+        model=model,
+        prompt_template_id=TRANSLATION_ES_PROMPT_TEMPLATE_ID,
+        prompt_version=TRANSLATION_ES_PROMPT_VERSION,
+        prompt_text=prompt,
+        schema_name=TRANSLATION_ES_SCHEMA_NAME,
+        schema_version=TRANSLATION_ES_SCHEMA_VERSION,
+        schema=schema,
+        context_inputs={
+            "style_guide": style_guide_text,
+            "glossary": glossary_text,
+            "decisions": decisions_text,
+        },
+    )
 
     review_payload = {
         "chunk_id": chunk_payload["id"],
@@ -195,6 +221,7 @@ def run_translation_es_pass(
             "source_start_index": chunk_payload["source_start_index"],
             "source_end_index": chunk_payload["source_end_index"],
         },
+        "provenance": provenance,
         "translations": translations,
     }
 

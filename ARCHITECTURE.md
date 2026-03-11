@@ -353,6 +353,16 @@ Check terms, names, repeated formulas, internal philosophy, and coherence.
 
 Translate from the consolidated `pt-BR` text using a literary Spanish register compatible with the intended style.
 
+Persisted LLM review artifacts must also include explicit provenance.
+
+Required provenance fields:
+
+- model identifier
+- prompt template identifier and version
+- schema identifier and version
+- prompt hash
+- hashes of persisted editorial inputs such as style guide, glossary, and decisions
+
 ---
 
 # Editorial Memory

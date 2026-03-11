@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-038 — Version prompt and model configuration explicitly
-
-Status: TODO
-
-Description:
-
-Persist prompt and model settings so review provenance remains auditable across runs.
-
-Acceptance Criteria:
-
-- prompt versioning strategy is persisted
-- model selection is recorded with review artifacts
-- changing prompt or model inputs becomes traceable
-
-Dependencies:
-
-- requires `TASK-009` and `TASK-012`
-
----
-
 ## TASK-039 — Implement the `style` pass in `pt-BR`
 
 Status: TODO

@@ -5,8 +5,17 @@ from pathlib import Path
 from typing import Any, Callable
 
 from docx_adapter.reader import write_json
-from editorial_prompts.copyedit import build_copyedit_prompt
-from editorial_schemas.copyedit import copyedit_output_schema
+from editorial_core.provenance import build_llm_provenance
+from editorial_prompts.copyedit import (
+    COPYEDIT_PROMPT_TEMPLATE_ID,
+    COPYEDIT_PROMPT_VERSION,
+    build_copyedit_prompt,
+)
+from editorial_schemas.copyedit import (
+    COPYEDIT_SCHEMA_NAME,
+    COPYEDIT_SCHEMA_VERSION,
+    copyedit_output_schema,
+)
 
 Runner = Callable[..., dict[str, object]]
 
@@ -67,15 +76,32 @@ def run_copyedit_pass(
     chunk_id: str | None = None,
 ) -> dict[str, Any]:
     chunk_payload = _select_chunk(chunks_dir, reviews_dir, chunk_id)
+    style_guide_text = _read_optional_text(style_guide_path)
+    glossary_text = _read_optional_text(glossary_path)
+    decisions_text = _read_optional_text(decisions_path)
     prompt = build_copyedit_prompt(
         chunk_payload=chunk_payload,
-        style_guide_text=_read_optional_text(style_guide_path),
-        glossary_text=_read_optional_text(glossary_path),
-        decisions_text=_read_optional_text(decisions_path),
+        style_guide_text=style_guide_text,
+        glossary_text=glossary_text,
+        decisions_text=decisions_text,
     )
     schema = copyedit_output_schema()
     runner_payload = runner(prompt=prompt, schema=schema, model=model)
     suggestions = _validate_response(runner_payload)
+    provenance = build_llm_provenance(
+        model=model,
+        prompt_template_id=COPYEDIT_PROMPT_TEMPLATE_ID,
+        prompt_version=COPYEDIT_PROMPT_VERSION,
+        prompt_text=prompt,
+        schema_name=COPYEDIT_SCHEMA_NAME,
+        schema_version=COPYEDIT_SCHEMA_VERSION,
+        schema=schema,
+        context_inputs={
+            "style_guide": style_guide_text,
+            "glossary": glossary_text,
+            "decisions": decisions_text,
+        },
+    )
 
     review_payload = {
         "chunk_id": chunk_payload["id"],
@@ -90,6 +116,7 @@ def run_copyedit_pass(
             "source_start_index": chunk_payload["source_start_index"],
             "source_end_index": chunk_payload["source_end_index"],
         },
+        "provenance": provenance,
         "suggestions": suggestions,
     }
 

@@ -172,6 +172,13 @@ class CopyeditPassTest(unittest.TestCase):
             self.assertEqual(persisted["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0002")
             self.assertEqual(persisted["pass"], "copyedit")
             self.assertEqual(persisted["model"], "gpt-5-codex")
+            self.assertEqual(persisted["provenance"]["model"]["name"], "gpt-5-codex")
+            self.assertEqual(persisted["provenance"]["prompt"]["template_id"], "copyedit-ptbr")
+            self.assertIn("version", persisted["provenance"]["prompt"])
+            self.assertIn("sha256", persisted["provenance"]["prompt"])
+            self.assertEqual(persisted["provenance"]["schema"]["name"], "copyedit-output")
+            self.assertIn("style_guide", persisted["provenance"]["context_inputs"])
+            self.assertIn("sha256", persisted["provenance"]["context_inputs"]["glossary"])
             self.assertEqual(persisted["suggestions"][0]["reason"], "Ajuste de clareza gramatical.")
 
     def test_run_copyedit_pass_raises_when_no_pending_chunk_is_available(self) -> None:
