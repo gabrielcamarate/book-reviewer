@@ -406,6 +406,7 @@ Operator navigation is expected to remain local-first and deterministic:
 - the review queue is derived from chunk index plus persisted review artifacts, not from session memory
 - chapter completion summaries are derived from chunk state plus persisted review artifacts, not from manual counters
 - long-running operator actions persist job outcomes under `reports/jobs/`
+- batch runners must consume the same repository-derived queue state used by the interactive workflow
 - preview deployment must run against a checked-out repository branch, not against detached external state
 - repository validation must gate both CI and default web startup to block unsafe runtime assumptions early
 - repository diagnostics should separate blocking findings from advisory findings so operators can tell broken state apart from editorial anomalies

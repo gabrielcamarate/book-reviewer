@@ -6,6 +6,10 @@ from pathlib import Path
 from typing import Any
 
 
+def _slugify_target_id(target_id: str) -> str:
+    return "".join(character if character.isalnum() or character in {"-", "_"} else "-" for character in target_id)
+
+
 def append_job_log(
     *,
     jobs_dir: Path,
@@ -15,8 +19,10 @@ def append_job_log(
     details: dict[str, Any],
 ) -> dict[str, Any]:
     jobs_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().isoformat(timespec="seconds")
-    filename = f"{timestamp.replace(':', '-')}-{job_type}-{status}.json"
+    timestamp = datetime.now().isoformat(timespec="microseconds")
+    filename = (
+        f"{timestamp.replace(':', '-')}-{job_type}-{status}-{_slugify_target_id(target_id)}.json"
+    )
     payload = {
         "timestamp": timestamp,
         "job_type": job_type,

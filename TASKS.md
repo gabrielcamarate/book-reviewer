@@ -47,29 +47,9 @@ Goal:
 
 # Tasks
 
-## TASK-043 — Add a batch copyedit runner over the review queue
-
-Status: IN_PROGRESS
-
-Description:
-
-Support controlled background execution over multiple queued chunks without losing per-chunk auditability.
-
-Acceptance Criteria:
-
-- batch runner consumes the same queue state as the web flow
-- every chunk still produces an individual persisted review artifact
-- failures stop or isolate cleanly without corrupting queue state
-
-Dependencies:
-
-- requires `TASK-030`, `TASK-031`, and `TASK-033`
-
----
-
 ## TASK-044 — Add a resumable batch translation runner for Spanish
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 
