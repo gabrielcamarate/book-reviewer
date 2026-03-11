@@ -38,6 +38,7 @@ This means preview runs against a checked-out branch of the repository itself.
 The repository CI baseline must run:
 
 - Python bytecode compilation checks
+- repository state validation for the web workflow
 - unit tests
 - security scanning with `bandit`
 
@@ -49,6 +50,12 @@ Security scanning currently focuses on:
 
 - static Python security scanning through `bandit`
 - keeping third-party runtime dependencies close to zero unless justified
+
+Runtime safety currently also depends on:
+
+- fail-fast validation of required repository artifacts before the web server starts
+- blocking default startup when persisted manuscript/editorial state is missing or malformed
+- keeping any validation bypass restricted to explicit diagnostic usage only
 
 ## Deployment Path
 

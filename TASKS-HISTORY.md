@@ -732,3 +732,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-015`
+
+---
+
+## TASK-033 — Harden security and repository validation for the web workflow
+
+Status: DONE
+
+Description:
+
+Expand safety checks now that the project exposes an operator interface.
+
+Acceptance Criteria:
+
+- validation covers the web app as part of CI
+- repository state assumptions are checked more explicitly
+- unsafe runtime paths are documented or blocked
+
+Dependencies:
+
+- requires `TASK-015` and `TASK-032`

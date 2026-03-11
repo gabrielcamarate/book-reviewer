@@ -8,5 +8,8 @@ cd "$ROOT_DIR"
 echo "[ci] compileall"
 python3 -m compileall apps packages tests
 
+echo "[ci] repository state validation"
+./scripts/workspace-python.sh -m review_cli.validate_repository_state
+
 echo "[ci] unit tests"
 ./scripts/test.sh

@@ -10,6 +10,7 @@ from typing import Callable
 
 from editorial_core.codex_runner import run_codex_with_schema
 from editorial_core.job_log import append_job_log
+from editorial_core.repository_validation import validate_repository_state
 from review_web.dashboard import (
     build_chapter_detail_state,
     build_characters_state,
@@ -790,6 +791,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--decisions", type=Path, default=Path("editorial/DECISIONS.md"))
     parser.add_argument("--characters", type=Path, default=Path("editorial/CHARACTERS.md"))
     parser.add_argument("--world-rules", type=Path, default=Path("editorial/WORLD_RULES.md"))
+    parser.add_argument("--skip-state-validation", action="store_true")
     parser.add_argument("--model", default="gpt-5-codex")
     return parser
 
@@ -797,6 +799,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if not args.skip_state_validation:
+        validation = validate_repository_state(root_dir=Path.cwd())
+        if not validation["ok"]:
+            print(json.dumps(validation, ensure_ascii=False, indent=2))
+            return 1
 
     handler = build_handler(
         _build_loader(

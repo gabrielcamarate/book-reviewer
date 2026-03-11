@@ -151,6 +151,7 @@ Rules:
 - no hidden mutable state outside repository artifacts
 - future channels such as WhatsApp must reuse the same backend/core contracts
 - operator actions such as recording editorial decisions must write back to repository state
+- the web server must fail fast when minimum repository state is missing or invalid unless an explicit operator override is used for diagnostics only
 
 Contained in:
 
@@ -373,6 +374,7 @@ Operator navigation is expected to remain local-first and deterministic:
 - the review queue is derived from chunk index plus persisted review artifacts, not from session memory
 - long-running operator actions persist job outcomes under `reports/jobs/`
 - preview deployment must run against a checked-out repository branch, not against detached external state
+- repository validation must gate both CI and default web startup to block unsafe runtime assumptions early
 
 ---
 

@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-033 — Harden security and repository validation for the web workflow
-
-Status: TODO
-
-Description:
-
-Expand safety checks now that the project exposes an operator interface.
-
-Acceptance Criteria:
-
-- validation covers the web app as part of CI
-- repository state assumptions are checked more explicitly
-- unsafe runtime paths are documented or blocked
-
-Dependencies:
-
-- requires `TASK-015` and `TASK-032`
-
----
-
 ## TASK-034 — Define WhatsApp integration boundary over the existing backend
 
 Status: TODO
