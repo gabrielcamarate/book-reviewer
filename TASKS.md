@@ -49,29 +49,9 @@ Goal:
 
 ## TASK-020 — Approve and apply selected `copyedit` suggestions from the web interface
 
-## TASK-023 — Trigger Spanish translation for stable chunks from the web interface
-
-Status: IN_PROGRESS
-
-Description:
-
-Expose the `translation-es` pass to the operator for already stabilized `pt-BR` chunks.
-
-Acceptance Criteria:
-
-- translation can be triggered for eligible chunks
-- translated output is persisted in `reviews/es/`
-- ineligible chunks are clearly blocked in the UI
-
-Dependencies:
-
-- requires `TASK-020` and `TASK-022`
-
----
-
 ## TASK-024 — Compare `pt-BR` and Spanish chunk outputs side by side
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

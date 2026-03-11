@@ -19,6 +19,7 @@ from review_web.actions import (
     trigger_consistency_report,
     trigger_copyedit,
     trigger_review_approval,
+    trigger_translation_es,
 )
 
 
@@ -557,6 +558,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["translation_review"]["translations"][0]["translated_text"], "Fragmento principal.")
             self.assertEqual(state["consolidated_paragraphs"][0]["text"], "Trecho principal revisado.")
             self.assertEqual(state["consolidated_paragraphs"][0]["source_text"], "Trecho principal.")
+            self.assertFalse(state["translation_eligibility"]["eligible"])
+            self.assertIn("already exists", state["translation_eligibility"]["reason"])
             self.assertEqual(
                 state["consolidated_paragraphs"][0]["applied_reviews"][0]["approval_file"],
                 "chapter-0001-conexao-dimensional-chunk-0001.approval.json",
@@ -586,6 +589,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Source Text", html)
             self.assertIn("Applied Review Metadata", html)
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001.approval.json", html)
+            self.assertIn("Translation unavailable", html)
 
     def test_trigger_copyedit_persists_review_for_selected_chunk(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -912,3 +916,142 @@ class ReviewWebDashboardTest(unittest.TestCase):
 
             self.assertEqual(summary["finding_count"], 2)
             self.assertTrue((reports_dir / "ptbr-consistency-report.json").exists())
+
+    def test_trigger_translation_es_persists_output_for_stable_chunk(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+            style_guide_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "source_start_index": 1,
+                        "source_end_index": 1,
+                        "base_text": "Trecho principal revisado.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                                "review_status": "approved",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_index": 1,
+                                "source_text": "Trecho principal.",
+                                "text": "Trecho principal revisado.",
+                                "review_status": "approved",
+                                "applied_reviews": [],
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            style_guide_path.write_text("# Style Guide\n- Preserve voice.\n", encoding="utf-8")
+            glossary_path.write_text("# Glossary\n- Sistema Terra\n", encoding="utf-8")
+
+            summary = trigger_translation_es(
+                chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_dir=reviews_es_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                runner=lambda **_: {
+                    "translations": [
+                        {
+                            "paragraph_id": "chapter-0001-conexao-dimensional-p-0001",
+                            "translated_text": "Fragmento principal revisado.",
+                            "rationale": "Mantém o tom.",
+                            "confidence": 0.84,
+                        }
+                    ]
+                },
+            )
+
+            self.assertEqual(summary["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertTrue(
+                (reviews_es_dir / "chapter-0001-conexao-dimensional-chunk-0001.translation-es.json").exists()
+            )

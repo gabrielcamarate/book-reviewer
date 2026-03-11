@@ -6,6 +6,8 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+from editorial_core.translation_es import STABLE_REVIEW_STATUSES
+
 
 def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -369,6 +371,10 @@ def build_chunk_detail_state(
     consolidated_path = consolidated_dir / f"{chunk_payload['section_id']}.json"
     consolidated_payload = _read_json(consolidated_path) if consolidated_path.exists() else None
     consolidated_paragraphs: list[dict[str, Any]] = []
+    translation_eligibility = {
+        "eligible": False,
+        "reason": "Chunk is not ready for Spanish translation.",
+    }
     if consolidated_payload is not None:
         target_paragraph_ids = set(chunk_payload.get("paragraph_ids", []))
         consolidated_paragraphs = [
@@ -376,6 +382,24 @@ def build_chunk_detail_state(
             for paragraph in consolidated_payload.get("paragraphs", [])
             if paragraph.get("id") in target_paragraph_ids
         ]
+        if translation_path.exists():
+            translation_eligibility = {
+                "eligible": False,
+                "reason": "Spanish translation already exists for this chunk.",
+            }
+        elif consolidated_paragraphs and all(
+            paragraph.get("review_status") in STABLE_REVIEW_STATUSES
+            for paragraph in consolidated_paragraphs
+        ):
+            translation_eligibility = {
+                "eligible": True,
+                "reason": "Chunk is stable and ready for Spanish translation.",
+            }
+        else:
+            translation_eligibility = {
+                "eligible": False,
+                "reason": "Chunk requires stable pt-BR approval before Spanish translation.",
+            }
 
     return {
         "chunk": chunk_payload,
@@ -383,6 +407,7 @@ def build_chunk_detail_state(
         "approval": _read_json(approval_path) if approval_path.exists() else None,
         "translation_review": _read_json(translation_path) if translation_path.exists() else None,
         "consolidated_paragraphs": consolidated_paragraphs,
+        "translation_eligibility": translation_eligibility,
     }
 
 
@@ -560,6 +585,10 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
     approval = state.get("approval")
     translation_review = state.get("translation_review")
     consolidated_paragraphs = state.get("consolidated_paragraphs", [])
+    translation_eligibility = state.get(
+        "translation_eligibility",
+        {"eligible": False, "reason": "Chunk is not ready for Spanish translation."},
+    )
     previous_context = "".join(
         f"<li><pre>{html.escape(item.get('text', ''))}</pre></li>"
         for item in chunk.get("previous_context", [])
@@ -621,6 +650,16 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         )
         for item in (translation_review or {}).get("translations", [])
     ) or "<li>No persisted Spanish translation.</li>"
+    if translation_eligibility["eligible"]:
+        translation_controls = (
+            f"<form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/translation-es\" style=\"margin: 0 0 12px;\">"
+            "<button type=\"submit\">Run Spanish Translation</button>"
+            "</form>"
+        )
+    else:
+        translation_controls = (
+            f"<p class=\"muted\">Translation unavailable: {html.escape(translation_eligibility['reason'])}</p>"
+        )
     consolidated_items = "".join(
         (
             "<li>"
@@ -680,6 +719,7 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         </section>
         <section>
           <h3>Persisted Spanish Translation</h3>
+          {translation_controls}
           <ul>{translation_items}</ul>
         </section>
       </div>

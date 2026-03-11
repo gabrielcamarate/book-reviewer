@@ -5,6 +5,7 @@ from pathlib import Path
 from editorial_core.consistency_report import generate_consistency_report
 from editorial_core.copyedit import Runner, run_copyedit_pass
 from editorial_core.review_application import apply_review_approval
+from editorial_core.translation_es import run_translation_es_pass
 
 
 def trigger_copyedit(
@@ -56,4 +57,29 @@ def trigger_consistency_report(
         consolidated_dir=consolidated_dir,
         glossary_path=glossary_path,
         reports_dir=reports_dir,
+    )
+
+
+def trigger_translation_es(
+    *,
+    chunk_id: str,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    runner: Runner,
+    model: str = "gpt-5-codex",
+) -> dict[str, object]:
+    return run_translation_es_pass(
+        chunks_dir=chunks_dir,
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
+        reviews_dir=reviews_dir,
+        style_guide_path=style_guide_path,
+        glossary_path=glossary_path,
+        runner=runner,
+        model=model,
+        chunk_id=chunk_id,
     )

@@ -532,3 +532,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-021`
+
+---
+
+## TASK-023 — Trigger Spanish translation for stable chunks from the web interface
+
+Status: DONE
+
+Description:
+
+Expose the `translation-es` pass to the operator for already stabilized `pt-BR` chunks.
+
+Acceptance Criteria:
+
+- translation can be triggered for eligible chunks
+- translated output is persisted in `reviews/es/`
+- ineligible chunks are clearly blocked in the UI
+
+Dependencies:
+
+- requires `TASK-020` and `TASK-022`

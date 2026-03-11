@@ -23,6 +23,7 @@ from review_web.actions import (
     trigger_consistency_report,
     trigger_copyedit,
     trigger_review_approval,
+    trigger_translation_es,
 )
 
 DashboardLoader = Callable[[], dict[str, object]]
@@ -167,6 +168,42 @@ def _build_consistency_action(
     return _run
 
 
+def _translation_runner(prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
+    return run_codex_with_schema(
+        prompt=prompt,
+        schema=schema,
+        model=model,
+        schema_filename="translation-es-schema.json",
+        output_filename="translation-es-output.json",
+    )
+
+
+def _build_translation_action(
+    *,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_es_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    model: str,
+) -> Callable[[str], dict[str, object]]:
+    def _run(chunk_id: str) -> dict[str, object]:
+        return trigger_translation_es(
+            chunk_id=chunk_id,
+            chunks_dir=chunks_dir,
+            chapters_dir=chapters_dir,
+            consolidated_dir=consolidated_dir,
+            reviews_dir=reviews_es_dir,
+            style_guide_path=style_guide_path,
+            glossary_path=glossary_path,
+            runner=_translation_runner,
+            model=model,
+        )
+
+    return _run
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
@@ -175,6 +212,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     copyedit_action: Callable[[str], dict[str, object]] | None = None
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     consistency_action: Callable[[], dict[str, object]] | None = None
+    translation_action: Callable[[str], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
@@ -321,6 +359,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path.startswith("/chunks/") and self.path.endswith("/translation-es"):
+            if self.translation_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "translation action not configured")
+                return
+            chunk_id = unquote(self.path.removeprefix("/chunks/").removesuffix("/translation-es"))
+            try:
+                self.translation_action(chunk_id)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except RuntimeError as error:
+                self.send_error(HTTPStatus.BAD_GATEWAY, str(error))
+                return
+
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", f"/chunks/{chunk_id}")
+            self.end_headers()
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A003
@@ -335,6 +392,7 @@ def build_handler(
     copyedit_action: Callable[[str], dict[str, object]],
     approval_action: Callable[[str, list[int] | None], dict[str, object]],
     consistency_action: Callable[[], dict[str, object]],
+    translation_action: Callable[[str], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -346,6 +404,7 @@ def build_handler(
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
     ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
+    ConfiguredDashboardHandler.translation_action = staticmethod(translation_action)
     return ConfiguredDashboardHandler
 
 
@@ -412,6 +471,15 @@ def main() -> int:
             consolidated_dir=args.consolidated_dir,
             glossary_path=args.glossary,
             reports_dir=args.reports_dir,
+        ),
+        _build_translation_action(
+            chunks_dir=args.chunks_dir,
+            chapters_dir=args.chapters_dir,
+            consolidated_dir=args.consolidated_dir,
+            reviews_es_dir=args.reviews_es_dir,
+            style_guide_path=args.style_guide,
+            glossary_path=args.glossary,
+            model=args.model,
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)
