@@ -24,6 +24,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to the persisted glossary.",
     )
     parser.add_argument(
+        "--characters",
+        type=Path,
+        default=Path("editorial/CHARACTERS.md"),
+        help="Path to the persisted characters registry.",
+    )
+    parser.add_argument(
+        "--world-rules",
+        type=Path,
+        default=Path("editorial/WORLD_RULES.md"),
+        help="Path to the persisted world rules registry.",
+    )
+    parser.add_argument(
         "--reports-dir",
         type=Path,
         default=Path("reports"),
@@ -39,6 +51,8 @@ def main() -> int:
     summary = generate_consistency_report(
         consolidated_dir=args.consolidated_dir,
         glossary_path=args.glossary,
+        characters_path=args.characters,
+        world_rules_path=args.world_rules,
         reports_dir=args.reports_dir,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))

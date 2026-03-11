@@ -2,7 +2,9 @@
   "scope": {
     "section_count": 1,
     "paragraph_count": 287,
-    "glossary_entry_count": 100
+    "glossary_entry_count": 100,
+    "character_entry_count": 75,
+    "world_rule_entry_count": 15
   },
   "finding_count": 276,
   "findings_by_type": {
@@ -1872,6 +1874,7 @@
         "right": "União Anglo Americana",
         "similarity": 0.833
       }
-    ]
+    ],
+    "cross_chapter_entity_variants": []
   }
 }

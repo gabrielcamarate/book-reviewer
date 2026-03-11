@@ -699,10 +699,21 @@ def build_consistency_detail_state(
     for finding in findings:
         paragraph_id = finding.get("paragraph_id")
         resolved_chunk_id = paragraph_chunk_map.get(paragraph_id) if paragraph_id else None
+        paragraph_ids = [
+            paragraph_id_value
+            for paragraph_id_value in finding.get("paragraph_ids", [])
+            if paragraph_id_value in paragraph_chunk_map
+        ]
+        resolved_chunk_ids = list(
+            dict.fromkeys(paragraph_chunk_map[paragraph_id_value] for paragraph_id_value in paragraph_ids)
+        )
+        chapter_ids = list(dict.fromkeys(finding.get("chapter_ids", [])))
         enriched_findings.append(
             {
                 **finding,
                 "resolved_chunk_id": resolved_chunk_id,
+                "resolved_chunk_ids": resolved_chunk_ids,
+                "resolved_chapter_ids": chapter_ids,
             }
         )
 
@@ -1371,6 +1382,14 @@ def render_consistency_detail_html(state: dict[str, Any]) -> str:
                 f"<p><a class=\"chunk-link\" href=\"/chunks/{html.escape(finding['resolved_chunk_id'])}\">Abrir chunk relacionado</a></p>"
                 if finding.get("resolved_chunk_id")
                 else ""
+            )
+            + "".join(
+                f"<p><a class=\"chunk-link\" href=\"/chunks/{html.escape(chunk_id)}\">Abrir chunk relacionado</a></p>"
+                for chunk_id in finding.get("resolved_chunk_ids", [])
+            )
+            + "".join(
+                f"<p><a class=\"chunk-link\" href=\"/chapters/{html.escape(chapter_id)}\">Abrir capítulo relacionado</a></p>"
+                for chapter_id in finding.get("resolved_chapter_ids", [])
             )
             + "</li>"
         )

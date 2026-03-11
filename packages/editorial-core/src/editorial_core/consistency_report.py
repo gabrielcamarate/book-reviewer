@@ -6,6 +6,8 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+from editorial_core.characters import read_characters_registry
+from editorial_core.world_rules import read_world_rules_registry
 from docx_adapter.reader import write_json
 
 ENTRY_HEADING_RE = re.compile(r"^###\s+(.+?)\s*$")
@@ -175,20 +177,117 @@ def _find_similar_proper_names(glossary_entries: list[dict[str, Any]]) -> list[d
     return findings
 
 
+def _build_registry_groups(
+    *,
+    glossary_entries: list[dict[str, Any]],
+    character_entries: list[dict[str, Any]],
+    world_rule_entries: dict[str, list[dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    groups: dict[str, dict[str, Any]] = {}
+
+    def ingest(entry: dict[str, Any], source: str) -> None:
+        title = str(entry.get("title", "")).strip()
+        preferred_form = str(entry.get("preferred_form") or title).strip()
+        if not title or not preferred_form:
+            return
+        key = title.casefold()
+        group = groups.setdefault(
+            key,
+            {
+                "entry_title": title,
+                "preferred_form": preferred_form,
+                "aliases": [],
+                "registry_sources": [],
+            },
+        )
+        if source not in group["registry_sources"]:
+            group["registry_sources"].append(source)
+        for alias in entry.get("aliases", []):
+            normalized_alias = str(alias).strip()
+            if normalized_alias and normalized_alias not in group["aliases"]:
+                group["aliases"].append(normalized_alias)
+
+    for entry in glossary_entries:
+        ingest(entry, "glossary")
+    for entry in character_entries:
+        ingest(entry, "characters")
+    for entry in world_rule_entries.get("organizations", []):
+        ingest(entry, "world_rules")
+    for entry in world_rule_entries.get("concepts", []):
+        ingest(entry, "world_rules")
+
+    return list(groups.values())
+
+
+def _find_cross_chapter_entity_variants(
+    registry_groups: list[dict[str, Any]],
+    paragraphs: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+
+    for group in registry_groups:
+        observed_forms: list[str] = []
+        paragraph_ids: list[str] = []
+        chapter_ids: list[str] = []
+        search_forms = [group["preferred_form"], *group.get("aliases", [])]
+
+        for paragraph in paragraphs:
+            text = paragraph["text"]
+            matched_form: str | None = None
+            for search_form in search_forms:
+                if search_form and search_form in text:
+                    matched_form = search_form
+                    break
+            if matched_form is None:
+                continue
+            if matched_form not in observed_forms:
+                observed_forms.append(matched_form)
+            if paragraph["paragraph_id"] not in paragraph_ids:
+                paragraph_ids.append(paragraph["paragraph_id"])
+            if paragraph["section_id"] not in chapter_ids:
+                chapter_ids.append(paragraph["section_id"])
+
+        if len(chapter_ids) < 2 or len(observed_forms) < 2:
+            continue
+
+        findings.append(
+            {
+                "entry_title": group["entry_title"],
+                "preferred_form": group["preferred_form"],
+                "registry_sources": sorted(group["registry_sources"]),
+                "chapter_ids": sorted(chapter_ids),
+                "paragraph_ids": paragraph_ids,
+                "observed_forms": observed_forms,
+            }
+        )
+
+    return findings
+
+
 def generate_consistency_report(
     *,
     consolidated_dir: Path,
     glossary_path: Path,
+    characters_path: Path,
+    world_rules_path: Path,
     reports_dir: Path,
 ) -> dict[str, Any]:
     paragraphs = _load_consolidated_paragraphs(consolidated_dir)
     glossary_entries = _parse_glossary(glossary_path)
+    character_entries = read_characters_registry(characters_path)
+    world_rule_entries = read_world_rules_registry(world_rules_path)
+    registry_groups = _build_registry_groups(
+        glossary_entries=glossary_entries,
+        character_entries=character_entries,
+        world_rule_entries=world_rule_entries,
+    )
 
     findings_by_type = {
         "alias_usage": _find_alias_usage(glossary_entries, paragraphs),
         "quote_anomalies": _find_quote_anomalies(paragraphs),
         "spacing_anomalies": _find_spacing_anomalies(paragraphs),
         "similar_proper_names": _find_similar_proper_names(glossary_entries),
+        "cross_chapter_entity_variants": _find_cross_chapter_entity_variants(registry_groups, paragraphs),
     }
 
     report_payload = {
@@ -196,6 +295,9 @@ def generate_consistency_report(
             "section_count": len({paragraph["section_id"] for paragraph in paragraphs}),
             "paragraph_count": len(paragraphs),
             "glossary_entry_count": len(glossary_entries),
+            "character_entry_count": len(character_entries),
+            "world_rule_entry_count": len(world_rule_entries.get("organizations", []))
+            + len(world_rule_entries.get("concepts", [])),
         },
         "finding_count": sum(len(findings) for findings in findings_by_type.values()),
         "findings_by_type": findings_by_type,

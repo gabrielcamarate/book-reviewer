@@ -373,6 +373,12 @@ Improve fluency, rhythm, and clarity while preserving literary intent.
 
 Check terms, names, repeated formulas, internal philosophy, and coherence.
 
+Cross-chapter consistency analysis must be registry-aware:
+
+- glossary, characters, and world rules are consumed together
+- findings may be grouped by entity or concept instead of only by paragraph anomaly
+- grouped findings should preserve chapter and chunk traceability for operator follow-up
+
 ## Pass 4: Translation ES
 
 Translate from the consolidated `pt-BR` text using a literary Spanish register compatible with the intended style.

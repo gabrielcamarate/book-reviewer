@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-050 — Add cross-chapter entity consistency analysis
-
-Status: TODO
-
-Description:
-
-Expand consistency checking so entities, aliases, and concepts are validated across the whole book, not only chunk-local findings.
-
-Acceptance Criteria:
-
-- report groups cross-chapter issues by entity or concept
-- glossary, characters, and world rules are consumed together
-- findings link back to affected chunks or chapters
-
-Dependencies:
-
-- requires `TASK-011`, `TASK-027`, `TASK-028`, and `TASK-029`
-
----
-
 ## TASK-051 — Add Spanish consistency validation
 
 Status: TODO

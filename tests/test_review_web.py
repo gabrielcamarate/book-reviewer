@@ -1287,7 +1287,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             (chunks_dir / "index.json").write_text(
                 json.dumps(
                     {
-                        "chunk_count": 1,
+                        "chunk_count": 2,
                         "chunks": [
                             {
                                 "id": "chapter-0001-conexao-dimensional-chunk-0001",
@@ -1295,6 +1295,13 @@ class ReviewWebDashboardTest(unittest.TestCase):
                                 "section_title": "Capítulo 1: Conexão Dimensional.",
                                 "review_status": "pending_review",
                                 "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            },
+                            {
+                                "id": "chapter-0002-supremo-poder-anonimo-chunk-0001",
+                                "section_id": "chapter-0002-supremo-poder-anonimo",
+                                "section_title": "Capítulo 2: Supremo Poder Anônimo.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0002-supremo-poder-anonimo-chunk-0001.json",
                             }
                         ],
                     },
@@ -1323,10 +1330,29 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            (chunks_dir / "chapter-0002-supremo-poder-anonimo-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0002-supremo-poder-anonimo-chunk-0001",
+                        "section_id": "chapter-0002-supremo-poder-anonimo",
+                        "section_title": "Capítulo 2: Supremo Poder Anônimo.",
+                        "paragraph_ids": [
+                            "chapter-0002-supremo-poder-anonimo-p-0001",
+                        ],
+                        "base_text": "Trecho paralelo.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             (reports_dir / "ptbr-consistency-report.json").write_text(
                 json.dumps(
                     {
-                        "finding_count": 2,
+                        "finding_count": 3,
                         "scope": {"section_count": 1, "paragraph_count": 1},
                         "findings_by_type": {
                             "alias_usage": [
@@ -1343,6 +1369,22 @@ class ReviewWebDashboardTest(unittest.TestCase):
                                     "left": "Tom Harrison",
                                     "right": "Tom Harris",
                                     "similarity": 0.88,
+                                }
+                            ],
+                            "cross_chapter_entity_variants": [
+                                {
+                                    "entry_title": "Joseph Harrison",
+                                    "preferred_form": "Joseph Harrison",
+                                    "registry_sources": ["characters"],
+                                    "chapter_ids": [
+                                        "chapter-0001-conexao-dimensional",
+                                        "chapter-0002-supremo-poder-anonimo",
+                                    ],
+                                    "paragraph_ids": [
+                                        "chapter-0001-conexao-dimensional-p-0001",
+                                        "chapter-0002-supremo-poder-anonimo-p-0001",
+                                    ],
+                                    "observed_forms": ["Joseph", "Joseph Harrison"],
                                 }
                             ],
                         },
@@ -1368,6 +1410,24 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001", html)
             self.assertIn("Soberania Energia Universal", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001", html)
+
+            grouped_state = build_consistency_detail_state(
+                finding_type="cross_chapter_entity_variants",
+                reports_dir=reports_dir,
+                chunks_dir=chunks_dir,
+            )
+
+            self.assertEqual(
+                grouped_state["findings"][0]["resolved_chunk_ids"],
+                [
+                    "chapter-0001-conexao-dimensional-chunk-0001",
+                    "chapter-0002-supremo-poder-anonimo-chunk-0001",
+                ],
+            )
+
+            grouped_html = render_consistency_detail_html(grouped_state)
+            self.assertIn("/chunks/chapter-0002-supremo-poder-anonimo-chunk-0001", grouped_html)
+            self.assertIn("/chapters/chapter-0002-supremo-poder-anonimo", grouped_html)
 
     def test_build_chunk_detail_state_reads_selected_chunk_payload(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -2171,6 +2231,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
             consolidated_dir = temp_path / "manuscript" / "consolidated"
             reports_dir = temp_path / "reports"
             glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            characters_path = temp_path / "editorial" / "CHARACTERS.md"
+            world_rules_path = temp_path / "editorial" / "WORLD_RULES.md"
             consolidated_dir.mkdir(parents=True, exist_ok=True)
             reports_dir.mkdir(parents=True, exist_ok=True)
             glossary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2226,10 +2288,20 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 "# Glossary\n\n## Organizations and Acronyms\n\n### SEU\n- Preferred form: `SEU`\n- Observed aliases or variants: `Soberania Energia Universal`\n",
                 encoding="utf-8",
             )
+            characters_path.write_text(
+                "# Characters Registry\n\n## Scope\n- Character entries: `0`\n",
+                encoding="utf-8",
+            )
+            world_rules_path.write_text(
+                "# World Rules Registry\n\n## Scope\n- Organizations and acronyms: `0`\n- Concepts and formulas: `0`\n",
+                encoding="utf-8",
+            )
 
             summary = trigger_consistency_report(
                 consolidated_dir=consolidated_dir,
                 glossary_path=glossary_path,
+                characters_path=characters_path,
+                world_rules_path=world_rules_path,
                 reports_dir=reports_dir,
             )
 

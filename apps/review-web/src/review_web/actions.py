@@ -107,11 +107,15 @@ def trigger_consistency_report(
     *,
     consolidated_dir: Path,
     glossary_path: Path,
+    characters_path: Path,
+    world_rules_path: Path,
     reports_dir: Path,
 ) -> dict[str, object]:
     return generate_consistency_report(
         consolidated_dir=consolidated_dir,
         glossary_path=glossary_path,
+        characters_path=characters_path,
+        world_rules_path=world_rules_path,
         reports_dir=reports_dir,
     )
 

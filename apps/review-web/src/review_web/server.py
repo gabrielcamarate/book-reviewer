@@ -357,6 +357,8 @@ def _build_consistency_action(
     *,
     consolidated_dir: Path,
     glossary_path: Path,
+    characters_path: Path,
+    world_rules_path: Path,
     reports_dir: Path,
     jobs_dir: Path,
 ) -> Callable[[], dict[str, object]]:
@@ -368,6 +370,8 @@ def _build_consistency_action(
             action=lambda: trigger_consistency_report(
                 consolidated_dir=consolidated_dir,
                 glossary_path=glossary_path,
+                characters_path=characters_path,
+                world_rules_path=world_rules_path,
                 reports_dir=reports_dir,
             ),
         )
@@ -1257,6 +1261,8 @@ def main() -> int:
         _build_consistency_action(
             consolidated_dir=args.consolidated_dir,
             glossary_path=args.glossary,
+            characters_path=args.characters,
+            world_rules_path=args.world_rules,
             reports_dir=args.reports_dir,
             jobs_dir=args.jobs_dir,
         ),
