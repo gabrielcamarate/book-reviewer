@@ -8,6 +8,7 @@ from editorial_core.copyedit import Runner, run_copyedit_pass
 from editorial_core.decisions import append_editorial_decision
 from editorial_core.export_docx import export_manuscript_docx
 from editorial_core.review_application import apply_review_approval
+from editorial_core.style import run_style_pass
 from editorial_core.translation_es import run_translation_es_pass
 from editorial_core.world_rules import generate_world_rules_registry
 
@@ -46,6 +47,51 @@ def trigger_review_approval(
 ) -> dict[str, object]:
     return apply_review_approval(
         review_path=reviews_dir / f"{chunk_id}.copyedit.json",
+        chunks_dir=chunks_dir,
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
+        approved_suggestion_indexes=approved_suggestion_indexes,
+    )
+
+
+def trigger_style(
+    *,
+    chunk_id: str,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    decisions_path: Path,
+    runner: Runner,
+    model: str = "gpt-5-codex",
+) -> dict[str, object]:
+    return run_style_pass(
+        chunks_dir=chunks_dir,
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
+        reviews_dir=reviews_dir,
+        style_guide_path=style_guide_path,
+        glossary_path=glossary_path,
+        decisions_path=decisions_path,
+        runner=runner,
+        model=model,
+        chunk_id=chunk_id,
+    )
+
+
+def trigger_style_approval(
+    *,
+    chunk_id: str,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_dir: Path,
+    approved_suggestion_indexes: list[int] | None = None,
+) -> dict[str, object]:
+    return apply_review_approval(
+        review_path=reviews_dir / f"{chunk_id}.style.json",
         chunks_dir=chunks_dir,
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,

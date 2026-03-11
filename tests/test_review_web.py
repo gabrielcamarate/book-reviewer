@@ -34,6 +34,8 @@ from review_web.actions import (
     trigger_consistency_report,
     trigger_copyedit,
     trigger_review_approval,
+    trigger_style,
+    trigger_style_approval,
     trigger_translation_es,
 )
 
@@ -1357,11 +1359,45 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.style.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "suggestions": [
+                            {
+                                "original": "Trecho principal revisado.",
+                                "suggested": "Trecho principal revisado, com melhor cadência.",
+                                "change_type": "style",
+                                "reason": "Refino rítmico.",
+                                "confidence": 0.77,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.approval.json").write_text(
                 json.dumps(
                     {
                         "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
                         "status": "approved",
+                        "applied_change_count": 1,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.style.approval.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "status": "approved",
+                        "pass": "style",
                         "applied_change_count": 1,
                     },
                     ensure_ascii=False,
@@ -1440,6 +1476,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["chunk"]["previous_context"][0]["text"], "Contexto anterior.")
             self.assertEqual(state["copyedit_review"]["suggestions"][0]["suggested"], "Trecho principal revisado.")
             self.assertEqual(state["approval"]["applied_change_count"], 1)
+            self.assertEqual(state["style_review"]["suggestions"][0]["change_type"], "style")
+            self.assertEqual(state["style_approval"]["pass"], "style")
             self.assertEqual(state["translation_review"]["translations"][0]["translated_text"], "Fragmento principal.")
             self.assertEqual(state["consolidated_paragraphs"][0]["text"], "Trecho principal revisado.")
             self.assertEqual(state["consolidated_paragraphs"][0]["source_text"], "Trecho principal.")
@@ -1461,7 +1499,9 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("revisado", html)
             self.assertIn("Fragmento principal.", html)
             self.assertIn("Executar Copyedit", html)
+            self.assertIn("Executar Style", html)
             self.assertIn("Revisão de Sugestões", html)
+            self.assertIn("Refino de Estilo", html)
             self.assertIn("Original", html)
             self.assertIn("Sugerido", html)
             self.assertIn("Confiança", html)
@@ -1469,6 +1509,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("diff-added", html)
             self.assertIn("diff-removed", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001/approve-copyedit", html)
+            self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001/approve-style", html)
             self.assertIn("name=\"approve_index\"", html)
             self.assertIn("value=\"0\"", html)
             self.assertIn("Aprovar Alterações Selecionadas", html)
@@ -1570,6 +1611,119 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 )
             )
             self.assertEqual(persisted["suggestions"][0]["suggested"], "Trecho principal revisado.")
+
+    def test_trigger_style_persists_review_for_stable_chunk(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            style_guide_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "source_start_index": 1,
+                                "source_end_index": 3,
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "source_start_index": 1,
+                        "source_end_index": 3,
+                        "base_text": "Trecho principal.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            section_payload = {
+                "id": "chapter-0001-conexao-dimensional",
+                "title": "Capítulo 1: Conexão Dimensional.",
+                "paragraphs": [
+                    {
+                        "id": "chapter-0001-conexao-dimensional-p-0001",
+                        "source_index": 1,
+                        "source_text": "Texto-base antigo.",
+                        "text": "Trecho principal revisado.",
+                        "review_status": "approved",
+                        "applied_reviews": [],
+                    }
+                ],
+            }
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(section_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(section_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            style_guide_path.write_text("# Style Guide\n- Preserve voice.\n", encoding="utf-8")
+            glossary_path.write_text("# Glossary\n- Sistema Terra\n", encoding="utf-8")
+            decisions_path.write_text("# Editorial Decisions\n", encoding="utf-8")
+
+            summary = trigger_style(
+                chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_dir=reviews_ptbr_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=lambda **_: {
+                    "suggestions": [
+                        {
+                            "original": "Trecho principal revisado.",
+                            "suggested": "Trecho principal revisado, com melhor cadência.",
+                            "change_type": "style",
+                            "reason": "Refino rítmico.",
+                            "confidence": 0.79,
+                        }
+                    ]
+                },
+            )
+
+            self.assertEqual(summary["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            persisted = json.loads(
+                (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.style.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(persisted["suggestions"][0]["change_type"], "style")
 
     def test_trigger_review_approval_persists_partial_selection_and_updates_consolidated_state(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1740,6 +1894,182 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(
                 consolidated_payload["paragraphs"][1]["text"],
                 "Segundo parágrafo revisado.",
+            )
+
+    def test_trigger_style_approval_persists_partial_selection_and_updates_consolidated_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": [
+                            "chapter-0001-conexao-dimensional-p-0001",
+                            "chapter-0001-conexao-dimensional-p-0002",
+                        ],
+                        "base_text": "Primeiro parágrafo consolidado.\n\nSegundo parágrafo consolidado.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            chapter_index = {
+                "section_count": 1,
+                "chapter_count": 1,
+                "sections": [
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "type": "chapter",
+                        "order": 1,
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "file": "chapter-0001-conexao-dimensional.json",
+                        "review_status": "approved",
+                    }
+                ],
+            }
+            (chapters_dir / "index.json").write_text(
+                json.dumps(chapter_index, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            section_payload = {
+                "id": "chapter-0001-conexao-dimensional",
+                "type": "chapter",
+                "order": 1,
+                "title": "Capítulo 1: Conexão Dimensional.",
+                "review_status": "approved",
+                "paragraphs": [
+                    {
+                        "id": "chapter-0001-conexao-dimensional-p-0001",
+                        "source_index": 1,
+                        "source_text": "Primeiro texto original.",
+                        "text": "Primeiro parágrafo consolidado.",
+                        "review_status": "approved",
+                        "applied_reviews": [],
+                    },
+                    {
+                        "id": "chapter-0001-conexao-dimensional-p-0002",
+                        "source_index": 2,
+                        "source_text": "Segundo texto original.",
+                        "text": "Segundo parágrafo consolidado.",
+                        "review_status": "approved",
+                        "applied_reviews": [],
+                    },
+                ],
+            }
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(section_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(chapter_index, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(section_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.style.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "pass": "style",
+                        "language": "pt-BR",
+                        "source": {
+                            "section_id": "chapter-0001-conexao-dimensional",
+                            "section_title": "Capítulo 1: Conexão Dimensional.",
+                            "paragraph_ids": [
+                                "chapter-0001-conexao-dimensional-p-0001",
+                                "chapter-0001-conexao-dimensional-p-0002",
+                            ],
+                        },
+                        "suggestions": [
+                            {
+                                "original": "Primeiro parágrafo consolidado.",
+                                "suggested": "Primeiro parágrafo consolidado, com melhor cadência.",
+                                "change_type": "style",
+                                "reason": "Refino rítmico.",
+                                "confidence": 0.84,
+                            },
+                            {
+                                "original": "Segundo parágrafo consolidado.",
+                                "suggested": "Segundo parágrafo consolidado, com melhor cadência.",
+                                "change_type": "style",
+                                "reason": "Refino rítmico.",
+                                "confidence": 0.82,
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_style_approval(
+                chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_dir=reviews_ptbr_dir,
+                approved_suggestion_indexes=[0],
+            )
+
+            approval_payload = json.loads(
+                (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.style.approval.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            consolidated_payload = json.loads(
+                (consolidated_dir / "chapter-0001-conexao-dimensional.json").read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(summary["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(summary["approved_suggestion_count"], 1)
+            self.assertEqual(approval_payload["pass"], "style")
+            self.assertEqual(approval_payload["approved_suggestion_indexes"], [0])
+            self.assertEqual(
+                consolidated_payload["paragraphs"][0]["text"],
+                "Primeiro parágrafo consolidado, com melhor cadência.",
+            )
+            self.assertEqual(
+                consolidated_payload["paragraphs"][1]["text"],
+                "Segundo parágrafo consolidado.",
             )
 
     def test_trigger_consistency_report_persists_report_for_web_workflow(self) -> None:

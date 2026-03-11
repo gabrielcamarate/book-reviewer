@@ -658,6 +658,8 @@ def build_chunk_detail_state(
     chunk_payload = _read_json(chunks_dir / chunk_entry["file"])
     copyedit_path = reviews_ptbr_dir / f"{chunk_id}.copyedit.json"
     approval_path = reviews_ptbr_dir / f"{chunk_id}.approval.json"
+    style_path = reviews_ptbr_dir / f"{chunk_id}.style.json"
+    style_approval_path = reviews_ptbr_dir / f"{chunk_id}.style.approval.json"
     translation_path = reviews_es_dir / f"{chunk_id}.translation-es.json"
     consolidated_path = consolidated_dir / f"{chunk_payload['section_id']}.json"
     consolidated_payload = _read_json(consolidated_path) if consolidated_path.exists() else None
@@ -714,6 +716,8 @@ def build_chunk_detail_state(
         "chunk": chunk_payload,
         "copyedit_review": _read_json(copyedit_path) if copyedit_path.exists() else None,
         "approval": _read_json(approval_path) if approval_path.exists() else None,
+        "style_review": _read_json(style_path) if style_path.exists() else None,
+        "style_approval": _read_json(style_approval_path) if style_approval_path.exists() else None,
         "translation_review": _read_json(translation_path) if translation_path.exists() else None,
         "consolidated_paragraphs": consolidated_paragraphs,
         "translation_eligibility": translation_eligibility,
@@ -1215,6 +1219,8 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
     chunk = state["chunk"]
     copyedit_review = state.get("copyedit_review")
     approval = state.get("approval")
+    style_review = state.get("style_review")
+    style_approval = state.get("style_approval")
     translation_review = state.get("translation_review")
     consolidated_paragraphs = state.get("consolidated_paragraphs", [])
     translation_comparison = state.get("translation_comparison", [])
@@ -1272,6 +1278,49 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         f"<p class=\"muted\">Alterações aprovadas: <code>{approval.get('applied_change_count', 0)}</code></p>"
         if approval is not None
         else "<p class=\"muted\">Nenhum registro persistido de aprovação.</p>"
+    )
+    style_items = "".join(
+        (
+            "<li>"
+            f"<label><input type=\"checkbox\" name=\"approve_index\" value=\"{item['index']}\" checked> "
+            f"<strong>{item['change_type']}</strong>"
+            "</label>"
+            "<div class=\"diff-grid\" style=\"margin-top: 8px;\">"
+            "<div class=\"diff-panel\">"
+            "<strong>Original</strong><br>"
+            f"{item['original_html']}"
+            "</div>"
+            "<div class=\"diff-panel\">"
+            "<strong>Sugerido</strong><br>"
+            f"{item['suggested_html']}"
+            "</div>"
+            "</div>"
+            f"<div class=\"muted\" style=\"margin-top: 8px;\">{item['reason']}</div>"
+            f"<div class=\"muted\">Confiança: <code>{item['confidence']}</code></div>"
+            "</li>"
+        )
+        for item in [
+            {
+                "index": index,
+                "change_type": html.escape(suggestion.get("change_type", "change")),
+                "reason": html.escape(suggestion.get("reason", "")),
+                "confidence": html.escape(str(suggestion.get("confidence", "unknown"))),
+                "original_html": _render_inline_diff(
+                    suggestion.get("original", ""),
+                    suggestion.get("suggested", ""),
+                )[0],
+                "suggested_html": _render_inline_diff(
+                    suggestion.get("original", ""),
+                    suggestion.get("suggested", ""),
+                )[1],
+            }
+            for index, suggestion in enumerate((style_review or {}).get("suggestions", []))
+        ]
+    ) or "<li>Nenhuma revisão de style persistida.</li>"
+    style_approval_summary = (
+        f"<p class=\"muted\">Alterações de style aprovadas: <code>{style_approval.get('applied_change_count', 0)}</code></p>"
+        if style_approval is not None
+        else "<p class=\"muted\">Nenhum registro persistido de aprovação de style.</p>"
     )
     translation_items = "".join(
         (
@@ -1349,6 +1398,9 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         <form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/copyedit\" style=\"margin: 0 0 12px;\">
           <button type=\"submit\">Executar Copyedit</button>
         </form>
+        <form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/style\" style=\"margin: 0 0 12px;\">
+          <button type=\"submit\">Executar Style</button>
+        </form>
         <pre>{html.escape(chunk.get('base_text', ''))}</pre>
       </article>
       <div class=\"two-col\" style=\"margin-top: 18px;\">
@@ -1371,15 +1423,25 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
           {approval_summary}
         </section>
         <section>
+          <h3>Refino de Estilo</h3>
+          <form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/approve-style\">
+            <ul>{style_items}</ul>
+            <button type=\"submit\">Aprovar Refino de Estilo Selecionado</button>
+          </form>
+          {style_approval_summary}
+        </section>
+      </div>
+      <div class=\"two-col\" style=\"margin-top: 18px;\">
+        <section>
           <h3>Tradução Espanhola Persistida</h3>
           {translation_controls}
           <ul>{translation_items}</ul>
         </section>
+        <section>
+          <h3>Estado Consolidado dos Parágrafos</h3>
+          <ul>{consolidated_items}</ul>
+        </section>
       </div>
-      <section style=\"margin-top: 18px;\">
-        <h3>Estado Consolidado dos Parágrafos</h3>
-        <ul>{consolidated_items}</ul>
-      </section>
       <section style=\"margin-top: 18px;\">
         <h3>Comparação pt-BR e Espanhol</h3>
         <ul>{translation_comparison_items}</ul>

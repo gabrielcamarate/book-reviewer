@@ -892,3 +892,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-039`
+
+---
+
+## TASK-041 — Expose the `style` pass in the web interface
+
+Status: DONE
+
+Description:
+
+Extend the editorial workstation so the operator can review and apply the style pass through the web UI.
+
+Acceptance Criteria:
+
+- chunk page exposes style pass actions and persisted artifacts
+- operator can compare copyedit and style outputs clearly
+- no editorial business logic moves into the web layer
+
+Dependencies:
+
+- requires `TASK-039` and `TASK-040`

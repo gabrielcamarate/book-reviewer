@@ -39,6 +39,8 @@ from review_web.actions import (
     trigger_consistency_report,
     trigger_copyedit,
     trigger_review_approval,
+    trigger_style,
+    trigger_style_approval,
     trigger_translation_es,
 )
 
@@ -256,6 +258,40 @@ def _build_copyedit_action(
     return _run
 
 
+def _build_style_action(
+    *,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    decisions_path: Path,
+    jobs_dir: Path,
+    model: str,
+) -> Callable[[str], dict[str, object]]:
+    def _run(chunk_id: str) -> dict[str, object]:
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="style",
+            target_id=chunk_id,
+            action=lambda: trigger_style(
+                chunk_id=chunk_id,
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_dir=reviews_ptbr_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=_codex_runner,
+                model=model,
+            ),
+        )
+
+    return _run
+
+
 def _build_approval_action(
     *,
     chunks_dir: Path,
@@ -265,6 +301,26 @@ def _build_approval_action(
 ) -> Callable[[str, list[int] | None], dict[str, object]]:
     def _run(chunk_id: str, approved_suggestion_indexes: list[int] | None) -> dict[str, object]:
         return trigger_review_approval(
+            chunk_id=chunk_id,
+            chunks_dir=chunks_dir,
+            chapters_dir=chapters_dir,
+            consolidated_dir=consolidated_dir,
+            reviews_dir=reviews_ptbr_dir,
+            approved_suggestion_indexes=approved_suggestion_indexes,
+        )
+
+    return _run
+
+
+def _build_style_approval_action(
+    *,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+) -> Callable[[str, list[int] | None], dict[str, object]]:
+    def _run(chunk_id: str, approved_suggestion_indexes: list[int] | None) -> dict[str, object]:
+        return trigger_style_approval(
             chunk_id=chunk_id,
             chunks_dir=chunks_dir,
             chapters_dir=chapters_dir,
@@ -423,7 +479,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
     search_loader: Callable[[str], dict[str, object]] | None = None
     queue_loader: Callable[[], dict[str, object]] | None = None
     copyedit_action: Callable[[str], dict[str, object]] | None = None
+    style_action: Callable[[str], dict[str, object]] | None = None
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
+    style_approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     consistency_action: Callable[[], dict[str, object]] | None = None
     translation_action: Callable[[str], dict[str, object]] | None = None
     export_action: Callable[[str], dict[str, object]] | None = None
@@ -628,6 +686,54 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path.startswith("/chunks/") and self.path.endswith("/style"):
+            if self.style_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "style action not configured")
+                return
+            chunk_id = unquote(self.path.removeprefix("/chunks/").removesuffix("/style"))
+            try:
+                self.style_action(chunk_id)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except RuntimeError as error:
+                self.send_error(HTTPStatus.BAD_GATEWAY, str(error))
+                return
+
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", f"/chunks/{chunk_id}")
+            self.end_headers()
+            return
+
+        if self.path.startswith("/chunks/") and self.path.endswith("/approve-style"):
+            if self.style_approval_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "style approval action not configured")
+                return
+            chunk_id = unquote(self.path.removeprefix("/chunks/").removesuffix("/approve-style"))
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            form_data = parse_qs(raw_body, keep_blank_values=False)
+            approved_indexes = [
+                int(value)
+                for value in form_data.get("approve_index", [])
+            ]
+            try:
+                self.style_approval_action(
+                    chunk_id,
+                    approved_indexes or None,
+                )
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except FileNotFoundError:
+                self.send_error(HTTPStatus.NOT_FOUND, "style review not found")
+                return
+
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", f"/chunks/{chunk_id}")
+            self.end_headers()
+            return
+
         if self.path == "/consistency/run":
             if self.consistency_action is None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "consistency action not configured")
@@ -740,7 +846,9 @@ def build_handler(
     search_loader: Callable[[str], dict[str, object]],
     queue_loader: Callable[[], dict[str, object]],
     copyedit_action: Callable[[str], dict[str, object]],
+    style_action: Callable[[str], dict[str, object]],
     approval_action: Callable[[str, list[int] | None], dict[str, object]],
+    style_approval_action: Callable[[str, list[int] | None], dict[str, object]],
     consistency_action: Callable[[], dict[str, object]],
     translation_action: Callable[[str], dict[str, object]],
     export_action: Callable[[str], dict[str, object]],
@@ -761,7 +869,9 @@ def build_handler(
     ConfiguredDashboardHandler.search_loader = staticmethod(search_loader)
     ConfiguredDashboardHandler.queue_loader = staticmethod(queue_loader)
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
+    ConfiguredDashboardHandler.style_action = staticmethod(style_action)
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
+    ConfiguredDashboardHandler.style_approval_action = staticmethod(style_approval_action)
     ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
     ConfiguredDashboardHandler.translation_action = staticmethod(translation_action)
     ConfiguredDashboardHandler.export_action = staticmethod(export_action)
@@ -860,7 +970,24 @@ def main() -> int:
             jobs_dir=args.jobs_dir,
             model=args.model,
         ),
+        _build_style_action(
+            chunks_dir=args.chunks_dir,
+            chapters_dir=args.chapters_dir,
+            consolidated_dir=args.consolidated_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            style_guide_path=args.style_guide,
+            glossary_path=args.glossary,
+            decisions_path=args.decisions,
+            jobs_dir=args.jobs_dir,
+            model=args.model,
+        ),
         _build_approval_action(
+            chunks_dir=args.chunks_dir,
+            chapters_dir=args.chapters_dir,
+            consolidated_dir=args.consolidated_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+        ),
+        _build_style_approval_action(
             chunks_dir=args.chunks_dir,
             chapters_dir=args.chapters_dir,
             consolidated_dir=args.consolidated_dir,
