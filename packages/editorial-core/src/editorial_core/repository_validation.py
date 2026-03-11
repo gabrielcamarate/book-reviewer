@@ -11,6 +11,9 @@ _REQUIRED_PATHS = (
     "editorial/DECISIONS.md",
     "manuscript/chunks/index.json",
     "manuscript/chapters/index.json",
+)
+
+_OPTIONAL_JSON_PATHS = (
     "manuscript/consolidated/index.json",
 )
 
@@ -34,6 +37,14 @@ def validate_repository_state(*, root_dir: Path) -> dict[str, Any]:
             json_error = _validate_json_file(path)
             if json_error is not None:
                 errors.append(json_error)
+
+    for relative_path in _OPTIONAL_JSON_PATHS:
+        path = root_dir / relative_path
+        if not path.exists():
+            continue
+        json_error = _validate_json_file(path)
+        if json_error is not None:
+            errors.append(json_error)
 
     return {
         "ok": not errors,

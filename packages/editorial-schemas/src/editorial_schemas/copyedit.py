@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 COPYEDIT_SCHEMA_NAME = "copyedit-output"
-COPYEDIT_SCHEMA_VERSION = "2026-03-10.1"
+COPYEDIT_SCHEMA_VERSION = "2026-03-11.1"
 
 
 def copyedit_output_schema() -> dict[str, object]:
@@ -19,9 +19,30 @@ def copyedit_output_schema() -> dict[str, object]:
         "properties": {
             "original": {"type": "string"},
             "suggested": {"type": "string"},
-            "change_type": {"type": "string"},
+            "change_type": {
+                "type": "string",
+                "enum": [
+                    "spelling",
+                    "ortografia",
+                    "grammar",
+                    "gramática",
+                    "punctuation",
+                    "pontuação",
+                    "agreement",
+                    "concordância",
+                    "syntax",
+                    "sintaxe",
+                    "capitalization",
+                    "capitalização",
+                    "quotation",
+                    "citação",
+                    "aspas",
+                    "diacritics",
+                    "acentuação",
+                ],
+            },
             "reason": {"type": "string"},
-            "confidence": {"type": "number"},
+            "confidence": {"type": "number", "minimum": 0.8, "maximum": 1.0},
         },
     }
 

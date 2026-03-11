@@ -168,7 +168,50 @@ class CopyeditPassTest(unittest.TestCase):
             self.assertIn("Preserve dialogue markers.", str(captured["prompt"]))
             self.assertIn("Sistema Terra", str(captured["prompt"]))
             self.assertIn("Preservar travessão dramático", str(captured["prompt"]))
+            self.assertIn("Only emit a suggestion if ALL four answers are yes.", str(captured["prompt"]))
+            self.assertIn("Agreement and syntax ambiguity rule:", str(captured["prompt"]))
+            self.assertIn("would require choosing one plausible structural reading over another", str(captured["prompt"]))
+            self.assertIn("apparently singular subject is followed by extended post-nominal modifiers", str(captured["prompt"]))
+            self.assertIn("either nucleus-based agreement or distributed semantic agreement", str(captured["prompt"]))
+            self.assertIn("singular grammatical subject is followed by a long plural expansion", str(captured["prompt"]))
+            self.assertIn("prefer omission unless the agreement error is unequivocal", str(captured["prompt"]))
+            self.assertIn("apparent subject begins with a hierarchical or collective noun", str(captured["prompt"]))
+            self.assertIn("hierarchical or collective head is read together with its full expansion", str(captured["prompt"]))
+            self.assertIn("inserting connective, relative, or linking words such as “que”", str(captured["prompt"]))
+            self.assertIn("apparent subject begins with a hierarchical or structural noun", str(captured["prompt"]))
+            self.assertIn("suppress agreement correction entirely in this copyedit pass", str(captured["prompt"]))
+            self.assertIn("Local evidence rule:", str(captured["prompt"]))
+            self.assertIn("must be grounded in the local sentence and local span", str(captured["prompt"]))
+            self.assertIn("depend primarily on global consistency inference", str(captured["prompt"]))
+            self.assertIn("INPUT CONTEXT:", str(captured["prompt"]))
+            self.assertIn('"paragraph_id": "chapter-0001-conexao-dimensional-p-0004"', str(captured["prompt"]))
             self.assertEqual(captured["schema"]["type"], "object")
+            self.assertEqual(
+                captured["schema"]["properties"]["suggestions"]["items"]["properties"]["change_type"]["enum"],
+                [
+                    "spelling",
+                    "ortografia",
+                    "grammar",
+                    "gramática",
+                    "punctuation",
+                    "pontuação",
+                    "agreement",
+                    "concordância",
+                    "syntax",
+                    "sintaxe",
+                    "capitalization",
+                    "capitalização",
+                    "quotation",
+                    "citação",
+                    "aspas",
+                    "diacritics",
+                    "acentuação",
+                ],
+            )
+            self.assertEqual(
+                captured["schema"]["properties"]["suggestions"]["items"]["properties"]["confidence"]["minimum"],
+                0.8,
+            )
             self.assertEqual(persisted["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0002")
             self.assertEqual(persisted["pass"], "copyedit")
             self.assertEqual(persisted["model"], "gpt-5-codex")
@@ -180,6 +223,175 @@ class CopyeditPassTest(unittest.TestCase):
             self.assertIn("style_guide", persisted["provenance"]["context_inputs"])
             self.assertIn("sha256", persisted["provenance"]["context_inputs"]["glossary"])
             self.assertEqual(persisted["suggestions"][0]["reason"], "Ajuste de clareza gramatical.")
+
+    def test_run_copyedit_pass_rejects_non_objective_or_low_confidence_suggestions(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "chunks"
+            reviews_dir = temp_path / "reviews" / "ptbr"
+            style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            reviews_dir.mkdir(parents=True, exist_ok=True)
+            style_guide_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "chunk_order": 1,
+                                "review_status": "pending_review",
+                                "paragraph_count": 1,
+                                "source_start_index": 100,
+                                "source_end_index": 100,
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "chunk_order": 1,
+                        "review_status": "pending_review",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "source_start_index": 100,
+                        "source_end_index": 100,
+                        "paragraph_count": 1,
+                        "base_text": "Trecho principal.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            style_guide_path.write_text("# Style Guide\n", encoding="utf-8")
+            glossary_path.write_text("# Glossary\n", encoding="utf-8")
+            decisions_path.write_text("# Editorial Decisions\n", encoding="utf-8")
+
+            with self.assertRaises(ValueError):
+                run_copyedit_pass(
+                    chunks_dir=chunks_dir,
+                    reviews_dir=reviews_dir,
+                    style_guide_path=style_guide_path,
+                    glossary_path=glossary_path,
+                    decisions_path=decisions_path,
+                    runner=lambda **_: {
+                        "suggestions": [
+                            {
+                                "original": "Trecho principal.",
+                                "suggested": "Trecho mais elegante.",
+                                "change_type": "style",
+                                "reason": "Soa melhor.",
+                                "confidence": 0.55,
+                            }
+                        ]
+                    },
+                )
+
+    def test_run_copyedit_pass_discards_repeated_span_suggestions_without_occurrence_index(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "chunks"
+            reviews_dir = temp_path / "reviews" / "ptbr"
+            style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            reviews_dir.mkdir(parents=True, exist_ok=True)
+            style_guide_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "chunk_order": 1,
+                                "review_status": "pending_review",
+                                "paragraph_count": 1,
+                                "source_start_index": 100,
+                                "source_end_index": 100,
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "chunk_order": 1,
+                        "review_status": "pending_review",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "source_start_index": 100,
+                        "source_end_index": 100,
+                        "paragraph_count": 1,
+                        "base_text": "Turmas de LGBTQIAPN+ deveriam considerar adicionar o H de hetero nesta sopa de letras caracterizadoras de gêneros. Diversidades sexualizadas criam tribos excludentes da heterossexualidade.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            style_guide_path.write_text("# Style Guide\n", encoding="utf-8")
+            glossary_path.write_text("# Glossary\n", encoding="utf-8")
+            decisions_path.write_text("# Editorial Decisions\n", encoding="utf-8")
+
+            summary = run_copyedit_pass(
+                chunks_dir=chunks_dir,
+                reviews_dir=reviews_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=lambda **_: {
+                    "suggestions": [
+                        {
+                            "original": "hetero",
+                            "suggested": "hétero",
+                            "change_type": "diacritics",
+                            "reason": "A forma reduzida exige acento.",
+                            "confidence": 0.9,
+                        }
+                    ]
+                },
+            )
+
+            output_path = reviews_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json"
+            persisted = json.loads(output_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(summary["suggestion_count"], 0)
+            self.assertEqual(persisted["suggestions"], [])
 
     def test_run_copyedit_pass_raises_when_no_pending_chunk_is_available(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

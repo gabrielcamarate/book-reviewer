@@ -1,0 +1,110 @@
+{
+  "generated_at": "2026-03-11T00:45:11",
+  "language": "pt-BR",
+  "output_path": "deliverables/ptbr/exilados-da-terra.ptbr.docx",
+  "file_count": 17,
+  "files": [
+    {
+      "role": "template_docx",
+      "path": "livro.docx",
+      "size_bytes": 11299242,
+      "sha256": "166a5b8e34e051f9121e9ec065944f52c12dfcdf0e4e05d931ca6b7a6e192df0"
+    },
+    {
+      "role": "chapter_index",
+      "path": "manuscript/chapters/index.json",
+      "size_bytes": 5287,
+      "sha256": "aa0db801c1df7d6c005e8ed16c7d05355a98f8855692c9b9184a626abfc8b43e"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/frontmatter-0001-opening.json",
+      "size_bytes": 1352,
+      "sha256": "3092689a59d36de6e116161d2bca60d1c7b99b5a8bafc149688147ae1c85e5c2"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/frontmatter-0002-o-escritor.json",
+      "size_bytes": 2510,
+      "sha256": "9060f5f127c057bfd9eaeec5098d03c35291bd9eb305e74b8cb50620f4389893"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/frontmatter-0003-sumario.json",
+      "size_bytes": 3282,
+      "sha256": "e9e0b2f28f03374273d703e46adc52863d5088ebeb5a48114d47a38707c6c4a2"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/frontmatter-0004-opening.json",
+      "size_bytes": 2240,
+      "sha256": "a9ea1458dc7eb29741b9f7c95f1a23b89e8aea8a57769558686ef3cf5f384e3a"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/frontmatter-0005-prefacio.json",
+      "size_bytes": 4235,
+      "sha256": "e9213776b9d136806f376ac958d7b54ab9d2ee4a5199b0a7890f1b4de35ffb21"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/frontmatter-0006-introducao.json",
+      "size_bytes": 4346,
+      "sha256": "cd3a932ee45a85c2d72d7b458579d4da2a160823626bd8c1c6725ce41422eb8a"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/frontmatter-0007-prologo.json",
+      "size_bytes": 5075,
+      "sha256": "9cd90042f5eda6d7ac2d7d1c649715f52bcb42f5d9ba3219dc3453f3d42108ce"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/chapter-0001-conexao-dimensional.json",
+      "size_bytes": 160476,
+      "sha256": "d6e2030953b40089af5acc38f01b77a3d13ebf08c90c7c16bde800b0ffdf4423"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/chapter-0002-supremo-poder-anonimo.json",
+      "size_bytes": 95210,
+      "sha256": "92744724a8dc29dc31baeda5e278536d9d025b83ee2f5e65fe1c94c93d23c2e7"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/chapter-0003-reset.json",
+      "size_bytes": 200230,
+      "sha256": "78fe1c606a046f86d566cbddeca631410de8f21f492781d4166febf1f49d3961"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/chapter-0004-guerra-dimensional.json",
+      "size_bytes": 165749,
+      "sha256": "c9109e70970bb09d8732bbfd3892a48e70db09fc9fadab6d621ab6bdbc5aba8e"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/chapter-0005-exilados-da-terra.json",
+      "size_bytes": 208009,
+      "sha256": "0d4db46507216cf1a3553416d6d12b76910c7bc1bc38e3186c5570064a2e610a"
+    },
+    {
+      "role": "chapter_section",
+      "path": "manuscript/chapters/backmatter-0001-epilogo.json",
+      "size_bytes": 5534,
+      "sha256": "7c3b0db3b7ab6354306d9e94e4aed605cece60167a2050a4d9daf1f099cc8d90"
+    },
+    {
+      "role": "consolidated_index",
+      "path": "manuscript/consolidated/index.json",
+      "size_bytes": 5184,
+      "sha256": "094983dab04fc42d9737886081cceb2e7cd4f03c9ec43a505c211b725875cff8"
+    },
+    {
+      "role": "consolidated_section",
+      "path": "manuscript/consolidated/chapter-0001-conexao-dimensional.json",
+      "size_bytes": 295533,
+      "sha256": "f4587ec612cd03c850331bf61a40124f43b9500799b87a3aecb1e1eab0e52101"
+    }
+  ]
+}

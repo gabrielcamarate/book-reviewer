@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-03-10T22:59:08",
+  "job_type": "consistency",
+  "status": "succeeded",
+  "target_id": "ptbr-consistency-report",
+  "details": {
+    "report_path": "reports/ptbr-consistency-report.json",
+    "finding_count": 276,
+    "section_count": 1,
+    "paragraph_count": 287
+  }
+}

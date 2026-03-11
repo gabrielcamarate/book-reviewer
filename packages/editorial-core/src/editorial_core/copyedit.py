@@ -18,6 +18,26 @@ from editorial_schemas.copyedit import (
 )
 
 Runner = Callable[..., dict[str, object]]
+ALLOWED_COPYEDIT_CHANGE_TYPES = {
+    "spelling",
+    "ortografia",
+    "grammar",
+    "gramática",
+    "punctuation",
+    "pontuação",
+    "agreement",
+    "concordância",
+    "syntax",
+    "sintaxe",
+    "capitalization",
+    "capitalização",
+    "quotation",
+    "citação",
+    "aspas",
+    "diacritics",
+    "acentuação",
+}
+MIN_COPYEDIT_CONFIDENCE = 0.8
 
 
 def _load_chunk_index(chunks_dir: Path) -> dict[str, Any]:
@@ -61,7 +81,36 @@ def _validate_response(payload: dict[str, object]) -> list[dict[str, object]]:
         for key in ("original", "suggested", "change_type", "reason", "confidence"):
             if key not in suggestion:
                 raise ValueError(f"copyedit suggestion missing required field: {key}")
+        if str(suggestion["change_type"]) not in ALLOWED_COPYEDIT_CHANGE_TYPES:
+            raise ValueError(
+                f"copyedit suggestion uses unsupported change_type: {suggestion['change_type']}"
+            )
+        confidence = suggestion["confidence"]
+        if not isinstance(confidence, (int, float)):
+            raise ValueError("copyedit suggestion confidence must be numeric")
+        if float(confidence) < MIN_COPYEDIT_CONFIDENCE:
+            raise ValueError(
+                f"copyedit suggestion confidence must be >= {MIN_COPYEDIT_CONFIDENCE:.1f}"
+            )
     return suggestions
+
+
+def _discard_ambiguous_repeated_spans(
+    suggestions: list[dict[str, object]],
+    *,
+    base_text: str,
+) -> list[dict[str, object]]:
+    paragraphs = [paragraph for paragraph in base_text.split("\n\n") if paragraph]
+    filtered: list[dict[str, object]] = []
+    for suggestion in suggestions:
+        original = str(suggestion.get("original", ""))
+        if not original:
+            continue
+        ambiguous_in_paragraph = any(paragraph.count(original) > 1 for paragraph in paragraphs)
+        if ambiguous_in_paragraph:
+            continue
+        filtered.append(suggestion)
+    return filtered
 
 
 def run_copyedit_pass(
@@ -88,6 +137,10 @@ def run_copyedit_pass(
     schema = copyedit_output_schema()
     runner_payload = runner(prompt=prompt, schema=schema, model=model)
     suggestions = _validate_response(runner_payload)
+    suggestions = _discard_ambiguous_repeated_spans(
+        suggestions,
+        base_text=str(chunk_payload["base_text"]),
+    )
     provenance = build_llm_provenance(
         model=model,
         prompt_template_id=COPYEDIT_PROMPT_TEMPLATE_ID,

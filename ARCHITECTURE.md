@@ -61,22 +61,29 @@ When segmentation rules change for a manuscript already under operation, rebuild
 
 # Target Directory Structure
 
-Suggested initial structure:
+Target end-state structure:
 
 ```text
-apps/
-  review-cli/
-    src/
+backend/
+  apps/
+    review-cli/
+      src/
+    review-web/
+      src/
 
-packages/
-  docx-adapter/
-    src/
-  editorial-core/
-    src/
-  editorial-prompts/
-    src/
-  editorial-schemas/
-    src/
+  packages/
+    docx-adapter/
+      src/
+    editorial-core/
+      src/
+    editorial-prompts/
+      src/
+    editorial-schemas/
+      src/
+
+frontend/
+  src/
+  public/
 
 manuscript/
   source/
@@ -107,6 +114,12 @@ fixtures/
   bot-contracts/
 ```
 
+Current transition note:
+
+- `frontend/` now exists as the dedicated frontend application
+- the Python backend workspace is still rooted in the current top-level `apps/`, `packages/`, and repository state directories
+- a later normalization step may move the current backend workspace under `backend/` once the dedicated frontend track is stable enough to justify the structural migration
+
 ---
 
 # Layered Architecture
@@ -122,8 +135,8 @@ Responsibilities:
 
 Current app:
 
-- `apps/review-cli`
-- `apps/review-web`
+- `backend/apps/review-cli`
+- `backend/apps/review-web`
 
 Future interface note:
 
@@ -148,7 +161,7 @@ Rules:
 
 Contained in:
 
-- `apps/review-cli`
+- `backend/apps/review-cli`
 
 ## Web Interface Layer
 
@@ -170,9 +183,155 @@ Rules:
 - operator actions such as recording editorial decisions must write back to repository state
 - the web server must fail fast when minimum repository state is missing or invalid unless an explicit operator override is used for diagnostics only
 
+Current operator-mode decision:
+
+- the default home route must prioritize a simple operator experience for the manuscript author
+- the current technical workstation must remain available on a separate advanced route
+- the simple operator flow must be validated with the user step by step before further interface expansion
+
+Frontend implementation policy:
+
+- when frontend work moves into a dedicated `frontend/` application, that layer must consume backend contracts instead of reimplementing editorial logic
+- frontend implementation must use the installed skills as working constraints:
+  - `vercel-react-best-practices`
+  - `frontend-design`
+  - `tailwind-design-system`
+  - `shadcn`
+  - `web-design-guidelines`
+- skill usage is mandatory for React, Tailwind, `shadcn`, and UI-review work
+- `find-skills` must be used when a frontend need is not covered clearly by the installed set
+- backend/core remains the source of truth for editorial state, prompts, decisions, and repository-backed persistence
+
+Frontend transition decision:
+
+- the current server-rendered `backend/apps/review-web` remains the working operator interface during transition
+- a new dedicated `frontend/` application will be introduced incrementally
+- the new `frontend/` must consume backend contracts instead of duplicating editorial rules
+- the transition must preserve localhost-first operation with a single developer-friendly startup flow
+- the transition must not block the current validated author workflow while the new frontend is still incomplete
+- the first real frontend shell is implemented in `frontend/` with React + Vite + Tailwind v4
+- local frontend development now runs through `./scripts/dev.sh`, which starts Vite and a Python backend watcher in one terminal
+- the backend watcher restarts `review_web.server` automatically when Python source files change, while Vite handles frontend hot reload
+- `shadcn/ui` adoption remains planned, but its initialization may be deferred temporarily if local `npx` cache errors block setup
+
 Contained in:
 
-- `apps/review-web`
+- `backend/apps/review-web`
+- future `frontend/`
+
+## Frontend Application Boundary
+
+The dedicated frontend application exists to improve operator usability, not to replace backend responsibilities.
+
+Responsibilities:
+
+- render the simple author-facing review flow
+- render a future advanced technical workstation when parity is sufficient
+- consume backend-provided state and actions through explicit local contracts
+- keep presentation, interaction, and visual design concerns inside the frontend app
+
+Rules:
+
+- the frontend must not read or mutate repository state directly
+- the frontend must not invoke editorial core modules directly
+- backend endpoints or adapters must remain the only write path for editorial state
+- the frontend must be local-first and runnable on the author's machine
+- the initial frontend foundation should prefer minimal dependencies plus the installed skill-guided stack
+
+Initial technical direction:
+
+- dedicated app under `frontend/`
+- React-based implementation
+- Tailwind-based styling system
+- `shadcn/ui` available for composition where it improves clarity and speed
+- localhost integration with the existing backend before any deploy-specific changes
+
+## Simple Operator Mode Contract
+
+The web application must support two interface levels:
+
+1. simple operator mode for the author
+2. advanced workstation mode for the technical operator
+
+### Route Structure
+
+- `/` → simple `pt-BR` review mode
+- `/review/es` → simple Spanish review mode
+- `/advanced` → current technical workstation
+
+### Simple Navigation
+
+The simple navigation must expose only:
+
+- `Revisar PT-BR`
+- `Revisar Espanhol`
+- `Revisão Avançada`
+
+### Simple `pt-BR` Screen
+
+The simple `pt-BR` screen must focus on one actionable chunk at a time.
+
+It must show:
+
+- current chapter
+- remaining chapters
+- current chunk position inside the chapter
+- remaining actionable chunks
+- current review status
+
+Primary comparison area:
+
+- left column: current `Original`
+- right column: current `Revisado`
+
+Primary actions:
+
+- `Aceitar`
+- `Recusar`
+
+The simple `pt-BR` screen must not include:
+
+- technical reports
+- operational diagnostics
+- job internals
+- registry curation controls
+- large navigation trees
+
+### Simple Spanish Screen
+
+The simple Spanish screen must mirror the same visual structure, but only for chunks that are already stable in `pt-BR`.
+
+Primary comparison area:
+
+- left column: consolidated `pt-BR`
+- right column: suggested Spanish text
+
+Eligibility rule:
+
+- Spanish review must only surface chunks whose `pt-BR` state is already stable enough for translation
+
+### Meaning of Primary Actions
+
+`Aceitar` means:
+
+- apply the selected review result to repository-backed consolidated state
+- preserve approval traceability in persisted artifacts
+
+`Recusar` means:
+
+- do not apply the proposed change
+- persist a rejection record with a short human reason
+- make that rejection feedback available for a future rerun of the same chunk
+
+`Pular` does not exist in simple mode.
+
+### Export Communication Rule
+
+Simple mode must explain exports in operator language instead of technical language:
+
+- `pt-BR` export is generated from the current consolidated manuscript state
+- Spanish export is only available after eligible translated content exists
+- advanced manifests and technical metadata remain in advanced mode, not in the simple primary flow
 
 ## Core Layer
 

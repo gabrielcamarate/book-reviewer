@@ -29,6 +29,7 @@ from review_web.dashboard import (
     build_glossary_state,
     build_queue_state,
     build_search_state,
+    build_simple_home_state,
     build_world_rules_state,
     render_characters_html,
     render_chapter_detail_html,
@@ -39,6 +40,7 @@ from review_web.dashboard import (
     render_glossary_html,
     render_queue_html,
     render_search_html,
+    render_simple_home_html,
     render_world_rules_html,
 )
 from review_web.actions import (
@@ -114,6 +116,24 @@ def _build_loader(
             deliverables_dir=deliverables_dir,
             decisions_path=decisions_path,
             jobs_dir=jobs_dir,
+        )
+
+    return _load
+
+
+def _build_simple_home_loader(
+    *,
+    chunks_dir: Path,
+    consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+) -> Callable[[], dict[str, object]]:
+    def _load() -> dict[str, object]:
+        return build_simple_home_state(
+            chunks_dir=chunks_dir,
+            consolidated_dir=consolidated_dir,
+            reviews_ptbr_dir=reviews_ptbr_dir,
+            reviews_es_dir=reviews_es_dir,
         )
 
     return _load
@@ -624,6 +644,7 @@ def _build_preview_diagnostics_loader(
 
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
+    simple_home_loader: Callable[[], dict[str, object]] | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
     chunk_loader: Callable[[str], dict[str, object]] | None = None
     consistency_loader: Callable[[str], dict[str, object]] | None = None
@@ -651,6 +672,32 @@ class DashboardHandler(BaseHTTPRequestHandler):
     preview_health_loader: Callable[[], dict[str, object]] | None = None
     preview_diagnostics_loader: Callable[[], dict[str, object]] | None = None
     preview_token: str | None = None
+
+    def _write_json(self, status: HTTPStatus, payload: dict[str, object]) -> None:
+        response = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(response)))
+        self.end_headers()
+        self.wfile.write(response)
+
+    def _resolve_simple_home_chunk_id(self) -> str:
+        if self.simple_home_loader is None:
+            raise RuntimeError("simple home loader not configured")
+
+        state = self.simple_home_loader()
+        if not state.get("has_actionable_chunk"):
+            raise ValueError("no actionable chunk available")
+
+        chunk = state.get("chunk")
+        if not isinstance(chunk, dict):
+            raise ValueError("simple home chunk state is invalid")
+
+        chunk_id = chunk.get("id")
+        if not isinstance(chunk_id, str) or not chunk_id:
+            raise ValueError("simple home chunk id is invalid")
+
+        return chunk_id
 
     def _authorize_request(self) -> bool:
         if is_preview_request_authorized(
@@ -709,6 +756,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/":
+            if self.simple_home_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "simple home loader not configured")
+                return
+            state = self.simple_home_loader()
+            payload = render_simple_home_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path == "/advanced":
             state = self.dashboard_loader()
             payload = render_dashboard_html(state).encode("utf-8")
             self.send_response(HTTPStatus.OK)
@@ -748,12 +808,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
         if self.path == "/api/dashboard":
             state = self.dashboard_loader()
-            payload = json.dumps(state, ensure_ascii=False, indent=2).encode("utf-8")
-            self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(payload)))
-            self.end_headers()
-            self.wfile.write(payload)
+            self._write_json(HTTPStatus.OK, state)
+            return
+
+        if self.path == "/api/simple-home":
+            if self.simple_home_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "simple home loader not configured")
+                return
+            self._write_json(HTTPStatus.OK, self.simple_home_loader())
             return
 
         if self.path.startswith("/chapters/"):
@@ -866,6 +928,56 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         if not self._authorize_request():
+            return
+
+        if self.path == "/api/simple-home/review":
+            if self.copyedit_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "copyedit action not configured")
+                return
+            try:
+                chunk_id = self._resolve_simple_home_chunk_id()
+                result = self.copyedit_action(chunk_id)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except RuntimeError as error:
+                self.send_error(HTTPStatus.BAD_GATEWAY, str(error))
+                return
+
+            self._write_json(
+                HTTPStatus.OK,
+                {
+                    "ok": True,
+                    "action": "copyedit",
+                    "chunk_id": chunk_id,
+                    "result": result,
+                },
+            )
+            return
+
+        if self.path == "/api/simple-home/accept":
+            if self.approval_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "approval action not configured")
+                return
+            try:
+                chunk_id = self._resolve_simple_home_chunk_id()
+                result = self.approval_action(chunk_id, None)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except FileNotFoundError:
+                self.send_error(HTTPStatus.NOT_FOUND, "copyedit review not found")
+                return
+
+            self._write_json(
+                HTTPStatus.OK,
+                {
+                    "ok": True,
+                    "action": "accept",
+                    "chunk_id": chunk_id,
+                    "result": result,
+                },
+            )
             return
 
         if self.path.startswith("/chunks/") and self.path.endswith("/copyedit"):
@@ -1170,6 +1282,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
 def build_handler(
     dashboard_loader: DashboardLoader,
+    simple_home_loader: Callable[[], dict[str, object]],
     chapter_loader: Callable[[str], dict[str, object]],
     chunk_loader: Callable[[str], dict[str, object]],
     consistency_loader: Callable[[str], dict[str, object]],
@@ -1202,6 +1315,7 @@ def build_handler(
         pass
 
     ConfiguredDashboardHandler.dashboard_loader = staticmethod(dashboard_loader)
+    ConfiguredDashboardHandler.simple_home_loader = staticmethod(simple_home_loader)
     ConfiguredDashboardHandler.chapter_loader = staticmethod(chapter_loader)
     ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
     ConfiguredDashboardHandler.consistency_loader = staticmethod(consistency_loader)
@@ -1279,6 +1393,12 @@ def main() -> int:
             deliverables_dir=args.deliverables_dir,
             decisions_path=args.decisions,
             jobs_dir=args.jobs_dir,
+        ),
+        _build_simple_home_loader(
+            chunks_dir=args.chunks_dir,
+            consolidated_dir=args.consolidated_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            reviews_es_dir=args.reviews_es_dir,
         ),
         _build_chapter_loader(
             chunks_dir=args.chunks_dir,

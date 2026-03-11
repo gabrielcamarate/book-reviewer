@@ -22,6 +22,37 @@ If there is any conflict between default agent behavior and this document, this 
 
 ---
 
+# Frontend Skill Policy (MANDATORY)
+
+From this point forward, every frontend task in this repository must use the project-installed skills whenever they are relevant to the work.
+
+Installed frontend skillset:
+
+- `find-skills`
+- `vercel-react-best-practices`
+- `web-design-guidelines`
+- `frontend-design`
+- `tailwind-design-system`
+- `shadcn`
+
+Rules:
+
+- frontend architecture, UI implementation, and visual refactors must explicitly follow the installed skillset
+- React work must use `vercel-react-best-practices`
+- visual and layout work must use `frontend-design`
+- Tailwind design-system work must use `tailwind-design-system`
+- `shadcn` work must use the `shadcn` skill and its documented component workflow
+- UI review and UX audit work must use `web-design-guidelines`
+- when a missing capability or better workflow is suspected, use `find-skills` before inventing a custom approach
+- agents must record material frontend workflow changes in `ARCHITECTURE.md` and the active frontend task notes in `TASKS.md`
+
+Notes:
+
+- these skills guide the frontend layer only; editorial business logic must remain in backend/core packages
+- if a frontend task does not match any installed skill directly, the agent must state the closest applicable skill and proceed conservatively
+
+---
+
 # Project Objective
 
 Build a reproducible workflow to:
@@ -292,6 +323,7 @@ Default local execution:
 ./scripts/workspace-python.sh -m review_cli.main --help
 ./scripts/workspace-python.sh -m review_web.server --help
 ./scripts/jail.sh ./scripts/workspace-python.sh -m review_cli.main --help
+./scripts/dev.sh
 ```
 
 ---

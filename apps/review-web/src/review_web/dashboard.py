@@ -358,7 +358,8 @@ def _build_chapter_summary(
     return chapters_with_gaps
 
 
-def _render_page(title: str, body: str) -> str:
+def _render_page(title: str, body: str, *, main_class: str = "") -> str:
+    main_class_attr = f' class="{html.escape(main_class)}"' if main_class else ""
     return f"""<!doctype html>
 <html lang="pt-BR">
   <head>
@@ -385,9 +386,9 @@ def _render_page(title: str, body: str) -> str:
         color: var(--ink);
       }}
       main {{
-        max-width: 1120px;
+        width: min(1720px, calc(100vw - 48px));
         margin: 0 auto;
-        padding: 40px 20px 56px;
+        padding: 24px 0 32px;
       }}
       h1, h2, h3 {{ margin: 0 0 12px; }}
       p, .muted {{ color: var(--muted); }}
@@ -435,6 +436,31 @@ def _render_page(title: str, body: str) -> str:
         color: var(--accent);
         text-decoration: none;
       }}
+      button {{
+        appearance: none;
+        border: 1px solid #8c3b1b;
+        background: linear-gradient(180deg, #b3481b 0%, #922f10 100%);
+        color: #fff9f2;
+        border-radius: 999px;
+        padding: 12px 22px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(116, 40, 11, 0.16);
+      }}
+      button:hover {{
+        transform: translateY(-1px);
+        box-shadow: 0 14px 28px rgba(116, 40, 11, 0.2);
+      }}
+      button:disabled {{
+        cursor: not-allowed;
+        border-color: #c6b6a1;
+        background: linear-gradient(180deg, #d9cdbf 0%, #c7baa8 100%);
+        color: #695f55;
+        box-shadow: none;
+        transform: none;
+      }}
       .diff-grid {{
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -465,15 +491,157 @@ def _render_page(title: str, body: str) -> str:
       nav {{
         margin-bottom: 18px;
       }}
+      .simple-mode-main {{
+        height: 100dvh;
+        padding-top: 16px;
+        padding-bottom: 16px;
+        overflow: hidden;
+      }}
+      .simple-home {{
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        gap: 18px;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+      }}
+      .simple-home > section {{
+        min-height: 0;
+      }}
+      .simple-home .grid {{
+        margin: 0;
+      }}
+      .simple-panels {{
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(320px, 0.85fr);
+        gap: 18px;
+        min-height: 0;
+        overflow: hidden;
+      }}
+      .simple-panel {{
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }}
+      .simple-panel h2 {{
+        margin-bottom: 14px;
+      }}
+      .text-scroll {{
+        flex: 1;
+        min-height: 360px;
+        max-height: 58vh;
+        overflow: auto;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #f8efe3;
+      }}
+      .actions-row {{
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        align-items: center;
+      }}
+      .change-list {{
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+      }}
+      .change-card {{
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #f8efe3;
+        padding: 14px;
+      }}
+      .change-card h3 {{
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }}
+      .change-meta {{
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }}
+      .btn-secondary {{
+        border-color: #c8b8a4;
+        background: linear-gradient(180deg, #efe3d2 0%, #e3d4c1 100%);
+        color: #4e4237;
+        box-shadow: none;
+      }}
+      .loading-overlay {{
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(245, 240, 232, 0.9);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+      }}
+      .loading-overlay.is-visible {{
+        display: flex;
+      }}
+      .loading-card {{
+        width: min(440px, calc(100vw - 32px));
+        text-align: center;
+        background: rgba(255, 250, 243, 0.96);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 28px 24px;
+        box-shadow: 0 16px 40px rgba(71, 48, 24, 0.14);
+      }}
+      .spinner {{
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        border: 4px solid rgba(154, 52, 18, 0.16);
+        border-top-color: var(--accent);
+        animation: spin 0.9s linear infinite;
+      }}
+      @keyframes spin {{
+        to {{
+          transform: rotate(360deg);
+        }}
+      }}
       @media (max-width: 800px) {{
         .layout, .two-col {{
           grid-template-columns: 1fr;
+        }}
+        main {{
+          width: calc(100vw - 24px);
+          padding-top: 16px;
+          padding-bottom: 24px;
+        }}
+        .simple-mode-main {{
+          height: auto;
+          min-height: 100dvh;
+          overflow: visible;
+        }}
+        .simple-home {{
+          grid-template-rows: auto auto auto auto;
+          height: auto;
+          overflow: visible;
+        }}
+        .simple-panels {{
+          grid-template-columns: 1fr;
+          overflow: visible;
+        }}
+        .simple-panel {{
+          overflow: visible;
+        }}
+        .text-scroll {{
+          min-height: 240px;
+          max-height: none;
         }}
       }}
     </style>
   </head>
   <body>
-    <main>{body}</main>
+    <main{main_class_attr}>{body}</main>
   </body>
 </html>
 """
@@ -623,6 +791,147 @@ def build_queue_state(
         reviews_ptbr_dir=reviews_ptbr_dir,
         reviews_es_dir=reviews_es_dir,
     )
+
+
+def _build_review_preview_text(base_text: str, suggestions: list[dict[str, Any]]) -> str:
+    preview_text = base_text
+    for suggestion in suggestions:
+        original = suggestion.get("original", "")
+        suggested = suggestion.get("suggested", "")
+        if not original:
+            continue
+        if original not in preview_text:
+            continue
+        preview_text = preview_text.replace(original, suggested, 1)
+    return preview_text
+
+
+def _build_simple_change_cards(suggestions: list[dict[str, Any]]) -> list[dict[str, str | int]]:
+    change_cards: list[dict[str, str | int]] = []
+    for index, suggestion in enumerate(suggestions):
+        original = str(suggestion.get("original", ""))
+        suggested = str(suggestion.get("suggested", ""))
+        original_html, suggested_html = _render_inline_diff(original, suggested)
+        original_fragment, suggested_fragment = _extract_inline_change_fragments(original, suggested)
+        change_cards.append(
+            {
+                "index": index,
+                "change_type": str(suggestion.get("change_type", "change")),
+                "reason": str(suggestion.get("reason", "")),
+                "confidence": str(suggestion.get("confidence", "unknown")),
+                "original_text": original,
+                "suggested_text": suggested,
+                "original_html": original_html,
+                "suggested_html": suggested_html,
+                "original_fragment": original_fragment,
+                "suggested_fragment": suggested_fragment,
+            }
+        )
+    return change_cards
+
+
+def _extract_inline_change_fragments(original: str, suggested: str) -> tuple[str, str]:
+    matcher = SequenceMatcher(a=original, b=suggested)
+    original_parts: list[str] = []
+    suggested_parts: list[str] = []
+
+    for opcode, a_start, a_end, b_start, b_end in matcher.get_opcodes():
+        if opcode == "equal":
+            continue
+
+        original_fragment = original[a_start:a_end].strip()
+        suggested_fragment = suggested[b_start:b_end].strip()
+
+        if original_fragment:
+            original_parts.append(html.escape(original_fragment))
+        if suggested_fragment:
+            suggested_parts.append(html.escape(suggested_fragment))
+
+    original_html = " … ".join(part for part in original_parts if part)
+    suggested_html = " … ".join(part for part in suggested_parts if part)
+
+    if not original_html:
+        original_html = html.escape(original.strip())
+    if not suggested_html:
+        suggested_html = html.escape(suggested.strip())
+
+    return original_html, suggested_html
+
+
+def build_simple_home_state(
+    *,
+    chunks_dir: Path,
+    consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+) -> dict[str, Any]:
+    queue_state = build_review_queue(
+        chunks_dir=chunks_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
+    next_recommended = queue_state.get("next_recommended")
+    if next_recommended is None:
+        return {
+            "has_actionable_chunk": False,
+            "summary": queue_state.get("summary", {}),
+        }
+
+    chunk_state = build_chunk_detail_state(
+        chunk_id=str(next_recommended["chunk_id"]),
+        chunks_dir=chunks_dir,
+        consolidated_dir=consolidated_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
+    chunk_index = _load_chunk_index(chunks_dir)
+    section_chunks = [
+        chunk
+        for chunk in chunk_index.get("chunks", [])
+        if chunk.get("section_id") == next_recommended["section_id"]
+    ]
+    current_chunk_position = next(
+        (
+            position
+            for position, chunk in enumerate(section_chunks, start=1)
+            if chunk.get("id") == next_recommended["chunk_id"]
+        ),
+        1,
+    )
+    chapter_rollups = queue_state.get("chapter_rollups", [])
+    actionable_chapters = [
+        chapter
+        for chapter in chapter_rollups
+        if chapter.get("chapter_status") in {"pending_copyedit", "awaiting_copyedit_approval"}
+    ]
+    remaining_chapter_count = max(
+        sum(1 for chapter in actionable_chapters if chapter.get("id") != next_recommended["section_id"]),
+        0,
+    )
+    copyedit_review = chunk_state.get("copyedit_review") or {}
+    suggestions = copyedit_review.get("suggestions", [])
+    base_text = str(chunk_state["chunk"].get("base_text", ""))
+    revised_text = _build_review_preview_text(base_text, suggestions)
+    original_diff_html, revised_diff_html = _render_inline_diff(base_text, revised_text)
+
+    return {
+        "has_actionable_chunk": True,
+        "chunk": chunk_state["chunk"],
+        "orientation": {
+            "current_chapter_title": next_recommended.get("section_title", "Capítulo sem título"),
+            "remaining_chapter_count": remaining_chapter_count,
+            "current_chunk_position": current_chunk_position,
+            "chapter_chunk_count": len(section_chunks),
+            "remaining_actionable_chunk_count": max(queue_state["summary"].get("pending_copyedit_count", 0) + queue_state["summary"].get("awaiting_approval_count", 0) - 1, 0),
+            "queue_status": next_recommended.get("queue_status", "pending_copyedit"),
+        },
+        "original_text": base_text,
+        "revised_text": revised_text,
+        "original_diff_html": original_diff_html,
+        "revised_diff_html": revised_diff_html,
+        "review_available": bool(suggestions),
+        "changes": _build_simple_change_cards(suggestions),
+    }
 
 
 def build_chapter_detail_state(
@@ -909,6 +1218,13 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
     ) or "<li>Nenhum relatório de prontidão bilíngue disponível.</li>"
 
     body = f"""
+      <nav>
+        <a href="/">Revisar PT-BR</a>
+        &nbsp;·&nbsp;
+        <a href="/review/es">Revisar Espanhol</a>
+        &nbsp;·&nbsp;
+        <strong>Revisão Avançada</strong>
+      </nav>
       <header>
         <h1>Painel de Revisão Editorial</h1>
         <p>Interface web local sobre o backend persistido de revisão editorial.</p>
@@ -1023,6 +1339,136 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
       </div>
     """
     return _render_page("Painel de Revisão Editorial", body)
+
+
+def render_simple_home_html(state: dict[str, Any]) -> str:
+    if not state.get("has_actionable_chunk"):
+        body = """
+      <div class="simple-home">
+      <nav>
+        <strong>Revisar PT-BR</strong>
+        &nbsp;·&nbsp;
+        <a href="/review/es">Revisar Espanhol</a>
+        &nbsp;·&nbsp;
+        <a href="/advanced">Revisão Avançada</a>
+      </nav>
+      <section>
+        <h1>Modo simples de revisão</h1>
+        <p>Não há chunks acionáveis em pt-BR neste momento.</p>
+      </section>
+      </div>
+    """
+        return _render_page("Modo simples de revisão", body, main_class="simple-mode-main")
+
+    orientation = state["orientation"]
+    review_available = bool(state.get("review_available"))
+    changes = state.get("changes", [])
+    revised_label = "Revisado" if review_available else "Revisado (aguardando sugestão)"
+    reject_button = (
+        "<button type=\"button\" class=\"btn-secondary\" disabled>Recusar</button>"
+        if review_available
+        else "<button type=\"button\" class=\"btn-secondary\" disabled>Recusar</button>"
+    )
+    accept_button = (
+        f"<form method=\"post\" action=\"/chunks/{html.escape(state['chunk']['id'])}/approve-copyedit\" style=\"margin: 0;\">"
+        "<button type=\"submit\">Aceitar</button>"
+        "</form>"
+        if review_available
+        else f"<form method=\"post\" action=\"/chunks/{html.escape(state['chunk']['id'])}/copyedit\" class=\"js-loading-form\" style=\"margin: 0;\">"
+        "<button type=\"submit\">Revisar este trecho</button>"
+        "</form>"
+    )
+    helper_text = (
+        "<p class=\"muted\">A recusa com feedback entra na próxima etapa.</p>"
+        if review_available
+        else "<p class=\"muted\">Este trecho ainda não foi revisado.</p>"
+    )
+    change_items = "".join(
+        (
+            "<li class=\"change-card\">"
+            f"<h3>{html.escape(str(item['change_type']))}</h3>"
+            "<div class=\"diff-grid\">"
+            "<div class=\"diff-panel\">"
+            "<strong>Original</strong><br>"
+            f"{item['original_html']}"
+            "</div>"
+            "<div class=\"diff-panel\">"
+            "<strong>Sugerido</strong><br>"
+            f"{item['suggested_html']}"
+            "</div>"
+            "</div>"
+            f"<div class=\"change-meta\">{html.escape(str(item['reason']))}</div>"
+            f"<div class=\"change-meta\">Confiança: <code>{html.escape(str(item['confidence']))}</code></div>"
+            "</li>"
+        )
+        for item in changes
+    ) or "<li class=\"change-card\"><p class=\"muted\">Nenhuma alteração disponível para este trecho.</p></li>"
+
+    body = f"""
+      <div class="simple-home">
+        <div class="loading-overlay" id="loading-overlay" aria-hidden="true">
+          <div class="loading-card">
+            <div class="spinner" aria-hidden="true"></div>
+            <h2>Revisando este trecho...</h2>
+            <p>Isso pode levar alguns instantes.</p>
+          </div>
+        </div>
+        <nav>
+          <strong>Revisar PT-BR</strong>
+          &nbsp;·&nbsp;
+          <a href="/review/es">Revisar Espanhol</a>
+          &nbsp;·&nbsp;
+          <a href="/advanced">Revisão Avançada</a>
+        </nav>
+        <section>
+          <h1>Modo simples de revisão</h1>
+          <div class="grid">
+            <div class="card"><span>Capítulo atual</span><strong style="font-size: 1.25rem;">{html.escape(orientation['current_chapter_title'])}</strong></div>
+            <div class="card"><span>Capítulos faltantes</span><strong>{orientation['remaining_chapter_count']}</strong></div>
+            <div class="card"><span>Trecho atual do capítulo</span><strong>{orientation['current_chunk_position']} / {orientation['chapter_chunk_count']}</strong></div>
+            <div class="card"><span>Trechos acionáveis restantes</span><strong>{orientation['remaining_actionable_chunk_count']}</strong></div>
+          </div>
+          <p class="muted">Status atual: <code>{html.escape(str(orientation['queue_status']))}</code></p>
+        </section>
+        <div class="simple-panels">
+          <section class="simple-panel">
+            <h2>Original</h2>
+            <div class="text-scroll"><pre>{html.escape(state['original_text'])}</pre></div>
+          </section>
+          <section class="simple-panel">
+            <h2>{revised_label}</h2>
+            <div class="text-scroll"><pre>{html.escape(state['revised_text'])}</pre></div>
+          </section>
+          <section class="simple-panel">
+            <h2>Alterações da revisão</h2>
+            <div class="text-scroll">
+              <ul class="change-list">{change_items}</ul>
+            </div>
+          </section>
+        </div>
+        <section>
+          <div class="actions-row">
+            {accept_button}
+            {reject_button}
+          </div>
+          {helper_text}
+        </section>
+      </div>
+      <script>
+        (function() {{
+          const overlay = document.getElementById("loading-overlay");
+          const forms = document.querySelectorAll(".js-loading-form");
+          forms.forEach((form) => {{
+            form.addEventListener("submit", () => {{
+              if (!overlay) return;
+              overlay.classList.add("is-visible");
+              overlay.setAttribute("aria-hidden", "false");
+            }});
+          }});
+        }})();
+      </script>
+    """
+    return _render_page("Modo simples de revisão", body, main_class="simple-mode-main")
 
 
 def render_decisions_html(state: dict[str, Any]) -> str:

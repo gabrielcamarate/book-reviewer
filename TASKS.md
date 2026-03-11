@@ -35,17 +35,216 @@ Turn the current manuscript into an operational editorial review project with pe
 
 # Current Sprint
 
-Sprint: `Editorial Operations Web`
+Sprint: `Simple Operator Mode`
 
 Goal:
 
-- turn the backend pipeline into a usable editorial workstation
-- enable chunk-by-chunk review through the local web interface
-- preserve the repository as the source of truth for every action
+- turn the current web layer into a simple operator flow for the author's real use case
+- keep the advanced workstation available on a separate route for technical operation
+- validate each UI step with the user before moving to the next one
+
+Frontend implementation rules for this sprint:
+
+- any frontend task must use the installed frontend skills documented in `AGENTS.md`
+- use `frontend-design` for visual direction and layout work
+- use `vercel-react-best-practices` for React architecture and performance decisions once the dedicated frontend app starts
+- use `tailwind-design-system` for Tailwind-based tokens, patterns, and component structure
+- use `shadcn` when working with `shadcn/ui` components or project setup
+- use `web-design-guidelines` for UI review and compliance passes
+- use `find-skills` if a missing frontend workflow or tool needs to be evaluated before custom implementation
+
+User-authorized parallel track:
+
+- begin the dedicated `frontend/` foundation now
+- keep the current server-rendered interface operational while the new frontend is being built
+- migrate by parity, not by rewrite-in-place
 
 ---
 
 # Tasks
+
+## TASK-061C — Establish the frontend design system baseline
+
+Status: IN_PROGRESS
+
+Description:
+
+Set up the first design-system layer for the new frontend using the installed frontend skills.
+
+Acceptance Criteria:
+
+- the frontend has a baseline visual system
+- Tailwind and component conventions are in place
+- `shadcn/ui` setup is prepared if used
+- the baseline is appropriate for the author-facing simple review workflow
+
+Dependencies:
+
+- requires `TASK-061B`
+
+Implementation note:
+
+- Tailwind v4 baseline is already in progress inside `frontend/`
+- `shadcn/ui` initialization is still pending because local `npx shadcn@latest` currently fails with a transient cache rename error and should be retried in a clean step
+
+---
+
+## TASK-061D — Expose the first backend-to-frontend local contract
+
+Status: IN_PROGRESS
+
+Description:
+
+Connect the new frontend shell to a minimal backend-fed contract without moving editorial logic into the frontend.
+
+Acceptance Criteria:
+
+- the frontend can load one simple review screen from backend-fed data
+- no editorial write path bypasses the backend
+- localhost integration path is demonstrated
+- the current server-rendered flow remains available during transition
+
+Implementation note:
+
+- a minimal `/api/simple-home` contract is now in progress together with `./scripts/dev.sh` for one-terminal local development
+- current real write path scope is limited to `review` and `accept`; `reject` persistence remains part of `TASK-056D`
+
+Dependencies:
+
+- requires `TASK-061B`
+
+---
+
+## TASK-061E — Normalize repository structure to the target backend/frontend layout
+
+Status: TODO
+
+Description:
+
+Move the current Python workspace into a dedicated `backend/` root only after the new frontend track is stable enough to justify the structural migration.
+
+Acceptance Criteria:
+
+- current Python apps and packages live under `backend/`
+- repository scripts and docs are updated to the new backend root
+- frontend and backend local startup flow remains clear
+- the migration does not lose any repository-backed editorial state
+
+Dependencies:
+
+- requires `TASK-061D`
+
+## TASK-056C — Build the simple `pt-BR` review home
+
+Status: IN_PROGRESS
+
+Description:
+
+Create the simplified home screen focused on one `pt-BR` chunk at a time for the author's workflow.
+
+Acceptance Criteria:
+
+- home route shows only the essential `pt-BR` review information
+- top block shows orientation data such as current chapter, remaining chapters, current chunk position, and remaining chunks
+- center area shows `Original` and `Revisado`
+- bottom area shows only the primary actions for the current chunk
+- layout is readable for a non-technical, older operator
+
+Dependencies:
+
+- requires `TASK-056A` and `TASK-056B`
+
+Implementation note:
+
+- before considering this task complete, the real editorial state must be normalized so the home reflects only human-approved manuscript progress and not development-generated approvals
+- while the current server-rendered web layer remains active, frontend refinements must still follow the installed frontend skillset where applicable
+
+---
+
+## TASK-056D — Define and implement `Recusar` with explicit feedback
+
+Status: TODO
+
+Description:
+
+Make rejection a traceable editorial action instead of an implicit non-approval.
+
+Acceptance Criteria:
+
+- `Recusar` does not apply any change to consolidated state
+- operator can provide a short reason for rejection
+- rejection is persisted as repository-backed state
+- workflow can later regenerate the same chunk review with the rejection feedback as explicit context
+
+Dependencies:
+
+- requires `TASK-056A` and `TASK-056C`
+
+---
+
+## TASK-056E — Build the simple Spanish review route
+
+Status: TODO
+
+Description:
+
+Expose a second simple route for Spanish review that operates only on `pt-BR`-approved material.
+
+Acceptance Criteria:
+
+- `/review/es` reuses the same simple visual structure as `pt-BR`
+- left side shows consolidated `pt-BR`
+- right side shows suggested Spanish text
+- route only surfaces eligible chunks
+- navigation clearly separates `Revisar PT-BR` from `Revisar Espanhol`
+
+Dependencies:
+
+- requires `TASK-056A`, `TASK-056C`, and `TASK-012`
+
+---
+
+## TASK-056F — Simplify export entry points for the author workflow
+
+Status: TODO
+
+Description:
+
+Make export understandable from the simple mode without exposing technical internals.
+
+Acceptance Criteria:
+
+- simple flow explains what the export will contain in `pt-BR`
+- simple flow explains why Spanish export may still be blocked
+- export actions remain backed by the existing repository state
+- human validation confirms that the exported `.docx` behavior is understandable
+
+Dependencies:
+
+- requires `TASK-056C`, `TASK-056E`, and `TASK-025`
+
+---
+
+## TASK-056G — Validate the simple operator mode with human review
+
+Status: TODO
+
+Description:
+
+Run a guided validation pass with the user before resuming any advanced workstation expansion.
+
+Acceptance Criteria:
+
+- user validates the simple `pt-BR` flow
+- user validates the simple Spanish flow
+- user validates the export understanding and outcome
+- follow-up adjustments are captured before returning to advanced backlog items
+
+Dependencies:
+
+- requires `TASK-056B`, `TASK-056C`, `TASK-056D`, `TASK-056E`, and `TASK-056F`
+
+---
 
 ## TASK-056 — Expose Spanish consistency report in the web workstation
 
@@ -64,6 +263,7 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-051` and `TASK-053`
+- deferred until `TASK-056G`
 
 ---
 

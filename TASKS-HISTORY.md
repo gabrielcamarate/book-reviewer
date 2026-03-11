@@ -119,6 +119,40 @@ Acceptance Criteria:
 
 ---
 
+## TASK-061A — Define the dedicated frontend foundation
+
+Status: DONE
+
+Description:
+
+Open the new `frontend/` track with explicit structure, local runtime assumptions, and a safe coexistence plan with the current server-rendered web app.
+
+Acceptance Criteria:
+
+- `TASKS.md` and `ARCHITECTURE.md` describe the dedicated `frontend/` track
+- the coexistence strategy between current web and new frontend is explicit
+- the local-first startup expectation is documented
+- the first implementation step is small enough to scaffold without replacing the working web flow
+
+---
+
+## TASK-061B — Scaffold the frontend application shell
+
+Status: DONE
+
+Description:
+
+Create the initial `frontend/` application shell with the chosen React-based local-first stack.
+
+Acceptance Criteria:
+
+- `frontend/` exists with package metadata and runnable scripts
+- the app boots locally with a minimal shell screen
+- the chosen stack is documented in repository files
+- the shell does not depend on replacing the current backend web flow yet
+
+---
+
 ## TASK-003B — Establish foundation, configs, dependencies, and monorepo layout
 
 Status: DONE
@@ -1209,3 +1243,46 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-034` and `TASK-037`
+
+---
+
+## TASK-056A — Define the simple operator mode contract
+
+Status: DONE
+
+Description:
+
+Freeze the functional contract for the simplified review experience before changing routes or templates.
+
+Acceptance Criteria:
+
+- document the simple route structure: `/`, `/review/es`, and `/advanced`
+- define the primary navigation labels shown to the end user
+- define the minimal top-of-screen orientation data for `pt-BR` and Spanish review
+- define the exact meaning of `Aceitar` and `Recusar`
+- confirm that `Pular` will not exist in the simple flow
+
+Dependencies:
+
+- none
+
+---
+
+## TASK-056B — Move the current dashboard to an advanced route
+
+Status: DONE
+
+Description:
+
+Keep the existing workstation intact, but stop using it as the default home page.
+
+Acceptance Criteria:
+
+- current dashboard becomes available on a dedicated advanced route
+- home route is reserved for the simple review experience
+- navigation exposes an explicit entry to the advanced workstation
+- no current advanced feature is removed
+
+Dependencies:
+
+- requires `TASK-056A`

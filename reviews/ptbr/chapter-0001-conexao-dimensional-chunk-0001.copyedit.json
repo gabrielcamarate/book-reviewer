@@ -15,55 +15,56 @@
     "source_start_index": 596,
     "source_end_index": 600
   },
+  "provenance": {
+    "model": {
+      "name": "gpt-5-codex"
+    },
+    "prompt": {
+      "template_id": "copyedit-ptbr",
+      "version": "2026-03-11.2",
+      "sha256": "3c21cc2c9cfeba16931472980b8eb98430951746aeea2a565d91576c6a1085f5"
+    },
+    "schema": {
+      "name": "copyedit-output",
+      "version": "2026-03-11.1",
+      "sha256": "040d256ada4eee4a312bc5e18045a5cf002be69d52aef7d09d1cda63c31c0a4a"
+    },
+    "context_inputs": {
+      "style_guide": {
+        "sha256": "f3933f6c2ecfef374e3265bd3d53340935985b1fab6f083e187f56c47349ea6d",
+        "character_count": 3675
+      },
+      "glossary": {
+        "sha256": "d3f918b275746f469d7fb79186065a5679e6914048221615a782457e9b56c19b",
+        "character_count": 25203
+      },
+      "decisions": {
+        "sha256": "0fa9bc9698fc79599f91102bdb8061d0ded06511d71ae9fc73207012b5c21974",
+        "character_count": 23
+      }
+    }
+  },
   "suggestions": [
     {
-      "original": "Pelo que entendo ou o humano desperta ou irá habitar outros mundos compatíveis com a sua evolução.",
-      "suggested": "Pelo que entendo, ou o humano desperta ou irá habitar outros mundos compatíveis com a sua evolução.",
+      "original": "Pelo que entendo ou",
+      "suggested": "Pelo que entendo, ou",
       "change_type": "pontuação",
-      "reason": "A vírgula após a oração introdutória evita ambiguidade na estrutura alternativa subsequente.",
-      "confidence": 0.64
+      "reason": "Inserir vírgula após a oração introdutória evita a fusão indevida com a alternativa que se segue.",
+      "confidence": 0.9
     },
     {
-      "original": "― Previne ―",
-      "suggested": "― previne ―",
-      "change_type": "capitalização",
-      "reason": "Verbos de elocução intercalados na fala permanecem em minúsculas para manter a continuidade sintática.",
-      "confidence": 0.57
+      "original": "ou melhor o casal",
+      "suggested": "ou melhor, o casal",
+      "change_type": "pontuação",
+      "reason": "Expressão parentética “ou melhor” exige pausa delimitada por vírgula para separar a correção explicativa.",
+      "confidence": 0.89
     },
     {
-      "original": "ou melhor o casal criador do universo",
-      "suggested": "ou melhor, o casal criador do universo",
+      "original": "Dizendo: ”Deus",
+      "suggested": "Dizendo: “Deus",
       "change_type": "pontuação",
-      "reason": "A vírgula isola o aposto explicativo, facilitando a leitura sem alterar o sentido.",
-      "confidence": 0.71
-    },
-    {
-      "original": "sob a Lei, irreversível, do amor condicional.",
-      "suggested": "sob a Lei irreversível do amor condicional.",
-      "change_type": "pontuação",
-      "reason": "A retirada das vírgulas elimina a intercalação indevida entre adjetivo e substantivo, preservando o fluxo.",
-      "confidence": 0.55
-    },
-    {
-      "original": "na Ilha de Gravatás na pele e na existência de Joseph Harrison",
-      "suggested": "na Ilha de Gravatás, na pele e na existência de Joseph Harrison",
-      "change_type": "pontuação",
-      "reason": "A vírgula separa circunstâncias sucessivas, evitando leitura atropelada do adjunto adverbial composto.",
-      "confidence": 0.63
-    },
-    {
-      "original": "Dizendo: ”Deus perdoa e não castiga”",
-      "suggested": "Dizendo: “Deus perdoa e não castiga”",
-      "change_type": "pontuação",
-      "reason": "A abertura correta das aspas garante o pareamento do discurso direto citado.",
-      "confidence": 0.68
-    },
-    {
-      "original": "Chico Xavier e, o próprio Governador Espiritual, nos alertam até hoje, de que nada acontece por acaso.",
-      "suggested": "Chico Xavier e o próprio Governador Espiritual nos alertam até hoje de que nada acontece por acaso.",
-      "change_type": "pontuação",
-      "reason": "A remoção das vírgulas indevidas restabelece a fluidez do sujeito composto e da locução \"de que\".",
-      "confidence": 0.66
+      "reason": "A fala abre com aspas de fechamento; é necessário usar o sinal de abertura para manter o par correspondente correto.",
+      "confidence": 0.92
     }
   ]
 }
