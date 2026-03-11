@@ -251,8 +251,12 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["summary"]["deliverable_count"], 1)
             self.assertEqual(state["summary"]["decision_count"], 1)
             self.assertEqual(state["summary"]["job_count"], 1)
+            self.assertEqual(state["summary"]["completed_chapter_count"], 0)
+            self.assertEqual(state["summary"]["actionable_chapter_count"], 1)
             self.assertEqual(state["chapters"][0]["id"], "chapter-0001-conexao-dimensional")
             self.assertEqual(state["chapters"][0]["chunk_count"], 2)
+            self.assertEqual(state["chapters"][0]["chapter_status"], "pending_copyedit")
+            self.assertEqual(state["chapters"][0]["completion_percent"], 0)
             self.assertEqual(state["consistency_report"]["finding_count"], 12)
             self.assertEqual(state["recent_chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
             self.assertEqual(state["recent_decisions"][0]["title"], "Preservar tratamento solene")
@@ -728,6 +732,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("copyedit", html)
         self.assertIn("Gerar Export pt-BR", html)
         self.assertIn("Export espanhol indisponível", html)
+        self.assertIn("Capítulos Concluídos", html)
+        self.assertIn("Capítulos Acionáveis", html)
 
     def test_build_decisions_state_reads_persisted_entries(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1042,19 +1048,27 @@ class ReviewWebDashboardTest(unittest.TestCase):
 
             self.assertEqual(state["summary"]["awaiting_approval_count"], 1)
             self.assertEqual(state["next_recommended"]["link"], "/chunks/chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(state["chapter_rollups"][0]["chapter_status"], "awaiting_copyedit_approval")
+            self.assertEqual(state["chapter_rollups"][0]["completion_percent"], 0)
 
             html = render_queue_html(state)
             self.assertIn("Fila de Revisão", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001", html)
             self.assertIn("Retomar Próximo Chunk", html)
+            self.assertIn("Resumo por Capítulo", html)
+            self.assertIn("awaiting_copyedit_approval", html)
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             chunks_dir = temp_path / "manuscript" / "chunks"
             consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
 
             (chunks_dir / "index.json").write_text(
                 json.dumps(
@@ -1121,23 +1135,34 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 chapter_id="chapter-0001-conexao-dimensional",
                 chunks_dir=chunks_dir,
                 consolidated_dir=consolidated_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
             )
 
             self.assertEqual(state["chapter"]["id"], "chapter-0001-conexao-dimensional")
             self.assertEqual(len(state["chunks"]), 2)
             self.assertEqual(state["chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(state["progress"]["chunk_count"], 2)
+            self.assertEqual(state["progress"]["pending_copyedit_count"], 2)
+            self.assertEqual(state["progress"]["completion_percent"], 0)
 
             html = render_chapter_detail_html(state)
             self.assertIn("Navegação por Capítulo", html)
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001", html)
+            self.assertIn("Resumo do Capítulo", html)
+            self.assertIn("Pendentes de Copyedit", html)
 
     def test_build_chapter_detail_state_falls_back_to_chunk_navigation_when_consolidated_entry_is_missing(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             chunks_dir = temp_path / "manuscript" / "chunks"
             consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
 
             (chunks_dir / "index.json").write_text(
                 json.dumps(
@@ -1177,6 +1202,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 chapter_id="chapter-0002-supremo-poder-anonimo",
                 chunks_dir=chunks_dir,
                 consolidated_dir=consolidated_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
             )
 
             self.assertEqual(state["chapter"]["title"], "Capítulo 2: Supremo Poder Anônimo.")
@@ -2298,7 +2325,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             translations_dir.mkdir(parents=True, exist_ok=True)
             deliverables_dir.mkdir(parents=True, exist_ok=True)
 
-            from test_export_docx import build_template_docx
+            from tests.test_export_docx import build_template_docx
 
             build_template_docx(template_path)
 

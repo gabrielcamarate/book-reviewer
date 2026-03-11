@@ -7,6 +7,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+from editorial_core.chapter_progress import build_chapter_progress
 from editorial_core.characters import read_characters_registry
 from editorial_core.decisions import read_editorial_decisions
 from editorial_core.job_log import read_recent_job_logs
@@ -486,11 +487,38 @@ def build_dashboard_state(
     consolidated_index = _load_consolidated_index(consolidated_dir)
     consistency_report = _load_consistency_report(reports_dir)
     deliverables = _collect_deliverables(deliverables_dir)
+    chapter_progress = build_chapter_progress(
+        chunks_dir=chunks_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
+    progress_by_chapter_id = {
+        chapter["id"]: chapter
+        for chapter in chapter_progress["chapters"]
+    }
     chapters = _build_chapter_summary(
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
         chunks_by_section=chunks_by_section,
     )
+    for chapter in chapters:
+        if chapter.get("missing"):
+            chapter.update(
+                {
+                    "pending_copyedit_count": 0,
+                    "awaiting_copyedit_approval_count": 0,
+                    "ready_for_style_count": 0,
+                    "awaiting_style_approval_count": 0,
+                    "ready_for_translation_count": 0,
+                    "translated_count": 0,
+                    "reference_count": 0,
+                    "completed_count": 0,
+                    "completion_percent": 0,
+                    "chapter_status": "missing_in_manuscript",
+                }
+            )
+            continue
+        chapter.update(progress_by_chapter_id.get(chapter["id"], {}))
     decisions = _load_decisions(decisions_path)
     recent_jobs = _load_recent_jobs(jobs_dir)
     export_readiness = compute_export_readiness(
@@ -508,6 +536,8 @@ def build_dashboard_state(
             "deliverable_count": len(deliverables),
             "decision_count": len(decisions),
             "job_count": len(recent_jobs),
+            "completed_chapter_count": chapter_progress["summary"]["completed_chapter_count"],
+            "actionable_chapter_count": chapter_progress["summary"]["actionable_chapter_count"],
         },
         "consistency_report": consistency_report,
         "recent_chunks": recent_chunks,
@@ -582,9 +612,16 @@ def build_chapter_detail_state(
     chapter_id: str,
     chunks_dir: Path,
     consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
 ) -> dict[str, Any]:
     _, _, chunks_by_section = _load_chunk_summary(chunks_dir)
     consolidated_index = _load_consolidated_index(consolidated_dir)
+    chapter_progress = build_chapter_progress(
+        chunks_dir=chunks_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
     chapter = next(
         (section for section in consolidated_index.get("sections", []) if section.get("id") == chapter_id),
         None,
@@ -598,6 +635,24 @@ def build_chapter_detail_state(
             "title": fallback_chunks[0].get("section_title", "Capítulo sem título"),
             "review_status": "unknown",
         }
+    progress = next(
+        (item for item in chapter_progress["chapters"] if item.get("id") == chapter_id),
+        {
+            "id": chapter_id,
+            "title": chapter.get("title", "Capítulo sem título"),
+            "chunk_count": len(chunks_by_section.get(chapter_id, [])),
+            "pending_copyedit_count": 0,
+            "awaiting_copyedit_approval_count": 0,
+            "ready_for_style_count": 0,
+            "awaiting_style_approval_count": 0,
+            "ready_for_translation_count": 0,
+            "translated_count": 0,
+            "reference_count": 0,
+            "completed_count": 0,
+            "completion_percent": 0,
+            "chapter_status": chapter.get("review_status", "unknown"),
+        },
+    )
 
     return {
         "chapter": {
@@ -605,6 +660,7 @@ def build_chapter_detail_state(
             "title": chapter.get("title", "Untitled Chapter"),
             "review_status": chapter.get("review_status", "unknown"),
         },
+        "progress": progress,
         "chunks": chunks_by_section.get(chapter_id, []),
     }
 
@@ -743,11 +799,15 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
                 if chapter.get("missing")
                 else f"<a href=\"/chapters/{html.escape(chapter['id'])}\"><strong>{html.escape(chapter['title'])}</strong></a> "
             )
-            + f"<code>{html.escape(chapter['review_status'])}</code> "
+            + f"<code>{html.escape(chapter.get('chapter_status', chapter['review_status']))}</code> "
             + (
                 "<span class=\"muted\">sem conteúdo segmentado</span>"
                 if chapter.get("missing")
-                else f"<span class=\"muted\">{chapter['chunk_count']} chunks</span>"
+                else (
+                    f"<span class=\"muted\">{chapter['chunk_count']} chunks · "
+                    f"{chapter.get('completed_count', 0)} concluídos · "
+                    f"{chapter.get('completion_percent', 0)}%</span>"
+                )
             )
             + "</li>"
         )
@@ -833,6 +893,8 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         <div class="card"><span>Achados de Consistência</span><strong>{consistency_report['finding_count']}</strong></div>
         <div class="card"><span>Decisões Editoriais</span><strong>{summary.get('decision_count', len(recent_decisions))}</strong></div>
         <div class="card"><span>Jobs Recentes</span><strong>{summary.get('job_count', len(recent_jobs))}</strong></div>
+        <div class="card"><span>Capítulos Concluídos</span><strong>{summary.get('completed_chapter_count', 0)}</strong></div>
+        <div class="card"><span>Capítulos Acionáveis</span><strong>{summary.get('actionable_chapter_count', 0)}</strong></div>
       </div>
       <div class="layout">
         <section>
@@ -1095,6 +1157,7 @@ def render_search_html(state: dict[str, Any]) -> str:
 def render_queue_html(state: dict[str, Any]) -> str:
     summary = state["summary"]
     next_recommended = state["next_recommended"]
+    chapter_rollups = state.get("chapter_rollups", [])
     queue_items = "".join(
         (
             "<li>"
@@ -1112,6 +1175,16 @@ def render_queue_html(state: dict[str, Any]) -> str:
         if next_recommended is not None
         else "<p class=\"muted\">Nenhum chunk pendente para retomada.</p>"
     )
+    chapter_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item['title'])}</strong> "
+            f"<code>{html.escape(item['chapter_status'])}</code> "
+            f"<span class=\"muted\">{item['completed_count']}/{item['chunk_count']} concluídos · {item['completion_percent']}%</span>"
+            "</li>"
+        )
+        for item in chapter_rollups
+    ) or "<li>Nenhum capítulo disponível.</li>"
 
     body = f"""
       <nav><a href=\"/\">← Painel</a></nav>
@@ -1128,6 +1201,10 @@ def render_queue_html(state: dict[str, Any]) -> str:
         <div class="card"><span>Referência Aprovada</span><strong>{summary['reference_count']}</strong></div>
       </div>
       <section>
+        <h2>Resumo por Capítulo</h2>
+        <ul>{chapter_items}</ul>
+      </section>
+      <section style=\"margin-top: 18px;\">
         <h2>Ordem Operacional</h2>
         <ul>{queue_items}</ul>
       </section>
@@ -1137,6 +1214,7 @@ def render_queue_html(state: dict[str, Any]) -> str:
 
 def render_chapter_detail_html(state: dict[str, Any]) -> str:
     chapter = state["chapter"]
+    progress = state["progress"]
     chunks = state["chunks"]
     chunk_items = "".join(
         (
@@ -1155,6 +1233,14 @@ def render_chapter_detail_html(state: dict[str, Any]) -> str:
         <p><strong>Navegação por Capítulo</strong> para <code>{html.escape(chapter['id'])}</code></p>
         <p class=\"muted\">Status de revisão: <code>{html.escape(chapter['review_status'])}</code></p>
       </section>
+      <div class="grid">
+        <div class="card"><span>Resumo do Capítulo</span><strong>{progress['completion_percent']}%</strong></div>
+        <div class="card"><span>Pendentes de Copyedit</span><strong>{progress['pending_copyedit_count']}</strong></div>
+        <div class="card"><span>Aguardando Aprovação de Copyedit</span><strong>{progress['awaiting_copyedit_approval_count']}</strong></div>
+        <div class="card"><span>Prontos para Style</span><strong>{progress['ready_for_style_count']}</strong></div>
+        <div class="card"><span>Aguardando Aprovação de Style</span><strong>{progress['awaiting_style_approval_count']}</strong></div>
+        <div class="card"><span>Prontos para Tradução</span><strong>{progress['ready_for_translation_count']}</strong></div>
+      </div>
       <section style=\"margin-top: 18px;\">
         <h2>Chunks</h2>
         <ul>{chunk_items}</ul>

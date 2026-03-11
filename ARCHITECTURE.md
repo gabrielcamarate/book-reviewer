@@ -143,6 +143,7 @@ Responsibilities:
 
 - expose local-first operational visibility over persisted repository state
 - present summary metrics, recent chunks, consistency findings, and deliverables
+- expose chapter-level completion rollups derived from repository state
 - expose repository-backed editorial memory such as `DECISIONS.md`
 - keep all editorial decisions delegated to existing backend commands and persisted artifacts
 
@@ -246,6 +247,7 @@ Primary entities:
 - `ReviewSuggestion`
 - `ReviewPass`
 - `Approval`
+- `ChapterProgress`
 - `ConsolidatedSection`
 - `ExportJob`
 
@@ -402,6 +404,7 @@ Operator navigation is expected to remain local-first and deterministic:
 - search results link back to chunk, chapter, glossary, and decision workflows
 - no external search index or hidden database is required for the initial operator experience
 - the review queue is derived from chunk index plus persisted review artifacts, not from session memory
+- chapter completion summaries are derived from chunk state plus persisted review artifacts, not from manual counters
 - long-running operator actions persist job outcomes under `reports/jobs/`
 - preview deployment must run against a checked-out repository branch, not against detached external state
 - repository validation must gate both CI and default web startup to block unsafe runtime assumptions early

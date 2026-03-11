@@ -912,3 +912,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-039` and `TASK-040`
+
+---
+
+## TASK-042 — Add chapter completion summaries and progress rollups
+
+Status: DONE
+
+Description:
+
+Summarize chapter-level progress so the operator can see what is complete, pending, blocked, or ready for translation.
+
+Acceptance Criteria:
+
+- chapter progress metrics are persisted or reproducible
+- dashboard exposes chapter completion summaries
+- queue decisions can rely on chapter-level visibility
+
+Dependencies:
+
+- requires `TASK-030`

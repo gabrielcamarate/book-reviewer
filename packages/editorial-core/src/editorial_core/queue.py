@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from editorial_core.chapter_progress import build_chapter_progress, derive_chunk_progress_stage
+
 
 def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -16,14 +18,20 @@ def _derive_queue_status(
     reviews_ptbr_dir: Path,
     reviews_es_dir: Path,
 ) -> str:
-    if review_status == "approved_reference":
+    stage = derive_chunk_progress_stage(
+        chunk_id=chunk_id,
+        review_status=review_status,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
+    if stage == "reference":
         return "reference"
-    if (reviews_es_dir / f"{chunk_id}.translation-es.json").exists():
+    if stage == "translated":
         return "translated"
-    if (reviews_ptbr_dir / f"{chunk_id}.approval.json").exists():
-        return "approved"
-    if (reviews_ptbr_dir / f"{chunk_id}.copyedit.json").exists():
+    if stage in {"awaiting_copyedit_approval", "awaiting_style_approval"}:
         return "awaiting_approval"
+    if stage in {"ready_for_style", "ready_for_translation"}:
+        return "approved"
     return "pending_copyedit"
 
 
@@ -98,6 +106,12 @@ def build_review_queue(
         item.pop("_priority", None)
         item.pop("_position", None)
 
+    chapter_progress = build_chapter_progress(
+        chunks_dir=chunks_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
+
     return {
         "summary": {
             "total_chunks": len(queue_items),
@@ -105,4 +119,5 @@ def build_review_queue(
         },
         "queue_items": queue_items,
         "next_recommended": next_recommended,
+        "chapter_rollups": chapter_progress["chapters"],
     }
