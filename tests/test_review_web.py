@@ -5,7 +5,14 @@ import tempfile
 from pathlib import Path
 import unittest
 
-from review_web.dashboard import build_dashboard_state, render_dashboard_html
+from review_web.dashboard import (
+    build_chapter_detail_state,
+    build_chunk_detail_state,
+    build_dashboard_state,
+    render_chapter_detail_html,
+    render_chunk_detail_html,
+    render_dashboard_html,
+)
 
 
 class ReviewWebDashboardTest(unittest.TestCase):
@@ -33,17 +40,53 @@ class ReviewWebDashboardTest(unittest.TestCase):
                         "chunks": [
                             {
                                 "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
                                 "section_title": "Capítulo 1: Conexão Dimensional.",
                                 "review_status": "pending_review",
                                 "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
                             },
                             {
                                 "id": "chapter-0001-conexao-dimensional-chunk-0002",
+                                "section_id": "chapter-0001-conexao-dimensional",
                                 "section_title": "Capítulo 1: Conexão Dimensional.",
                                 "review_status": "pending_review",
                                 "file": "chapter-0001-conexao-dimensional-chunk-0002.json",
                             },
                         ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "base_text": "Primeiro chunk pendente.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0002.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0002",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0002"],
+                        "base_text": "Segundo chunk pendente.",
+                        "previous_context": [],
+                        "next_context": [],
                     },
                     ensure_ascii=False,
                     indent=2,
@@ -108,6 +151,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["summary"]["copyedit_review_count"], 1)
             self.assertEqual(state["summary"]["translation_review_count"], 1)
             self.assertEqual(state["summary"]["deliverable_count"], 1)
+            self.assertEqual(state["chapters"][0]["id"], "chapter-0001-conexao-dimensional")
+            self.assertEqual(state["chapters"][0]["chunk_count"], 2)
             self.assertEqual(state["consistency_report"]["finding_count"], 12)
             self.assertEqual(state["recent_chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
 
@@ -135,6 +180,14 @@ class ReviewWebDashboardTest(unittest.TestCase):
                         "review_status": "pending_review",
                     }
                 ],
+                "chapters": [
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "review_status": "mixed",
+                        "chunk_count": 2,
+                    }
+                ],
                 "deliverables": [
                     {
                         "path": "deliverables/ptbr/exilados-da-terra.ptbr.docx",
@@ -149,3 +202,158 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("Consistency Report", html)
         self.assertIn("Capítulo 1: Conexão Dimensional.", html)
         self.assertIn("exilados-da-terra.ptbr.docx", html)
+
+    def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 3,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            },
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0002",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0002.json",
+                            },
+                            {
+                                "id": "chapter-0002-supremo-poder-anonimo-chunk-0001",
+                                "section_id": "chapter-0002-supremo-poder-anonimo",
+                                "section_title": "Capítulo 2: Supremo Poder Anônimo.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0002-supremo-poder-anonimo-chunk-0001.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 2,
+                        "chapter_count": 2,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "mixed",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            },
+                            {
+                                "id": "chapter-0002-supremo-poder-anonimo",
+                                "title": "Capítulo 2: Supremo Poder Anônimo.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0002-supremo-poder-anonimo.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_chapter_detail_state(
+                chapter_id="chapter-0001-conexao-dimensional",
+                chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
+            )
+
+            self.assertEqual(state["chapter"]["id"], "chapter-0001-conexao-dimensional")
+            self.assertEqual(len(state["chunks"]), 2)
+            self.assertEqual(state["chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
+
+            html = render_chapter_detail_html(state)
+            self.assertIn("Chapter Navigation", html)
+            self.assertIn("chapter-0001-conexao-dimensional-chunk-0001", html)
+
+    def test_build_chunk_detail_state_reads_selected_chunk_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "review_status": "pending_review",
+                        "paragraph_ids": [
+                            "chapter-0001-conexao-dimensional-p-0001",
+                            "chapter-0001-conexao-dimensional-p-0002",
+                        ],
+                        "base_text": "Trecho principal.",
+                        "previous_context": [
+                            {
+                                "paragraph_id": "prev-1",
+                                "text": "Contexto anterior.",
+                            }
+                        ],
+                        "next_context": [
+                            {
+                                "paragraph_id": "next-1",
+                                "text": "Contexto seguinte.",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_chunk_detail_state(
+                chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
+                chunks_dir=chunks_dir,
+            )
+
+            self.assertEqual(state["chunk"]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(state["chunk"]["base_text"], "Trecho principal.")
+            self.assertEqual(state["chunk"]["previous_context"][0]["text"], "Contexto anterior.")
+
+            html = render_chunk_detail_html(state)
+            self.assertIn("Chunk Detail", html)
+            self.assertIn("Trecho principal.", html)
+            self.assertIn("Contexto seguinte.", html)

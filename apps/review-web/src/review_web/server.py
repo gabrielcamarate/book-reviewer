@@ -5,9 +5,17 @@ import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import unquote
 from typing import Callable
 
-from review_web.dashboard import build_dashboard_state, render_dashboard_html
+from review_web.dashboard import (
+    build_chapter_detail_state,
+    build_chunk_detail_state,
+    build_dashboard_state,
+    render_chapter_detail_html,
+    render_chunk_detail_html,
+    render_dashboard_html,
+)
 
 DashboardLoader = Callable[[], dict[str, object]]
 
@@ -34,16 +42,46 @@ def _build_loader(
     return _load
 
 
+def _build_chapter_loader(
+    *,
+    chunks_dir: Path,
+    consolidated_dir: Path,
+) -> Callable[[str], dict[str, object]]:
+    def _load(chapter_id: str) -> dict[str, object]:
+        return build_chapter_detail_state(
+            chapter_id=chapter_id,
+            chunks_dir=chunks_dir,
+            consolidated_dir=consolidated_dir,
+        )
+
+    return _load
+
+
+def _build_chunk_loader(
+    *,
+    chunks_dir: Path,
+) -> Callable[[str], dict[str, object]]:
+    def _load(chunk_id: str) -> dict[str, object]:
+        return build_chunk_detail_state(
+            chunk_id=chunk_id,
+            chunks_dir=chunks_dir,
+        )
+
+    return _load
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
+    chapter_loader: Callable[[str], dict[str, object]] | None = None
+    chunk_loader: Callable[[str], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
             self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "dashboard loader not configured")
             return
 
-        state = self.dashboard_loader()
         if self.path == "/":
+            state = self.dashboard_loader()
             payload = render_dashboard_html(state).encode("utf-8")
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -53,9 +91,46 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/api/dashboard":
+            state = self.dashboard_loader()
             payload = json.dumps(state, ensure_ascii=False, indent=2).encode("utf-8")
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path.startswith("/chapters/"):
+            if self.chapter_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "chapter loader not configured")
+                return
+            chapter_id = unquote(self.path.removeprefix("/chapters/"))
+            try:
+                state = self.chapter_loader(chapter_id)
+            except ValueError:
+                self.send_error(HTTPStatus.NOT_FOUND, "chapter not found")
+                return
+            payload = render_chapter_detail_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path.startswith("/chunks/"):
+            if self.chunk_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "chunk loader not configured")
+                return
+            chunk_id = unquote(self.path.removeprefix("/chunks/"))
+            try:
+                state = self.chunk_loader(chunk_id)
+            except ValueError:
+                self.send_error(HTTPStatus.NOT_FOUND, "chunk not found")
+                return
+            payload = render_chunk_detail_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
             self.wfile.write(payload)
@@ -67,11 +142,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
         return
 
 
-def build_handler(dashboard_loader: DashboardLoader) -> type[DashboardHandler]:
+def build_handler(
+    dashboard_loader: DashboardLoader,
+    chapter_loader: Callable[[str], dict[str, object]],
+    chunk_loader: Callable[[str], dict[str, object]],
+) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
 
     ConfiguredDashboardHandler.dashboard_loader = staticmethod(dashboard_loader)
+    ConfiguredDashboardHandler.chapter_loader = staticmethod(chapter_loader)
+    ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
     return ConfiguredDashboardHandler
 
 
@@ -96,13 +177,20 @@ def main() -> int:
 
     handler = build_handler(
         _build_loader(
-        chunks_dir=args.chunks_dir,
-        consolidated_dir=args.consolidated_dir,
-        reports_dir=args.reports_dir,
-        reviews_ptbr_dir=args.reviews_ptbr_dir,
-        reviews_es_dir=args.reviews_es_dir,
-        deliverables_dir=args.deliverables_dir,
-        )
+            chunks_dir=args.chunks_dir,
+            consolidated_dir=args.consolidated_dir,
+            reports_dir=args.reports_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            reviews_es_dir=args.reviews_es_dir,
+            deliverables_dir=args.deliverables_dir,
+        ),
+        _build_chapter_loader(
+            chunks_dir=args.chunks_dir,
+            consolidated_dir=args.consolidated_dir,
+        ),
+        _build_chunk_loader(
+            chunks_dir=args.chunks_dir,
+        ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(

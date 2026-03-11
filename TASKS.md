@@ -47,30 +47,9 @@ Goal:
 
 # Tasks
 
-## TASK-016 — Build chapter and chunk navigation in the web interface
-
-Status: IN_PROGRESS
-
-Description:
-
-Expand the dashboard into an operational view with navigable chapters and chunks.
-
-Acceptance Criteria:
-
-- chapters are listed in the web interface
-- chunks are listed per chapter
-- chunk detail page is reachable from the web layer
-- interface remains read-only over persisted state
-
-Dependencies:
-
-- requires `TASK-014`
-
----
-
 ## TASK-017 — Show chunk source, context, and persisted review artifacts in the web interface
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 
