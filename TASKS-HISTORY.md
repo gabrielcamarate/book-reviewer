@@ -412,3 +412,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-014`
+
+---
+
+## TASK-017 — Show chunk source, context, and persisted review artifacts in the web interface
+
+Status: DONE
+
+Description:
+
+Expose the selected chunk, surrounding context, and existing review files for operator inspection.
+
+Acceptance Criteria:
+
+- chunk base text is visible
+- previous and next context are visible
+- persisted `copyedit` and `translation-es` artifacts are surfaced when present
+
+Dependencies:
+
+- requires `TASK-016`

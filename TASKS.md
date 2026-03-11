@@ -47,29 +47,9 @@ Goal:
 
 # Tasks
 
-## TASK-017 — Show chunk source, context, and persisted review artifacts in the web interface
-
-Status: IN_PROGRESS
-
-Description:
-
-Expose the selected chunk, surrounding context, and existing review files for operator inspection.
-
-Acceptance Criteria:
-
-- chunk base text is visible
-- previous and next context are visible
-- persisted `copyedit` and `translation-es` artifacts are surfaced when present
-
-Dependencies:
-
-- requires `TASK-016`
-
----
-
 ## TASK-018 — Trigger `copyedit` from the web interface
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

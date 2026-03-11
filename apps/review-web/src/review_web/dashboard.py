@@ -281,6 +281,8 @@ def build_chunk_detail_state(
     *,
     chunk_id: str,
     chunks_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
 ) -> dict[str, Any]:
     index_payload = _load_chunk_index(chunks_dir)
     chunk_entry = next(
@@ -291,7 +293,16 @@ def build_chunk_detail_state(
         raise ValueError(f"chunk not found: {chunk_id}")
 
     chunk_payload = _read_json(chunks_dir / chunk_entry["file"])
-    return {"chunk": chunk_payload}
+    copyedit_path = reviews_ptbr_dir / f"{chunk_id}.copyedit.json"
+    approval_path = reviews_ptbr_dir / f"{chunk_id}.approval.json"
+    translation_path = reviews_es_dir / f"{chunk_id}.translation-es.json"
+
+    return {
+        "chunk": chunk_payload,
+        "copyedit_review": _read_json(copyedit_path) if copyedit_path.exists() else None,
+        "approval": _read_json(approval_path) if approval_path.exists() else None,
+        "translation_review": _read_json(translation_path) if translation_path.exists() else None,
+    }
 
 
 def render_dashboard_html(state: dict[str, Any]) -> str:
@@ -409,6 +420,9 @@ def render_chapter_detail_html(state: dict[str, Any]) -> str:
 
 def render_chunk_detail_html(state: dict[str, Any]) -> str:
     chunk = state["chunk"]
+    copyedit_review = state.get("copyedit_review")
+    approval = state.get("approval")
+    translation_review = state.get("translation_review")
     previous_context = "".join(
         f"<li><pre>{html.escape(item.get('text', ''))}</pre></li>"
         for item in chunk.get("previous_context", [])
@@ -417,6 +431,32 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         f"<li><pre>{html.escape(item.get('text', ''))}</pre></li>"
         for item in chunk.get("next_context", [])
     ) or "<li>No next context.</li>"
+    copyedit_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(suggestion.get('change_type', 'change'))}</strong><br>"
+            f"<span>{html.escape(suggestion.get('original', ''))}</span><br>"
+            f"→ <span>{html.escape(suggestion.get('suggested', ''))}</span><br>"
+            f"<span class=\"muted\">{html.escape(suggestion.get('reason', ''))}</span>"
+            "</li>"
+        )
+        for suggestion in (copyedit_review or {}).get("suggestions", [])
+    ) or "<li>No persisted copyedit review.</li>"
+    approval_summary = (
+        f"<p class=\"muted\">Approved changes: <code>{approval.get('applied_change_count', 0)}</code></p>"
+        if approval is not None
+        else "<p class=\"muted\">No persisted approval record.</p>"
+    )
+    translation_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item.get('paragraph_id', ''))}</strong><br>"
+            f"<span>{html.escape(item.get('translated_text', ''))}</span><br>"
+            f"<span class=\"muted\">{html.escape(item.get('rationale', ''))}</span>"
+            "</li>"
+        )
+        for item in (translation_review or {}).get("translations", [])
+    ) or "<li>No persisted Spanish translation.</li>"
 
     body = f"""
       <nav>
@@ -442,6 +482,17 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         <section>
           <h3>Next Context</h3>
           <ul>{next_context}</ul>
+        </section>
+      </div>
+      <div class=\"two-col\" style=\"margin-top: 18px;\">
+        <section>
+          <h3>Persisted Copyedit Review</h3>
+          <ul>{copyedit_items}</ul>
+          {approval_summary}
+        </section>
+        <section>
+          <h3>Persisted Spanish Translation</h3>
+          <ul>{translation_items}</ul>
         </section>
       </div>
     """

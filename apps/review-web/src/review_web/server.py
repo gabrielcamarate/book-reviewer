@@ -60,11 +60,15 @@ def _build_chapter_loader(
 def _build_chunk_loader(
     *,
     chunks_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
 ) -> Callable[[str], dict[str, object]]:
     def _load(chunk_id: str) -> dict[str, object]:
         return build_chunk_detail_state(
             chunk_id=chunk_id,
             chunks_dir=chunks_dir,
+            reviews_ptbr_dir=reviews_ptbr_dir,
+            reviews_es_dir=reviews_es_dir,
         )
 
     return _load
@@ -190,6 +194,8 @@ def main() -> int:
         ),
         _build_chunk_loader(
             chunks_dir=args.chunks_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            reviews_es_dir=args.reviews_es_dir,
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)

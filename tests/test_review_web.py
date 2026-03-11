@@ -290,7 +290,11 @@ class ReviewWebDashboardTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             chunks_dir = temp_path / "manuscript" / "chunks"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
             chunks_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
 
             (chunks_dir / "index.json").write_text(
                 json.dumps(
@@ -343,17 +347,76 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "suggestions": [
+                            {
+                                "original": "Trecho principal.",
+                                "suggested": "Trecho principal revisado.",
+                                "change_type": "pontuação",
+                                "reason": "Ajuste de clareza.",
+                                "confidence": 0.88,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.approval.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "status": "approved",
+                        "applied_change_count": 1,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_es_dir / "chapter-0001-conexao-dimensional-chunk-0001.translation-es.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "translations": [
+                            {
+                                "paragraph_id": "chapter-0001-conexao-dimensional-p-0001",
+                                "translated_text": "Fragmento principal.",
+                                "rationale": "Mantém o tom.",
+                                "confidence": 0.74,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
 
             state = build_chunk_detail_state(
                 chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
                 chunks_dir=chunks_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
             )
 
             self.assertEqual(state["chunk"]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
             self.assertEqual(state["chunk"]["base_text"], "Trecho principal.")
             self.assertEqual(state["chunk"]["previous_context"][0]["text"], "Contexto anterior.")
+            self.assertEqual(state["copyedit_review"]["suggestions"][0]["suggested"], "Trecho principal revisado.")
+            self.assertEqual(state["approval"]["applied_change_count"], 1)
+            self.assertEqual(state["translation_review"]["translations"][0]["translated_text"], "Fragmento principal.")
 
             html = render_chunk_detail_html(state)
             self.assertIn("Chunk Detail", html)
             self.assertIn("Trecho principal.", html)
             self.assertIn("Contexto seguinte.", html)
+            self.assertIn("Trecho principal revisado.", html)
+            self.assertIn("Fragmento principal.", html)
