@@ -73,7 +73,24 @@ def _load_consistency_report(reports_dir: Path) -> dict[str, Any]:
     return {
         "finding_count": int(payload.get("finding_count", 0)),
         "finding_types": finding_types,
+        "findings_by_type": findings_by_type,
     }
+
+
+def _build_paragraph_chunk_map(chunks_dir: Path) -> dict[str, str]:
+    payload = _load_chunk_index(chunks_dir)
+    paragraph_map: dict[str, str] = {}
+    for chunk in payload.get("chunks", []):
+        chunk_file = chunk.get("file")
+        if not chunk_file:
+            continue
+        chunk_path = chunks_dir / chunk_file
+        if not chunk_path.exists():
+            continue
+        chunk_payload = _read_json(chunk_path)
+        for paragraph_id in chunk_payload.get("paragraph_ids", []):
+            paragraph_map[paragraph_id] = chunk_payload["id"]
+    return paragraph_map
 
 
 def _count_review_files(directory: Path, suffix: str) -> int:
@@ -299,6 +316,36 @@ def build_chapter_detail_state(
     }
 
 
+def build_consistency_detail_state(
+    *,
+    finding_type: str,
+    reports_dir: Path,
+    chunks_dir: Path,
+) -> dict[str, Any]:
+    report = _load_consistency_report(reports_dir)
+    findings = report.get("findings_by_type", {}).get(finding_type)
+    if findings is None:
+        raise ValueError(f"consistency finding type not found: {finding_type}")
+
+    paragraph_chunk_map = _build_paragraph_chunk_map(chunks_dir)
+    enriched_findings: list[dict[str, Any]] = []
+    for finding in findings:
+        paragraph_id = finding.get("paragraph_id")
+        resolved_chunk_id = paragraph_chunk_map.get(paragraph_id) if paragraph_id else None
+        enriched_findings.append(
+            {
+                **finding,
+                "resolved_chunk_id": resolved_chunk_id,
+            }
+        )
+
+    return {
+        "finding_type": finding_type,
+        "finding_count": len(enriched_findings),
+        "findings": enriched_findings,
+    }
+
+
 def build_chunk_detail_state(
     *,
     chunk_id: str,
@@ -371,7 +418,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
     finding_items = "".join(
         (
             "<li>"
-            f"<strong>{html.escape(item['type'])}</strong>: {item['count']}"
+            f"<a href=\"/consistency/{html.escape(item['type'])}\"><strong>{html.escape(item['type'])}</strong></a>: {item['count']}"
             "</li>"
         )
         for item in consistency_report["finding_types"]
@@ -407,6 +454,9 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         </section>
         <section>
           <h2>Consistency Report</h2>
+          <form method=\"post\" action=\"/consistency/run\" style=\"margin: 0 0 12px;\">
+            <button type=\"submit\">Regenerate Consistency Report</button>
+          </form>
           <ul>{finding_items}</ul>
         </section>
       </div>
@@ -450,6 +500,35 @@ def render_chapter_detail_html(state: dict[str, Any]) -> str:
       </section>
     """
     return _render_page(chapter["title"], body)
+
+
+def render_consistency_detail_html(state: dict[str, Any]) -> str:
+    finding_items = "".join(
+        (
+            "<li>"
+            f"<pre>{html.escape(json.dumps(finding, ensure_ascii=False, indent=2))}</pre>"
+            + (
+                f"<p><a class=\"chunk-link\" href=\"/chunks/{html.escape(finding['resolved_chunk_id'])}\">Open related chunk</a></p>"
+                if finding.get("resolved_chunk_id")
+                else ""
+            )
+            + "</li>"
+        )
+        for finding in state["findings"]
+    ) or "<li>No findings for this type.</li>"
+
+    body = f"""
+      <nav><a href=\"/\">← Dashboard</a></nav>
+      <section>
+        <h1>Consistency Findings</h1>
+        <p><strong>{html.escape(state['finding_type'])}</strong></p>
+        <p class=\"muted\">Findings: <code>{state['finding_count']}</code></p>
+      </section>
+      <section style=\"margin-top: 18px;\">
+        <ul>{finding_items}</ul>
+      </section>
+    """
+    return _render_page(f"Consistency · {state['finding_type']}", body)
 
 
 def _render_inline_diff(original: str, suggested: str) -> tuple[str, str]:

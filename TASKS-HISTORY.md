@@ -512,3 +512,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-020`
+
+---
+
+## TASK-022 — Trigger and browse consistency findings by type in the web interface
+
+Status: DONE
+
+Description:
+
+Turn the consistency report into an actionable operator view.
+
+Acceptance Criteria:
+
+- consistency report can be regenerated from the web layer
+- findings are grouped and browsable by type
+- finding details link back to affected paragraphs or sections when possible
+
+Dependencies:
+
+- requires `TASK-021`

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from editorial_core.consistency_report import generate_consistency_report
 from editorial_core.copyedit import Runner, run_copyedit_pass
 from editorial_core.review_application import apply_review_approval
 
@@ -42,4 +43,17 @@ def trigger_review_approval(
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
         approved_suggestion_indexes=approved_suggestion_indexes,
+    )
+
+
+def trigger_consistency_report(
+    *,
+    consolidated_dir: Path,
+    glossary_path: Path,
+    reports_dir: Path,
+) -> dict[str, object]:
+    return generate_consistency_report(
+        consolidated_dir=consolidated_dir,
+        glossary_path=glossary_path,
+        reports_dir=reports_dir,
     )

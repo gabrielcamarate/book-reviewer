@@ -8,12 +8,18 @@ import unittest
 from review_web.dashboard import (
     build_chapter_detail_state,
     build_chunk_detail_state,
+    build_consistency_detail_state,
     build_dashboard_state,
     render_chapter_detail_html,
     render_chunk_detail_html,
+    render_consistency_detail_html,
     render_dashboard_html,
 )
-from review_web.actions import trigger_copyedit, trigger_review_approval
+from review_web.actions import (
+    trigger_consistency_report,
+    trigger_copyedit,
+    trigger_review_approval,
+)
 
 
 class ReviewWebDashboardTest(unittest.TestCase):
@@ -203,6 +209,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("Consistency Report", html)
         self.assertIn("Capítulo 1: Conexão Dimensional.", html)
         self.assertIn("exilados-da-terra.ptbr.docx", html)
+        self.assertIn("/consistency/alias_usage", html)
+        self.assertIn("/consistency/run", html)
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -286,6 +294,99 @@ class ReviewWebDashboardTest(unittest.TestCase):
             html = render_chapter_detail_html(state)
             self.assertIn("Chapter Navigation", html)
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001", html)
+
+    def test_build_consistency_detail_state_groups_findings_and_links_back_to_chunks(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            reports_dir = temp_path / "reports"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            reports_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": [
+                            "chapter-0001-conexao-dimensional-p-0001",
+                        ],
+                        "base_text": "Trecho principal.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reports_dir / "ptbr-consistency-report.json").write_text(
+                json.dumps(
+                    {
+                        "finding_count": 2,
+                        "scope": {"section_count": 1, "paragraph_count": 1},
+                        "findings_by_type": {
+                            "alias_usage": [
+                                {
+                                    "section_id": "chapter-0001-conexao-dimensional",
+                                    "paragraph_id": "chapter-0001-conexao-dimensional-p-0001",
+                                    "entry_title": "SEU",
+                                    "preferred_form": "SEU",
+                                    "observed_variant": "Soberania Energia Universal",
+                                }
+                            ],
+                            "similar_proper_names": [
+                                {
+                                    "left": "Tom Harrison",
+                                    "right": "Tom Harris",
+                                    "similarity": 0.88,
+                                }
+                            ],
+                        },
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_consistency_detail_state(
+                finding_type="alias_usage",
+                reports_dir=reports_dir,
+                chunks_dir=chunks_dir,
+            )
+
+            self.assertEqual(state["finding_type"], "alias_usage")
+            self.assertEqual(state["findings"][0]["resolved_chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
+
+            html = render_consistency_detail_html(state)
+            self.assertIn("Consistency Findings", html)
+            self.assertIn("chapter-0001-conexao-dimensional-chunk-0001", html)
+            self.assertIn("Soberania Energia Universal", html)
+            self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001", html)
 
     def test_build_chunk_detail_state_reads_selected_chunk_payload(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -740,3 +841,74 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 consolidated_payload["paragraphs"][1]["text"],
                 "Segundo parágrafo revisado.",
             )
+
+    def test_trigger_consistency_report_persists_report_for_web_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reports_dir = temp_path / "reports"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            glossary_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                                "review_status": "mixed",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "type": "chapter",
+                        "order": 1,
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "review_status": "mixed",
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_index": 1,
+                                "source_text": "Texto original.",
+                                "text": "Soberania Energia Universal  guia a cena.",
+                                "review_status": "approved",
+                                "applied_reviews": [],
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            glossary_path.write_text(
+                "# Glossary\n\n## Organizations and Acronyms\n\n### SEU\n- Preferred form: `SEU`\n- Observed aliases or variants: `Soberania Energia Universal`\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_consistency_report(
+                consolidated_dir=consolidated_dir,
+                glossary_path=glossary_path,
+                reports_dir=reports_dir,
+            )
+
+            self.assertEqual(summary["finding_count"], 2)
+            self.assertTrue((reports_dir / "ptbr-consistency-report.json").exists())

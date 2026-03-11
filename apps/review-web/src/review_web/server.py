@@ -12,12 +12,18 @@ from editorial_core.codex_runner import run_codex_with_schema
 from review_web.dashboard import (
     build_chapter_detail_state,
     build_chunk_detail_state,
+    build_consistency_detail_state,
     build_dashboard_state,
     render_chapter_detail_html,
     render_chunk_detail_html,
+    render_consistency_detail_html,
     render_dashboard_html,
 )
-from review_web.actions import trigger_copyedit, trigger_review_approval
+from review_web.actions import (
+    trigger_consistency_report,
+    trigger_copyedit,
+    trigger_review_approval,
+)
 
 DashboardLoader = Callable[[], dict[str, object]]
 
@@ -78,6 +84,21 @@ def _build_chunk_loader(
     return _load
 
 
+def _build_consistency_loader(
+    *,
+    reports_dir: Path,
+    chunks_dir: Path,
+) -> Callable[[str], dict[str, object]]:
+    def _load(finding_type: str) -> dict[str, object]:
+        return build_consistency_detail_state(
+            finding_type=finding_type,
+            reports_dir=reports_dir,
+            chunks_dir=chunks_dir,
+        )
+
+    return _load
+
+
 def _codex_runner(prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
     return run_codex_with_schema(
         prompt=prompt,
@@ -130,12 +151,30 @@ def _build_approval_action(
     return _run
 
 
+def _build_consistency_action(
+    *,
+    consolidated_dir: Path,
+    glossary_path: Path,
+    reports_dir: Path,
+) -> Callable[[], dict[str, object]]:
+    def _run() -> dict[str, object]:
+        return trigger_consistency_report(
+            consolidated_dir=consolidated_dir,
+            glossary_path=glossary_path,
+            reports_dir=reports_dir,
+        )
+
+    return _run
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
     chunk_loader: Callable[[str], dict[str, object]] | None = None
+    consistency_loader: Callable[[str], dict[str, object]] | None = None
     copyedit_action: Callable[[str], dict[str, object]] | None = None
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
+    consistency_action: Callable[[], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
@@ -198,6 +237,24 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.wfile.write(payload)
             return
 
+        if self.path.startswith("/consistency/"):
+            if self.consistency_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "consistency loader not configured")
+                return
+            finding_type = unquote(self.path.removeprefix("/consistency/"))
+            try:
+                state = self.consistency_loader(finding_type)
+            except ValueError:
+                self.send_error(HTTPStatus.NOT_FOUND, "consistency finding type not found")
+                return
+            payload = render_consistency_detail_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
     def do_POST(self) -> None:  # noqa: N802
@@ -249,6 +306,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path == "/consistency/run":
+            if self.consistency_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "consistency action not configured")
+                return
+            try:
+                self.consistency_action()
+            except FileNotFoundError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/")
+            self.end_headers()
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A003
@@ -259,8 +331,10 @@ def build_handler(
     dashboard_loader: DashboardLoader,
     chapter_loader: Callable[[str], dict[str, object]],
     chunk_loader: Callable[[str], dict[str, object]],
+    consistency_loader: Callable[[str], dict[str, object]],
     copyedit_action: Callable[[str], dict[str, object]],
     approval_action: Callable[[str, list[int] | None], dict[str, object]],
+    consistency_action: Callable[[], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -268,8 +342,10 @@ def build_handler(
     ConfiguredDashboardHandler.dashboard_loader = staticmethod(dashboard_loader)
     ConfiguredDashboardHandler.chapter_loader = staticmethod(chapter_loader)
     ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
+    ConfiguredDashboardHandler.consistency_loader = staticmethod(consistency_loader)
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
+    ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
     return ConfiguredDashboardHandler
 
 
@@ -315,6 +391,10 @@ def main() -> int:
             reviews_ptbr_dir=args.reviews_ptbr_dir,
             reviews_es_dir=args.reviews_es_dir,
         ),
+        _build_consistency_loader(
+            reports_dir=args.reports_dir,
+            chunks_dir=args.chunks_dir,
+        ),
         _build_copyedit_action(
             chunks_dir=args.chunks_dir,
             reviews_ptbr_dir=args.reviews_ptbr_dir,
@@ -327,6 +407,11 @@ def main() -> int:
             chapters_dir=args.chapters_dir,
             consolidated_dir=args.consolidated_dir,
             reviews_ptbr_dir=args.reviews_ptbr_dir,
+        ),
+        _build_consistency_action(
+            consolidated_dir=args.consolidated_dir,
+            glossary_path=args.glossary,
+            reports_dir=args.reports_dir,
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)
