@@ -10,6 +10,10 @@ from typing import Callable
 
 from editorial_core.codex_runner import run_codex_with_schema
 from editorial_core.job_log import append_job_log
+from editorial_core.preview_access import (
+    ensure_preview_access_configuration,
+    is_preview_request_authorized,
+)
 from editorial_core.preview_health import (
     build_preview_diagnostics_payload,
     build_preview_health_payload,
@@ -646,8 +650,36 @@ class DashboardHandler(BaseHTTPRequestHandler):
     world_rule_curation_action: Callable[[str, str, str, str], dict[str, object]] | None = None
     preview_health_loader: Callable[[], dict[str, object]] | None = None
     preview_diagnostics_loader: Callable[[], dict[str, object]] | None = None
+    preview_token: str | None = None
+
+    def _authorize_request(self) -> bool:
+        if is_preview_request_authorized(
+            client_host=self.client_address[0],
+            authorization_header=self.headers.get("Authorization"),
+            preview_token=self.preview_token,
+            path=self.path,
+        ):
+            return True
+        self.send_response(HTTPStatus.UNAUTHORIZED)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("WWW-Authenticate", 'Bearer realm="preview"')
+        payload = json.dumps(
+            {
+                "error": "preview authorization required",
+                "healthz_path": "/healthz",
+            },
+            ensure_ascii=False,
+            indent=2,
+        ).encode("utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+        return False
 
     def do_GET(self) -> None:  # noqa: N802
+        if not self._authorize_request():
+            return
+
         if self.path == "/healthz":
             if self.preview_health_loader is None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "preview health loader not configured")
@@ -833,6 +865,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
     def do_POST(self) -> None:  # noqa: N802
+        if not self._authorize_request():
+            return
+
         if self.path.startswith("/chunks/") and self.path.endswith("/copyedit"):
             if self.copyedit_action is None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "copyedit action not configured")
@@ -1161,6 +1196,7 @@ def build_handler(
     world_rule_curation_action: Callable[[str, str, str, str], dict[str, object]],
     preview_health_loader: Callable[[], dict[str, object]],
     preview_diagnostics_loader: Callable[[], dict[str, object]],
+    preview_token: str | None,
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -1192,6 +1228,7 @@ def build_handler(
     ConfiguredDashboardHandler.world_rule_curation_action = staticmethod(world_rule_curation_action)
     ConfiguredDashboardHandler.preview_health_loader = staticmethod(preview_health_loader)
     ConfiguredDashboardHandler.preview_diagnostics_loader = staticmethod(preview_diagnostics_loader)
+    ConfiguredDashboardHandler.preview_token = preview_token
     return ConfiguredDashboardHandler
 
 
@@ -1216,6 +1253,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--characters", type=Path, default=Path("editorial/CHARACTERS.md"))
     parser.add_argument("--world-rules", type=Path, default=Path("editorial/WORLD_RULES.md"))
     parser.add_argument("--skip-state-validation", action="store_true")
+    parser.add_argument("--preview-token", default=None)
     parser.add_argument("--model", default="gpt-5-codex")
     return parser
 
@@ -1223,6 +1261,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    ensure_preview_access_configuration(host=args.host, preview_token=args.preview_token)
     if not args.skip_state_validation:
         validation = validate_repository_state(root_dir=Path.cwd())
         if not validation["ok"]:
@@ -1380,6 +1419,7 @@ def main() -> int:
         _build_preview_diagnostics_loader(
             root_dir=Path.cwd(),
         ),
+        args.preview_token,
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(

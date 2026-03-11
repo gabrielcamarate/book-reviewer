@@ -60,6 +60,7 @@ class PreviewHealthTest(unittest.TestCase):
             lambda entry_title, preferred_form, aliases_text, expanded_form: {},
             lambda: {"status": "ok", "repository_ok": True, "blocking_count": 0, "advisory_count": 0, "diagnostics_path": "/diagnostics"},
             lambda: {"ok": True, "blocking_count": 0, "advisory_count": 0, "blocking_findings": [], "advisory_findings": []},
+            None,
         )
 
         self.assertEqual(handler.preview_health_loader()["status"], "ok")

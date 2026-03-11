@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-054 — Add preview access control for non-local environments
-
-Status: TODO
-
-Description:
-
-Protect preview deployments that are exposed beyond localhost.
-
-Acceptance Criteria:
-
-- preview access-control strategy is implemented or explicitly scripted
-- default local workflow remains simple
-- remote preview no longer assumes open access on the exposed port
-
-Dependencies:
-
-- requires `TASK-032` and `TASK-053`
-
----
-
 ## TASK-055 — Prepare adapter fixtures for future bot-channel contract testing
 
 Status: TODO

@@ -461,6 +461,7 @@ Operator navigation is expected to remain local-first and deterministic:
 - repository validation must gate both CI and default web startup to block unsafe runtime assumptions early
 - repository diagnostics should separate blocking findings from advisory findings so operators can tell broken state apart from editorial anomalies
 - preview health endpoints should expose a minimal readiness signal separately from the fuller diagnostics payload
+- non-local preview binds should require explicit access-control configuration instead of assuming the workstation can be left open
 
 ---
 
