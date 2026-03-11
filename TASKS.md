@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-028 — Add world rules registry generation and inspection
-
-Status: TODO
-
-Description:
-
-Persist and inspect the cosmological and philosophical rules of the manuscript.
-
-Acceptance Criteria:
-
-- `editorial/WORLD_RULES.md` is generated or updated
-- web interface can inspect the registry
-- future reviews can consume these rules
-
-Dependencies:
-
-- requires `TASK-026`
-
----
-
 ## TASK-029 — Add operator search across chapters, chunks, glossary, and decisions
 
 Status: TODO

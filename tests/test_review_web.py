@@ -12,6 +12,7 @@ from review_web.dashboard import (
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
+    build_world_rules_state,
     compute_export_readiness,
     render_characters_html,
     render_chapter_detail_html,
@@ -19,11 +20,13 @@ from review_web.dashboard import (
     render_consistency_detail_html,
     render_decisions_html,
     render_dashboard_html,
+    render_world_rules_html,
 )
 from review_web.actions import (
     trigger_generate_characters,
     trigger_append_decision,
     trigger_export_docx,
+    trigger_generate_world_rules,
     trigger_consistency_report,
     trigger_copyedit,
     trigger_review_approval,
@@ -629,6 +632,72 @@ class ReviewWebDashboardTest(unittest.TestCase):
 
             self.assertEqual(summary["character_count"], 1)
             self.assertTrue(characters_path.exists())
+
+    def test_build_world_rules_state_reads_registry_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            world_rules_path = temp_path / "editorial" / "WORLD_RULES.md"
+            world_rules_path.parent.mkdir(parents=True, exist_ok=True)
+            world_rules_path.write_text(
+                "# World Rules Registry\n\n"
+                "## Scope\n"
+                "- Organizations and acronyms: `1`\n"
+                "- Concepts and formulas: `1`\n\n"
+                "## Organizations and Acronyms\n\n"
+                "### SEU\n"
+                "- Preferred form: `SEU`\n"
+                "- Expanded form: `Soberana Energia Universal`\n"
+                "- Observed aliases or variants: `Soberania Energia Universal`\n"
+                "- Evidence: `chapter-0001-p-0001`\n\n"
+                "## Concepts and Formulas\n\n"
+                "### Sistema Terra\n"
+                "- Preferred form: `Sistema Terra`\n"
+                "- Observed aliases or variants: none confirmed\n"
+                "- Evidence: `chapter-0001-p-0002`\n",
+                encoding="utf-8",
+            )
+
+            state = build_world_rules_state(world_rules_path=world_rules_path)
+
+            self.assertEqual(state["organization_count"], 1)
+            self.assertEqual(state["concept_count"], 1)
+            self.assertEqual(state["organizations"][0]["expanded_form"], "Soberana Energia Universal")
+
+            html = render_world_rules_html(state)
+            self.assertIn("Registro de Regras do Mundo", html)
+            self.assertIn("Sistema Terra", html)
+            self.assertIn("Soberana Energia Universal", html)
+
+    def test_trigger_generate_world_rules_creates_registry_for_web_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            world_rules_path = temp_path / "editorial" / "WORLD_RULES.md"
+            glossary_path.parent.mkdir(parents=True, exist_ok=True)
+            glossary_path.write_text(
+                "# Glossary\n\n"
+                "## Organizations and Acronyms\n\n"
+                "### SEU\n"
+                "- Preferred form: `SEU`\n"
+                "- Expanded form: `Soberana Energia Universal`\n"
+                "- Observed aliases or variants: none confirmed\n"
+                "- Evidence: `chapter-0001-p-0001`\n\n"
+                "## Concepts and Formulas\n\n"
+                "### Sistema Terra\n"
+                "- Preferred form: `Sistema Terra`\n"
+                "- Observed aliases or variants: none confirmed\n"
+                "- Evidence: `chapter-0001-p-0002`\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_generate_world_rules(
+                glossary_path=glossary_path,
+                world_rules_path=world_rules_path,
+            )
+
+            self.assertEqual(summary["organization_count"], 1)
+            self.assertEqual(summary["concept_count"], 1)
+            self.assertTrue(world_rules_path.exists())
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

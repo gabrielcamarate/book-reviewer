@@ -632,3 +632,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-026`
+
+---
+
+## TASK-028 — Add world rules registry generation and inspection
+
+Status: DONE
+
+Description:
+
+Persist and inspect the cosmological and philosophical rules of the manuscript.
+
+Acceptance Criteria:
+
+- `editorial/WORLD_RULES.md` is generated or updated
+- web interface can inspect the registry
+- future reviews can consume these rules
+
+Dependencies:
+
+- requires `TASK-026`

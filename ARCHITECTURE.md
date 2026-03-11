@@ -361,6 +361,7 @@ Current persisted editorial memory includes:
 - `GLOSSARY.md`
 - `DECISIONS.md`
 - `CHARACTERS.md`
+- `WORLD_RULES.md`
 
 The web layer may inspect and regenerate these artifacts, but it must not replace the repository as the source of truth.
 

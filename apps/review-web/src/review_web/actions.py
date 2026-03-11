@@ -9,6 +9,7 @@ from editorial_core.decisions import append_editorial_decision
 from editorial_core.export_docx import export_manuscript_docx
 from editorial_core.review_application import apply_review_approval
 from editorial_core.translation_es import run_translation_es_pass
+from editorial_core.world_rules import generate_world_rules_registry
 
 
 def trigger_copyedit(
@@ -115,6 +116,17 @@ def trigger_generate_characters(
     return generate_characters_registry(
         glossary_path=glossary_path,
         output_path=characters_path,
+    )
+
+
+def trigger_generate_world_rules(
+    *,
+    glossary_path: Path,
+    world_rules_path: Path,
+) -> dict[str, object]:
+    return generate_world_rules_registry(
+        glossary_path=glossary_path,
+        output_path=world_rules_path,
     )
 
 

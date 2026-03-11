@@ -9,6 +9,7 @@ from typing import Any
 from editorial_core.characters import read_characters_registry
 from editorial_core.decisions import read_editorial_decisions
 from editorial_core.translation_es import STABLE_REVIEW_STATUSES
+from editorial_core.world_rules import read_world_rules_registry
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -87,6 +88,10 @@ def _load_decisions(decisions_path: Path) -> list[dict[str, str]]:
 
 def _load_characters(characters_path: Path) -> list[dict[str, Any]]:
     return read_characters_registry(characters_path)
+
+
+def _load_world_rules(world_rules_path: Path) -> dict[str, list[dict[str, Any]]]:
+    return read_world_rules_registry(world_rules_path)
 
 
 def _build_paragraph_chunk_map(chunks_dir: Path) -> dict[str, str]:
@@ -386,6 +391,18 @@ def build_characters_state(*, characters_path: Path) -> dict[str, Any]:
     }
 
 
+def build_world_rules_state(*, world_rules_path: Path) -> dict[str, Any]:
+    registry = _load_world_rules(world_rules_path)
+    organizations = registry["organizations"]
+    concepts = registry["concepts"]
+    return {
+        "organization_count": len(organizations),
+        "concept_count": len(concepts),
+        "organizations": organizations,
+        "concepts": concepts,
+    }
+
+
 def build_chapter_detail_state(
     *,
     chapter_id: str,
@@ -665,6 +682,18 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
           </form>
         </section>
       </div>
+      <div class="layout" style="margin-top: 18px;">
+        <section>
+          <h2>Regras do Mundo</h2>
+          <p><a href="/world-rules">Abrir registro de regras do mundo</a></p>
+        </section>
+        <section>
+          <h2>Atualizar Registro</h2>
+          <form method="post" action="/world-rules/run">
+            <button type="submit">Gerar Registro de Regras do Mundo</button>
+          </form>
+        </section>
+      </div>
     """
     return _render_page("Painel de Revisão Editorial", body)
 
@@ -727,6 +756,59 @@ def render_characters_html(state: dict[str, Any]) -> str:
       </section>
     """
     return _render_page("Registro de Personagens", body)
+
+
+def render_world_rules_html(state: dict[str, Any]) -> str:
+    organization_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item['title'])}</strong><br>"
+            f"<span>{html.escape(item.get('expanded_form', ''))}</span><br>"
+            + (
+                f"<span class=\"muted\">Aliases: {html.escape(', '.join(item.get('aliases', [])))}</span><br>"
+                if item.get("aliases")
+                else "<span class=\"muted\">Aliases: none confirmed</span><br>"
+            )
+            + f"<span class=\"muted\">Evidence: {html.escape(', '.join(item.get('evidence', [])))}</span>"
+            "</li>"
+        )
+        for item in state["organizations"]
+    ) or "<li>Nenhuma organização registrada.</li>"
+
+    concept_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item['title'])}</strong><br>"
+            f"<code>{html.escape(item.get('preferred_form', item['title']))}</code><br>"
+            + (
+                f"<span class=\"muted\">Aliases: {html.escape(', '.join(item.get('aliases', [])))}</span><br>"
+                if item.get("aliases")
+                else "<span class=\"muted\">Aliases: none confirmed</span><br>"
+            )
+            + f"<span class=\"muted\">Evidence: {html.escape(', '.join(item.get('evidence', [])))}</span>"
+            "</li>"
+        )
+        for item in state["concepts"]
+    ) or "<li>Nenhum conceito registrado.</li>"
+
+    body = f"""
+      <nav><a href=\"/\">← Painel</a></nav>
+      <section>
+        <h1>Registro de Regras do Mundo</h1>
+        <p class=\"muted\">Organizações: <code>{state['organization_count']}</code> · Conceitos: <code>{state['concept_count']}</code></p>
+      </section>
+      <div class="layout" style="margin-top: 18px;">
+        <section>
+          <h2>Organizações e Acrônimos</h2>
+          <ul>{organization_items}</ul>
+        </section>
+        <section>
+          <h2>Conceitos e Fórmulas</h2>
+          <ul>{concept_items}</ul>
+        </section>
+      </div>
+    """
+    return _render_page("Registro de Regras do Mundo", body)
 
 
 def render_chapter_detail_html(state: dict[str, Any]) -> str:
