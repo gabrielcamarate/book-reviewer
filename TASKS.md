@@ -47,29 +47,9 @@ Goal:
 
 # Tasks
 
-## TASK-018 — Trigger `copyedit` from the web interface
-
-Status: IN_PROGRESS
-
-Description:
-
-Allow operators to launch the `pt-BR` copyedit pass for a selected chunk from the web workflow.
-
-Acceptance Criteria:
-
-- web action triggers the existing backend command or use case
-- resulting review file is persisted in `reviews/ptbr/`
-- interface reflects the newly created review artifact
-
-Dependencies:
-
-- requires `TASK-017`
-
----
-
 ## TASK-019 — Render structured `copyedit` suggestions with diff-oriented review view
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

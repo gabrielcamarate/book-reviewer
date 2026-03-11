@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import unquote
 from typing import Callable
 
+from editorial_core.codex_runner import run_codex_with_schema
 from review_web.dashboard import (
     build_chapter_detail_state,
     build_chunk_detail_state,
@@ -16,6 +17,7 @@ from review_web.dashboard import (
     render_chunk_detail_html,
     render_dashboard_html,
 )
+from review_web.actions import trigger_copyedit
 
 DashboardLoader = Callable[[], dict[str, object]]
 
@@ -74,10 +76,43 @@ def _build_chunk_loader(
     return _load
 
 
+def _codex_runner(prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
+    return run_codex_with_schema(
+        prompt=prompt,
+        schema=schema,
+        model=model,
+        schema_filename="copyedit-schema.json",
+        output_filename="copyedit-output.json",
+    )
+
+
+def _build_copyedit_action(
+    *,
+    chunks_dir: Path,
+    reviews_ptbr_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    model: str,
+) -> Callable[[str], dict[str, object]]:
+    def _run(chunk_id: str) -> dict[str, object]:
+        return trigger_copyedit(
+            chunk_id=chunk_id,
+            chunks_dir=chunks_dir,
+            reviews_dir=reviews_ptbr_dir,
+            style_guide_path=style_guide_path,
+            glossary_path=glossary_path,
+            runner=_codex_runner,
+            model=model,
+        )
+
+    return _run
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
     chunk_loader: Callable[[str], dict[str, object]] | None = None
+    copyedit_action: Callable[[str], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
@@ -142,6 +177,28 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
+    def do_POST(self) -> None:  # noqa: N802
+        if self.path.startswith("/chunks/") and self.path.endswith("/copyedit"):
+            if self.copyedit_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "copyedit action not configured")
+                return
+            chunk_id = unquote(self.path.removeprefix("/chunks/").removesuffix("/copyedit"))
+            try:
+                self.copyedit_action(chunk_id)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except RuntimeError as error:
+                self.send_error(HTTPStatus.BAD_GATEWAY, str(error))
+                return
+
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", f"/chunks/{chunk_id}")
+            self.end_headers()
+            return
+
+        self.send_error(HTTPStatus.NOT_FOUND, "not found")
+
     def log_message(self, format: str, *args: object) -> None:  # noqa: A003
         return
 
@@ -150,6 +207,7 @@ def build_handler(
     dashboard_loader: DashboardLoader,
     chapter_loader: Callable[[str], dict[str, object]],
     chunk_loader: Callable[[str], dict[str, object]],
+    copyedit_action: Callable[[str], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -157,6 +215,7 @@ def build_handler(
     ConfiguredDashboardHandler.dashboard_loader = staticmethod(dashboard_loader)
     ConfiguredDashboardHandler.chapter_loader = staticmethod(chapter_loader)
     ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
+    ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
     return ConfiguredDashboardHandler
 
 
@@ -172,6 +231,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reviews-ptbr-dir", type=Path, default=Path("reviews/ptbr"))
     parser.add_argument("--reviews-es-dir", type=Path, default=Path("reviews/es"))
     parser.add_argument("--deliverables-dir", type=Path, default=Path("deliverables"))
+    parser.add_argument("--style-guide", type=Path, default=Path("editorial/STYLE_GUIDE.md"))
+    parser.add_argument("--glossary", type=Path, default=Path("editorial/GLOSSARY.md"))
+    parser.add_argument("--model", default="gpt-5-codex")
     return parser
 
 
@@ -196,6 +258,13 @@ def main() -> int:
             chunks_dir=args.chunks_dir,
             reviews_ptbr_dir=args.reviews_ptbr_dir,
             reviews_es_dir=args.reviews_es_dir,
+        ),
+        _build_copyedit_action(
+            chunks_dir=args.chunks_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            style_guide_path=args.style_guide,
+            glossary_path=args.glossary,
+            model=args.model,
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)

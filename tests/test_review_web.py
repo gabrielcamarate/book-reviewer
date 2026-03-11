@@ -13,6 +13,7 @@ from review_web.dashboard import (
     render_chunk_detail_html,
     render_dashboard_html,
 )
+from review_web.actions import trigger_copyedit
 
 
 class ReviewWebDashboardTest(unittest.TestCase):
@@ -420,3 +421,88 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Contexto seguinte.", html)
             self.assertIn("Trecho principal revisado.", html)
             self.assertIn("Fragmento principal.", html)
+            self.assertIn("Run Copyedit", html)
+
+    def test_trigger_copyedit_persists_review_for_selected_chunk(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            style_guide_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "source_start_index": 1,
+                                "source_end_index": 3,
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": [
+                            "chapter-0001-conexao-dimensional-p-0001",
+                        ],
+                        "source_start_index": 1,
+                        "source_end_index": 3,
+                        "base_text": "Trecho principal.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            style_guide_path.write_text("# Style Guide\n- Preserve voice.\n", encoding="utf-8")
+            glossary_path.write_text("# Glossary\n- Sistema Terra\n", encoding="utf-8")
+
+            summary = trigger_copyedit(
+                chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
+                chunks_dir=chunks_dir,
+                reviews_dir=reviews_ptbr_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                runner=lambda **_: {
+                    "suggestions": [
+                        {
+                            "original": "Trecho principal.",
+                            "suggested": "Trecho principal revisado.",
+                            "change_type": "pontuação",
+                            "reason": "Ajuste de clareza.",
+                            "confidence": 0.81,
+                        }
+                    ]
+                },
+            )
+
+            self.assertEqual(summary["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            persisted = json.loads(
+                (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(persisted["suggestions"][0]["suggested"], "Trecho principal revisado.")

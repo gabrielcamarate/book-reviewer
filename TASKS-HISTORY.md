@@ -432,3 +432,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-016`
+
+---
+
+## TASK-018 — Trigger `copyedit` from the web interface
+
+Status: DONE
+
+Description:
+
+Allow operators to launch the `pt-BR` copyedit pass for a selected chunk from the web workflow.
+
+Acceptance Criteria:
+
+- web action triggers the existing backend command or use case
+- resulting review file is persisted in `reviews/ptbr/`
+- interface reflects the newly created review artifact
+
+Dependencies:
+
+- requires `TASK-017`

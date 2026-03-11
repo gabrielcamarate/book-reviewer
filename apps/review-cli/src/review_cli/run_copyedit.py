@@ -2,44 +2,20 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
-import tempfile
 from pathlib import Path
 
+from editorial_core.codex_runner import run_codex_with_schema
 from editorial_core.copyedit import run_copyedit_pass
 
 
 def _codex_runner(prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_path = Path(temp_dir)
-        schema_path = temp_path / "copyedit-schema.json"
-        output_path = temp_path / "copyedit-output.json"
-        schema_path.write_text(json.dumps(schema, ensure_ascii=False, indent=2), encoding="utf-8")
-
-        command = [
-            "codex",
-            "exec",
-            "-m",
-            model,
-            "--output-schema",
-            str(schema_path),
-            "--output-last-message",
-            str(output_path),
-            "-",
-        ]
-        completed = subprocess.run(
-            command,
-            input=prompt,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        if completed.returncode != 0:
-            raise RuntimeError(
-                "codex exec failed with exit code "
-                f"{completed.returncode}: {completed.stderr.strip() or completed.stdout.strip()}"
-            )
-        return json.loads(output_path.read_text(encoding="utf-8"))
+    return run_codex_with_schema(
+        prompt=prompt,
+        schema=schema,
+        model=model,
+        schema_filename="copyedit-schema.json",
+        output_filename="copyedit-output.json",
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -472,6 +472,9 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
       </section>
       <article style=\"margin-top: 18px;\">
         <h2>Chunk Text</h2>
+        <form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/copyedit\" style=\"margin: 0 0 12px;\">
+          <button type=\"submit\">Run Copyedit</button>
+        </form>
         <pre>{html.escape(chunk.get('base_text', ''))}</pre>
       </article>
       <div class=\"two-col\" style=\"margin-top: 18px;\">
