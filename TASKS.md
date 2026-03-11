@@ -47,29 +47,9 @@ Goal:
 
 # Tasks
 
-## TASK-044 — Add a resumable batch translation runner for Spanish
-
-Status: IN_PROGRESS
-
-Description:
-
-Automate translation over eligible stable chunks while preserving resumability and traceability.
-
-Acceptance Criteria:
-
-- runner skips ineligible or already translated chunks
-- translation jobs are resumable
-- outputs remain per-chunk and auditable
-
-Dependencies:
-
-- requires `TASK-012`, `TASK-030`, and `TASK-031`
-
----
-
 ## TASK-045 — Generate a bilingual deliverable readiness report
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

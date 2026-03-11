@@ -128,6 +128,46 @@ def _select_chunk(
     raise ValueError("no stable pt-BR chunk is available for Spanish translation")
 
 
+def list_translation_es_candidates(
+    *,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_dir: Path,
+) -> dict[str, Any]:
+    index_payload = _load_chunk_index(chunks_dir)
+    eligible_chunk_ids: list[str] = []
+    skipped: list[dict[str, str]] = []
+
+    for chunk_entry in index_payload.get("chunks", []):
+        chunk_id = chunk_entry["id"]
+        output_path = _translation_output_path(reviews_dir, chunk_id)
+        if output_path.exists():
+            skipped.append({"chunk_id": chunk_id, "reason": "already_translated"})
+            continue
+
+        chunk_payload = _read_json(chunks_dir / chunk_entry["file"])
+        section_payload = _load_current_section(
+            chapters_dir=chapters_dir,
+            consolidated_dir=consolidated_dir,
+            section_id=chunk_payload["section_id"],
+        )
+        source_paragraphs = _resolve_source_paragraphs(
+            chunk_payload=chunk_payload,
+            section_payload=section_payload,
+        )
+        if source_paragraphs is None:
+            skipped.append({"chunk_id": chunk_id, "reason": "not_ready"})
+            continue
+
+        eligible_chunk_ids.append(chunk_id)
+
+    return {
+        "eligible_chunk_ids": eligible_chunk_ids,
+        "skipped": skipped,
+    }
+
+
 def _validate_response(
     payload: dict[str, object],
     paragraph_ids: list[str],

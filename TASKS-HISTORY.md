@@ -952,3 +952,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-030`, `TASK-031`, and `TASK-033`
+
+---
+
+## TASK-044 — Add a resumable batch translation runner for Spanish
+
+Status: DONE
+
+Description:
+
+Automate translation over eligible stable chunks while preserving resumability and traceability.
+
+Acceptance Criteria:
+
+- runner skips ineligible or already translated chunks
+- translation jobs are resumable
+- outputs remain per-chunk and auditable
+
+Dependencies:
+
+- requires `TASK-012`, `TASK-030`, and `TASK-031`
