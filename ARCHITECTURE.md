@@ -155,6 +155,7 @@ Responsibilities:
 - expose chapter-level completion rollups derived from repository state
 - expose repository-backed editorial memory such as `DECISIONS.md`
 - expose controlled curation workflows for repository-backed editorial memory such as `GLOSSARY.md`
+- expose controlled curation workflows for derived registries such as `CHARACTERS.md` and `WORLD_RULES.md`
 - keep all editorial decisions delegated to existing backend commands and persisted artifacts
 
 Rules:
@@ -422,6 +423,12 @@ Glossary curation is part of the operator workflow:
 - operators may edit preferred forms and alias lists through controlled web forms
 - glossary edits must preserve deterministic Markdown structure
 - later review and translation passes must consume the curated glossary state from the repository
+
+Registry curation is also part of the operator workflow:
+
+- operators may edit preferred forms, aliases, and expanded forms for character and world-rule registries
+- registry edits must preserve deterministic Markdown structure
+- cross-chapter consistency analysis should consume manually curated registry state before reporting findings
 
 Operator navigation is expected to remain local-first and deterministic:
 

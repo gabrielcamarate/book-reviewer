@@ -1095,7 +1095,7 @@ def render_glossary_html(state: dict[str, Any]) -> str:
 def render_characters_html(state: dict[str, Any]) -> str:
     character_items = "".join(
         (
-            "<li>"
+            "<li style=\"margin-bottom: 18px;\">"
             f"<strong>{html.escape(item['title'])}</strong><br>"
             f"<code>{html.escape(item.get('preferred_form', item['title']))}</code><br>"
             + (
@@ -1104,6 +1104,12 @@ def render_characters_html(state: dict[str, Any]) -> str:
                 else "<span class=\"muted\">Aliases: none confirmed</span><br>"
             )
             + f"<span class=\"muted\">Evidence: {html.escape(', '.join(item.get('evidence', [])))}</span>"
+            + "<form method=\"post\" action=\"/characters\" style=\"margin-top: 12px;\">"
+            + f"<input type=\"hidden\" name=\"entry_title\" value=\"{html.escape(item['title'])}\">"
+            + f"<p><label>Forma preferencial<br><input type=\"text\" name=\"preferred_form\" value=\"{html.escape(item.get('preferred_form', item['title']))}\" style=\"width: 100%;\"></label></p>"
+            + f"<p><label>Aliases separados por vírgula<br><input type=\"text\" name=\"aliases_text\" value=\"{html.escape(', '.join(item.get('aliases', [])))}\" style=\"width: 100%;\"></label></p>"
+            + "<button type=\"submit\">Salvar Ajustes do Personagem</button>"
+            + "</form>"
             "</li>"
         )
         for item in state["characters"]
@@ -1125,7 +1131,7 @@ def render_characters_html(state: dict[str, Any]) -> str:
 def render_world_rules_html(state: dict[str, Any]) -> str:
     organization_items = "".join(
         (
-            "<li>"
+            "<li style=\"margin-bottom: 18px;\">"
             f"<strong>{html.escape(item['title'])}</strong><br>"
             f"<span>{html.escape(item.get('expanded_form', ''))}</span><br>"
             + (
@@ -1134,6 +1140,13 @@ def render_world_rules_html(state: dict[str, Any]) -> str:
                 else "<span class=\"muted\">Aliases: none confirmed</span><br>"
             )
             + f"<span class=\"muted\">Evidence: {html.escape(', '.join(item.get('evidence', [])))}</span>"
+            + "<form method=\"post\" action=\"/world-rules\" style=\"margin-top: 12px;\">"
+            + f"<input type=\"hidden\" name=\"entry_title\" value=\"{html.escape(item['title'])}\">"
+            + f"<p><label>Forma preferencial<br><input type=\"text\" name=\"preferred_form\" value=\"{html.escape(item.get('preferred_form', item['title']))}\" style=\"width: 100%;\"></label></p>"
+            + f"<p><label>Forma expandida<br><input type=\"text\" name=\"expanded_form\" value=\"{html.escape(item.get('expanded_form', ''))}\" style=\"width: 100%;\"></label></p>"
+            + f"<p><label>Aliases separados por vírgula<br><input type=\"text\" name=\"aliases_text\" value=\"{html.escape(', '.join(item.get('aliases', [])))}\" style=\"width: 100%;\"></label></p>"
+            + "<button type=\"submit\">Salvar Ajustes da Regra</button>"
+            + "</form>"
             "</li>"
         )
         for item in state["organizations"]
@@ -1141,7 +1154,7 @@ def render_world_rules_html(state: dict[str, Any]) -> str:
 
     concept_items = "".join(
         (
-            "<li>"
+            "<li style=\"margin-bottom: 18px;\">"
             f"<strong>{html.escape(item['title'])}</strong><br>"
             f"<code>{html.escape(item.get('preferred_form', item['title']))}</code><br>"
             + (
@@ -1150,6 +1163,13 @@ def render_world_rules_html(state: dict[str, Any]) -> str:
                 else "<span class=\"muted\">Aliases: none confirmed</span><br>"
             )
             + f"<span class=\"muted\">Evidence: {html.escape(', '.join(item.get('evidence', [])))}</span>"
+            + "<form method=\"post\" action=\"/world-rules\" style=\"margin-top: 12px;\">"
+            + f"<input type=\"hidden\" name=\"entry_title\" value=\"{html.escape(item['title'])}\">"
+            + f"<p><label>Forma preferencial<br><input type=\"text\" name=\"preferred_form\" value=\"{html.escape(item.get('preferred_form', item['title']))}\" style=\"width: 100%;\"></label></p>"
+            + "<input type=\"hidden\" name=\"expanded_form\" value=\"\">"
+            + f"<p><label>Aliases separados por vírgula<br><input type=\"text\" name=\"aliases_text\" value=\"{html.escape(', '.join(item.get('aliases', [])))}\" style=\"width: 100%;\"></label></p>"
+            + "<button type=\"submit\">Salvar Ajustes da Regra</button>"
+            + "</form>"
             "</li>"
         )
         for item in state["concepts"]

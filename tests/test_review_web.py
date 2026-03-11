@@ -31,9 +31,11 @@ from review_web.dashboard import (
 from review_web.actions import (
     trigger_generate_characters,
     trigger_append_decision,
+    trigger_curate_character_entry,
     trigger_curate_glossary_entry,
     trigger_export_docx,
     trigger_generate_world_rules,
+    trigger_curate_world_rule_entry,
     trigger_consistency_report,
     trigger_copyedit,
     trigger_deliverable_readiness_report,
@@ -859,6 +861,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Registro de Personagens", html)
             self.assertIn("Joseph Harrison", html)
             self.assertIn("Sr. Harrison", html)
+            self.assertIn("Salvar Ajustes do Personagem", html)
 
     def test_trigger_append_decision_persists_repository_backed_editorial_memory(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -934,6 +937,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Registro de Regras do Mundo", html)
             self.assertIn("Sistema Terra", html)
             self.assertIn("Soberana Energia Universal", html)
+            self.assertIn("Salvar Ajustes da Regra", html)
 
     def test_trigger_generate_world_rules_creates_registry_for_web_workflow(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -2723,6 +2727,71 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
 
             updated_text = glossary_path.read_text(encoding="utf-8")
+            self.assertEqual(summary["entry_title"], "SEU")
+            self.assertIn("- Preferred form: `Soberana Energia Universal`", updated_text)
+            self.assertIn("`SEU`, `Soberania Energia Universal`", updated_text)
+
+    def test_trigger_curate_character_entry_persists_repo_backed_edit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            characters_path = temp_path / "editorial" / "CHARACTERS.md"
+            characters_path.parent.mkdir(parents=True, exist_ok=True)
+            characters_path.write_text(
+                "# Characters Registry\n\n"
+                "## Scope\n"
+                "- Character entries: `1`\n\n"
+                "### Joseph Harrison\n"
+                "- Preferred form: `Joseph Harrison`\n"
+                "- Observed aliases or variants: `Joseph`\n"
+                "- Evidence: `p-2`\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_curate_character_entry(
+                characters_path=characters_path,
+                entry_title="Joseph Harrison",
+                preferred_form="Sr. Joseph Harrison",
+                aliases_text="Joseph, Sr. Harrison",
+            )
+
+            updated_text = characters_path.read_text(encoding="utf-8")
+            self.assertEqual(summary["entry_title"], "Joseph Harrison")
+            self.assertIn("- Preferred form: `Sr. Joseph Harrison`", updated_text)
+            self.assertIn("`Joseph`, `Sr. Harrison`", updated_text)
+
+    def test_trigger_curate_world_rule_entry_persists_repo_backed_edit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            world_rules_path = temp_path / "editorial" / "WORLD_RULES.md"
+            world_rules_path.parent.mkdir(parents=True, exist_ok=True)
+            world_rules_path.write_text(
+                "# World Rules Registry\n\n"
+                "## Scope\n"
+                "- Organizations and acronyms: `1`\n"
+                "- Concepts and formulas: `1`\n\n"
+                "## Organizations and Acronyms\n\n"
+                "### SEU\n"
+                "- Preferred form: `SEU`\n"
+                "- Expanded form: `Soberana Energia Universal`\n"
+                "- Observed aliases or variants: none confirmed\n"
+                "- Evidence: `p-1`\n\n"
+                "## Concepts and Formulas\n\n"
+                "### Sistema Terra\n"
+                "- Preferred form: `Sistema Terra`\n"
+                "- Observed aliases or variants: none confirmed\n"
+                "- Evidence: `p-2`\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_curate_world_rule_entry(
+                world_rules_path=world_rules_path,
+                entry_title="SEU",
+                preferred_form="Soberana Energia Universal",
+                aliases_text="SEU, Soberania Energia Universal",
+                expanded_form="Soberana Energia Universal",
+            )
+
+            updated_text = world_rules_path.read_text(encoding="utf-8")
             self.assertEqual(summary["entry_title"], "SEU")
             self.assertIn("- Preferred form: `Soberana Energia Universal`", updated_text)
             self.assertIn("`SEU`, `Soberania Energia Universal`", updated_text)

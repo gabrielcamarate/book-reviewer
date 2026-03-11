@@ -36,9 +36,11 @@ from review_web.dashboard import (
 from review_web.actions import (
     trigger_generate_characters,
     trigger_append_decision,
+    trigger_curate_character_entry,
     trigger_curate_glossary_entry,
     trigger_export_docx,
     trigger_generate_world_rules,
+    trigger_curate_world_rule_entry,
     trigger_consistency_report,
     trigger_copyedit,
     trigger_deliverable_readiness_report,
@@ -538,6 +540,21 @@ def _build_characters_action(
     return _run
 
 
+def _build_character_curation_action(
+    *,
+    characters_path: Path,
+) -> Callable[[str, str, str], dict[str, object]]:
+    def _run(entry_title: str, preferred_form: str, aliases_text: str) -> dict[str, object]:
+        return trigger_curate_character_entry(
+            characters_path=characters_path,
+            entry_title=entry_title,
+            preferred_form=preferred_form,
+            aliases_text=aliases_text,
+        )
+
+    return _run
+
+
 def _build_world_rules_action(
     *,
     glossary_path: Path,
@@ -547,6 +564,27 @@ def _build_world_rules_action(
         return trigger_generate_world_rules(
             glossary_path=glossary_path,
             world_rules_path=world_rules_path,
+        )
+
+    return _run
+
+
+def _build_world_rule_curation_action(
+    *,
+    world_rules_path: Path,
+) -> Callable[[str, str, str, str], dict[str, object]]:
+    def _run(
+        entry_title: str,
+        preferred_form: str,
+        aliases_text: str,
+        expanded_form: str,
+    ) -> dict[str, object]:
+        return trigger_curate_world_rule_entry(
+            world_rules_path=world_rules_path,
+            entry_title=entry_title,
+            preferred_form=preferred_form,
+            aliases_text=aliases_text,
+            expanded_form=expanded_form,
         )
 
     return _run
@@ -576,6 +614,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
     glossary_action: Callable[[str, str, str], dict[str, object]] | None = None
     characters_action: Callable[[], dict[str, object]] | None = None
     world_rules_action: Callable[[], dict[str, object]] | None = None
+    character_curation_action: Callable[[str, str, str], dict[str, object]] | None = None
+    world_rule_curation_action: Callable[[str, str, str, str], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
@@ -971,11 +1011,63 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path == "/characters":
+            if self.character_curation_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "character curation action not configured")
+                return
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            form_data = parse_qs(raw_body, keep_blank_values=False)
+            entry_title = (form_data.get("entry_title", [""])[0]).strip()
+            preferred_form = (form_data.get("preferred_form", [""])[0]).strip()
+            aliases_text = (form_data.get("aliases_text", [""])[0]).strip()
+            if not entry_title or not preferred_form:
+                self.send_error(HTTPStatus.BAD_REQUEST, "entry_title and preferred_form are required")
+                return
+            try:
+                self.character_curation_action(entry_title, preferred_form, aliases_text)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/characters")
+            self.end_headers()
+            return
+
         if self.path == "/world-rules/run":
             if self.world_rules_action is None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "world rules action not configured")
                 return
             self.world_rules_action()
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/world-rules")
+            self.end_headers()
+            return
+
+        if self.path == "/world-rules":
+            if self.world_rule_curation_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "world rule curation action not configured")
+                return
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            form_data = parse_qs(raw_body, keep_blank_values=False)
+            entry_title = (form_data.get("entry_title", [""])[0]).strip()
+            preferred_form = (form_data.get("preferred_form", [""])[0]).strip()
+            aliases_text = (form_data.get("aliases_text", [""])[0]).strip()
+            expanded_form = (form_data.get("expanded_form", [""])[0]).strip()
+            if not entry_title or not preferred_form:
+                self.send_error(HTTPStatus.BAD_REQUEST, "entry_title and preferred_form are required")
+                return
+            try:
+                self.world_rule_curation_action(
+                    entry_title,
+                    preferred_form,
+                    aliases_text,
+                    expanded_form,
+                )
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
             self.send_response(HTTPStatus.SEE_OTHER)
             self.send_header("Location", "/world-rules")
             self.end_headers()
@@ -1011,6 +1103,8 @@ def build_handler(
     glossary_action: Callable[[str, str, str], dict[str, object]],
     characters_action: Callable[[], dict[str, object]],
     world_rules_action: Callable[[], dict[str, object]],
+    character_curation_action: Callable[[str, str, str], dict[str, object]],
+    world_rule_curation_action: Callable[[str, str, str, str], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -1038,6 +1132,8 @@ def build_handler(
     ConfiguredDashboardHandler.glossary_action = staticmethod(glossary_action)
     ConfiguredDashboardHandler.characters_action = staticmethod(characters_action)
     ConfiguredDashboardHandler.world_rules_action = staticmethod(world_rules_action)
+    ConfiguredDashboardHandler.character_curation_action = staticmethod(character_curation_action)
+    ConfiguredDashboardHandler.world_rule_curation_action = staticmethod(world_rule_curation_action)
     return ConfiguredDashboardHandler
 
 
@@ -1210,6 +1306,12 @@ def main() -> int:
         ),
         _build_world_rules_action(
             glossary_path=args.glossary,
+            world_rules_path=args.world_rules,
+        ),
+        _build_character_curation_action(
+            characters_path=args.characters,
+        ),
+        _build_world_rule_curation_action(
             world_rules_path=args.world_rules,
         ),
     )

@@ -1069,3 +1069,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-007` and `TASK-014`
+
+---
+
+## TASK-049 — Add manual curation for characters and world rules
+
+Status: DONE
+
+Description:
+
+Allow the operator to refine generated character and world-rule registries without bypassing the repository as source of truth.
+
+Acceptance Criteria:
+
+- characters and world rules can be edited intentionally
+- changes are persisted in deterministic files
+- web views expose current manual curation status
+
+Dependencies:
+
+- requires `TASK-027`, `TASK-028`, and `TASK-014`

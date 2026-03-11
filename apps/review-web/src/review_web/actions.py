@@ -9,6 +9,7 @@ from editorial_core.decisions import append_editorial_decision
 from editorial_core.deliverable_readiness import generate_deliverable_readiness_report
 from editorial_core.export_docx import export_manuscript_docx
 from editorial_core.glossary_curation import curate_glossary_entry
+from editorial_core.registry_curation import curate_character_entry, curate_world_rule_entry
 from editorial_core.review_rollback import rollback_last_review_approval
 from editorial_core.review_application import apply_review_approval
 from editorial_core.style import run_style_pass
@@ -244,4 +245,36 @@ def trigger_curate_glossary_entry(
         entry_title=entry_title,
         preferred_form=preferred_form,
         aliases_text=aliases_text,
+    )
+
+
+def trigger_curate_character_entry(
+    *,
+    characters_path: Path,
+    entry_title: str,
+    preferred_form: str,
+    aliases_text: str,
+) -> dict[str, object]:
+    return curate_character_entry(
+        characters_path=characters_path,
+        entry_title=entry_title,
+        preferred_form=preferred_form,
+        aliases_text=aliases_text,
+    )
+
+
+def trigger_curate_world_rule_entry(
+    *,
+    world_rules_path: Path,
+    entry_title: str,
+    preferred_form: str,
+    aliases_text: str,
+    expanded_form: str | None = None,
+) -> dict[str, object]:
+    return curate_world_rule_entry(
+        world_rules_path=world_rules_path,
+        entry_title=entry_title,
+        preferred_form=preferred_form,
+        aliases_text=aliases_text,
+        expanded_form=expanded_form,
     )
