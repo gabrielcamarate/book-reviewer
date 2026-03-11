@@ -80,3 +80,28 @@ def create_export_snapshot_manifest(
     manifest["manifest_path"] = str(manifest_path)
     return manifest
 
+
+def create_deliverable_manifest(
+    *,
+    output_path: Path,
+    language: str,
+    paragraph_count: int,
+    section_count: int,
+    snapshot_manifest_path: Path,
+) -> dict[str, Any]:
+    deliverable_slug = "ptbr" if language == "pt-BR" else "es"
+    manifest_path = output_path.with_suffix(".manifest.json")
+    manifest = {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "language": language,
+        "deliverable_slug": deliverable_slug,
+        "output_path": str(output_path),
+        "paragraph_count": paragraph_count,
+        "section_count": section_count,
+        "size_bytes": output_path.stat().st_size,
+        "sha256": _sha256_file(output_path),
+        "snapshot_manifest_path": str(snapshot_manifest_path),
+    }
+    write_json(manifest_path, manifest)
+    manifest["manifest_path"] = str(manifest_path)
+    return manifest

@@ -265,6 +265,12 @@ Primary entities:
 
 `ExportSnapshot` manifests must be generated before writing a deliverable and should describe the repository-backed files that fed the export, including checksums and file roles.
 
+Final deliverables must also emit their own manifests:
+
+- deliverable manifests are generated after the `.docx` output exists
+- each manifest records output checksum, size, language slug, and the snapshot manifest that fed the export
+- snapshot manifests and deliverable manifests serve different audit purposes and must both remain persisted
+
 Rollback of applied reviews is intentionally narrow:
 
 - only the latest active approval may be reverted automatically

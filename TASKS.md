@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-052 — Generate deliverable manifests and checksums
-
-Status: TODO
-
-Description:
-
-Add reproducible manifests for exported deliverables so handoff and verification become explicit.
-
-Acceptance Criteria:
-
-- each export can emit a manifest with metadata and checksums
-- manifest differentiates `pt-BR` and Spanish deliverables
-- manifests are kept alongside deliverables or reports
-
-Dependencies:
-
-- requires `TASK-013`
-
----
-
 ## TASK-053 — Add preview healthcheck and operational diagnostics endpoint
 
 Status: TODO
