@@ -33,6 +33,7 @@ from review_web.actions import (
     trigger_generate_world_rules,
     trigger_consistency_report,
     trigger_copyedit,
+    trigger_deliverable_readiness_report,
     trigger_review_approval,
     trigger_style,
     trigger_style_approval,
@@ -204,6 +205,28 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            (reports_dir / "deliverable-readiness.json").write_text(
+                json.dumps(
+                    {
+                        "pt-BR": {
+                            "eligible": False,
+                            "blocker_count": 1,
+                            "blockers": [{"chunk_id": "chapter-0001-conexao-dimensional-chunk-0001", "reason": "style_pending"}],
+                            "chapters": [{"chapter_id": "chapter-0001-conexao-dimensional", "blocker_count": 1}],
+                        },
+                        "es": {
+                            "eligible": False,
+                            "blocker_count": 2,
+                            "blockers": [{"chunk_id": "chapter-0001-conexao-dimensional-chunk-0001", "reason": "ptbr_not_ready"}],
+                            "chapters": [{"chapter_id": "chapter-0001-conexao-dimensional", "blocker_count": 2}],
+                        },
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             (reviews_ptbr_dir / "a.copyedit.json").write_text("{}", encoding="utf-8")
             (reviews_es_dir / "a.translation-es.json").write_text("{}", encoding="utf-8")
             decisions_path.write_text(
@@ -258,6 +281,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["chapters"][0]["chapter_status"], "pending_copyedit")
             self.assertEqual(state["chapters"][0]["completion_percent"], 0)
             self.assertEqual(state["consistency_report"]["finding_count"], 12)
+            self.assertEqual(state["deliverable_readiness_report"]["es"]["blocker_count"], 2)
             self.assertEqual(state["recent_chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
             self.assertEqual(state["recent_decisions"][0]["title"], "Preservar tratamento solene")
             self.assertEqual(state["recent_jobs"][0]["job_type"], "copyedit")
@@ -716,6 +740,10 @@ class ReviewWebDashboardTest(unittest.TestCase):
                     "pt-BR": {"eligible": True, "reason": "O export em pt-BR está disponível."},
                     "es": {"eligible": False, "reason": "Faltam traduções para 3 parágrafo(s)."},
                 },
+                "deliverable_readiness_report": {
+                    "pt-BR": {"eligible": False, "blocker_count": 1},
+                    "es": {"eligible": False, "blocker_count": 1},
+                },
             }
         )
 
@@ -734,6 +762,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("Export espanhol indisponível", html)
         self.assertIn("Capítulos Concluídos", html)
         self.assertIn("Capítulos Acionáveis", html)
+        self.assertIn("Prontidão Bilíngue", html)
+        self.assertIn("1 bloqueio(s)", html)
 
     def test_build_decisions_state_reads_persisted_entries(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -2169,6 +2199,96 @@ class ReviewWebDashboardTest(unittest.TestCase):
 
             self.assertEqual(summary["finding_count"], 2)
             self.assertTrue((reports_dir / "ptbr-consistency-report.json").exists())
+
+    def test_trigger_deliverable_readiness_report_persists_report_for_web_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            reports_dir = temp_path / "reports"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+            reports_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "source_start_index": 1,
+                        "source_end_index": 1,
+                        "base_text": "Trecho pendente.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            section_payload = {
+                "id": "chapter-0001-conexao-dimensional",
+                "title": "Capítulo 1: Conexão Dimensional.",
+                "paragraphs": [
+                    {
+                        "id": "chapter-0001-conexao-dimensional-p-0001",
+                        "source_index": 1,
+                        "source_text": "Trecho original.",
+                        "text": "Trecho pendente.",
+                        "review_status": "pending_review",
+                        "applied_reviews": [],
+                    }
+                ],
+            }
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(section_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(section_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_deliverable_readiness_report(
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
+                reports_dir=reports_dir,
+            )
+
+            self.assertFalse(summary["pt-BR"]["eligible"])
+            self.assertTrue((reports_dir / "deliverable-readiness.json").exists())
 
     def test_trigger_translation_es_persists_output_for_stable_chunk(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

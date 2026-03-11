@@ -6,6 +6,7 @@ from editorial_core.characters import generate_characters_registry
 from editorial_core.consistency_report import generate_consistency_report
 from editorial_core.copyedit import Runner, run_copyedit_pass
 from editorial_core.decisions import append_editorial_decision
+from editorial_core.deliverable_readiness import generate_deliverable_readiness_report
 from editorial_core.export_docx import export_manuscript_docx
 from editorial_core.review_application import apply_review_approval
 from editorial_core.style import run_style_pass
@@ -108,6 +109,25 @@ def trigger_consistency_report(
     return generate_consistency_report(
         consolidated_dir=consolidated_dir,
         glossary_path=glossary_path,
+        reports_dir=reports_dir,
+    )
+
+
+def trigger_deliverable_readiness_report(
+    *,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+    reports_dir: Path,
+) -> dict[str, object]:
+    return generate_deliverable_readiness_report(
+        chunks_dir=chunks_dir,
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
         reports_dir=reports_dir,
     )
 

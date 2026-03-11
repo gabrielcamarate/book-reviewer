@@ -38,6 +38,7 @@ from review_web.actions import (
     trigger_generate_world_rules,
     trigger_consistency_report,
     trigger_copyedit,
+    trigger_deliverable_readiness_report,
     trigger_review_approval,
     trigger_style,
     trigger_style_approval,
@@ -358,6 +359,34 @@ def _build_consistency_action(
     return _run
 
 
+def _build_deliverable_readiness_action(
+    *,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+    reports_dir: Path,
+    jobs_dir: Path,
+) -> Callable[[], dict[str, object]]:
+    def _run() -> dict[str, object]:
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="deliverable-readiness",
+            target_id="bilingual-report",
+            action=lambda: trigger_deliverable_readiness_report(
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
+                reports_dir=reports_dir,
+            ),
+        )
+
+    return _run
+
+
 def _translation_runner(prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
     return run_codex_with_schema(
         prompt=prompt,
@@ -487,6 +516,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     style_approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     consistency_action: Callable[[], dict[str, object]] | None = None
+    deliverable_readiness_action: Callable[[], dict[str, object]] | None = None
     translation_action: Callable[[str], dict[str, object]] | None = None
     export_action: Callable[[str], dict[str, object]] | None = None
     decision_action: Callable[[str, str, str], dict[str, object]] | None = None
@@ -753,6 +783,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path == "/readiness/run":
+            if self.deliverable_readiness_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "deliverable readiness action not configured")
+                return
+            self.deliverable_readiness_action()
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/")
+            self.end_headers()
+            return
+
         if self.path.startswith("/chunks/") and self.path.endswith("/translation-es"):
             if self.translation_action is None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "translation action not configured")
@@ -854,6 +894,7 @@ def build_handler(
     approval_action: Callable[[str, list[int] | None], dict[str, object]],
     style_approval_action: Callable[[str, list[int] | None], dict[str, object]],
     consistency_action: Callable[[], dict[str, object]],
+    deliverable_readiness_action: Callable[[], dict[str, object]],
     translation_action: Callable[[str], dict[str, object]],
     export_action: Callable[[str], dict[str, object]],
     decision_action: Callable[[str, str, str], dict[str, object]],
@@ -877,6 +918,7 @@ def build_handler(
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
     ConfiguredDashboardHandler.style_approval_action = staticmethod(style_approval_action)
     ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
+    ConfiguredDashboardHandler.deliverable_readiness_action = staticmethod(deliverable_readiness_action)
     ConfiguredDashboardHandler.translation_action = staticmethod(translation_action)
     ConfiguredDashboardHandler.export_action = staticmethod(export_action)
     ConfiguredDashboardHandler.decision_action = staticmethod(decision_action)
@@ -1002,6 +1044,15 @@ def main() -> int:
         _build_consistency_action(
             consolidated_dir=args.consolidated_dir,
             glossary_path=args.glossary,
+            reports_dir=args.reports_dir,
+            jobs_dir=args.jobs_dir,
+        ),
+        _build_deliverable_readiness_action(
+            chunks_dir=args.chunks_dir,
+            chapters_dir=args.chapters_dir,
+            consolidated_dir=args.consolidated_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            reviews_es_dir=args.reviews_es_dir,
             reports_dir=args.reports_dir,
             jobs_dir=args.jobs_dir,
         ),

@@ -110,6 +110,13 @@ def _load_consistency_report(reports_dir: Path) -> dict[str, Any]:
     }
 
 
+def _load_deliverable_readiness_report(reports_dir: Path) -> dict[str, Any] | None:
+    report_path = reports_dir / "deliverable-readiness.json"
+    if not report_path.exists():
+        return None
+    return _read_json(report_path)
+
+
 def _load_decisions(decisions_path: Path) -> list[dict[str, str]]:
     return list(reversed(read_editorial_decisions(decisions_path)))
 
@@ -521,6 +528,7 @@ def build_dashboard_state(
         chapter.update(progress_by_chapter_id.get(chapter["id"], {}))
     decisions = _load_decisions(decisions_path)
     recent_jobs = _load_recent_jobs(jobs_dir)
+    deliverable_readiness_report = _load_deliverable_readiness_report(reports_dir)
     export_readiness = compute_export_readiness(
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
@@ -546,6 +554,7 @@ def build_dashboard_state(
         "recent_decisions": decisions[:5],
         "recent_jobs": recent_jobs,
         "export_readiness": export_readiness,
+        "deliverable_readiness_report": deliverable_readiness_report,
     }
 
 
@@ -790,6 +799,10 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
     recent_decisions = state["recent_decisions"]
     recent_jobs = state.get("recent_jobs", [])
     export_readiness = state["export_readiness"]
+    deliverable_readiness_report = state.get("deliverable_readiness_report") or {
+        "pt-BR": {"eligible": True, "blocker_count": 0},
+        "es": {"eligible": export_readiness["es"]["eligible"], "blocker_count": 0},
+    }
 
     chapter_items = "".join(
         (
@@ -863,6 +876,17 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         )
         for item in recent_jobs
     ) or "<li>Nenhum job recente registrado.</li>"
+    readiness_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(language)}</strong> "
+            f"<code>{'elegível' if payload.get('eligible') else 'bloqueado'}</code> "
+            f"<span class=\"muted\">{payload.get('blocker_count', 0)} bloqueio(s)</span>"
+            "</li>"
+        )
+        for language, payload in deliverable_readiness_report.items()
+        if language in {"pt-BR", "es"}
+    ) or "<li>Nenhum relatório de prontidão bilíngue disponível.</li>"
 
     body = f"""
       <header>
@@ -960,6 +984,13 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         </section>
       </div>
       <div class="layout" style="margin-top: 18px;">
+        <section>
+          <h2>Prontidão Bilíngue</h2>
+          <form method="post" action="/readiness/run" style="margin: 0 0 12px;">
+            <button type="submit">Regenerar Relatório Bilíngue</button>
+          </form>
+          <ul>{readiness_items}</ul>
+        </section>
         <section>
           <h2>Jobs Recentes</h2>
           <ul>{job_items}</ul>

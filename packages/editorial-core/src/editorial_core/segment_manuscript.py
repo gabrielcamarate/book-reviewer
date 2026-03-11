@@ -76,6 +76,26 @@ def _is_heading_candidate(text: str) -> bool:
     return CHAPTER_RE.match(stripped) is not None
 
 
+def _build_split_chapter_heading(
+    paragraphs: list[dict[str, Any]],
+    index: int,
+) -> tuple[str, int] | None:
+    current_text = str(paragraphs[index].get("text", "")).strip()
+    if current_text.casefold() != "c":
+        return None
+
+    next_index = index + 1
+    while next_index < len(paragraphs):
+        next_text = str(paragraphs[next_index].get("text", "")).strip()
+        if not next_text:
+            next_index += 1
+            continue
+        if next_text.casefold().startswith(("apítulo", "apitulo")):
+            return f"C{next_text[:1].lower()}{next_text[1:]}", next_index
+        return None
+    return None
+
+
 def _build_section_id(section_type: str, order: int, title_slug: str) -> str:
     return f"{section_type}-{order:04d}-{title_slug}"
 
@@ -188,8 +208,11 @@ def segment_paragraphs(paragraphs: list[dict[str, Any]]) -> dict[str, Any]:
             index += 1
             continue
 
-        normalized = _normalize_heading(stripped)
-        chapter_match = CHAPTER_RE.match(stripped) if "\t" not in stripped else None
+        split_heading = _build_split_chapter_heading(paragraphs, index)
+        heading_text = split_heading[0] if split_heading is not None else stripped
+        heading_last_index = split_heading[1] if split_heading is not None else index
+        normalized = _normalize_heading(heading_text)
+        chapter_match = CHAPTER_RE.match(heading_text) if "\t" not in heading_text else None
 
         if inside_toc:
             if current_section is None:
@@ -199,10 +222,10 @@ def segment_paragraphs(paragraphs: list[dict[str, Any]]) -> dict[str, Any]:
             continue
 
         if normalized in FRONTMATTER_TITLES or normalized in BACKMATTER_TITLES or chapter_match:
-            title = stripped
+            title = heading_text
             section_type = "frontmatter"
             consume_subtitle = False
-            slug_source = stripped
+            slug_source = heading_text
 
             if chapter_match:
                 has_seen_chapter = True
@@ -211,10 +234,10 @@ def segment_paragraphs(paragraphs: list[dict[str, Any]]) -> dict[str, Any]:
                 title_suffix = chapter_match.group(2)
 
                 if title_suffix:
-                    title = stripped
+                    title = heading_text
                     slug_source = title_suffix
                 else:
-                    next_index = index + 1
+                    next_index = heading_last_index + 1
                     while next_index < len(paragraphs):
                         next_text = str(paragraphs[next_index].get("text", "")).strip()
                         if not next_text or _is_divider(next_text):
@@ -248,7 +271,7 @@ def segment_paragraphs(paragraphs: list[dict[str, Any]]) -> dict[str, Any]:
             if consume_subtitle:
                 index = next_index + 1
             else:
-                index += 1
+                index = heading_last_index + 1
             continue
 
         if current_section is None:

@@ -55,6 +55,22 @@ Description:
 
 Create a consolidated report that explains whether `pt-BR` and Spanish exports are currently safe to generate.
 
+Execution Notes:
+
+- this task is temporarily expanded to absorb the segmentation normalization needed to make readiness trustworthy
+- the current manuscript structure is known to contain Word-export split chapter headings such as `C` + `Apítulo`
+- readiness cannot be considered complete until the canonical chapter and chunk structure is regenerated and validated
+
+Subtasks:
+
+- `TASK-045A` — Consolidate split-heading parser support, readiness report generation, and web visibility without regenerating live manuscript artifacts yet
+- `TASK-045B` — Capture the current section/chunk identifier baseline so the migration impact is explicit before any rebuild
+- `TASK-045C` — Regenerate canonical chapter artifacts from extracted paragraphs using the normalized split-heading parser
+- `TASK-045D` — Reapply review-boundary marking and regenerate pending-review chunks from the rebuilt chapter structure
+- `TASK-045E` — Produce an integrity and migration report covering chapter discovery, identifier changes, paragraph coverage, and downstream review impact
+- `TASK-045F` — Refresh repository-backed web/report state so navigation and readiness reflect the rebuilt manuscript accurately
+- `TASK-045G` — Stop for human validation of the rebuilt chapter navigation, manuscript coverage, and readiness signals before any further editorial operation
+
 Acceptance Criteria:
 
 - readiness report covers both languages

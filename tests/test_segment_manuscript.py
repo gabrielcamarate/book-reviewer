@@ -117,3 +117,23 @@ class SegmentManuscriptTest(unittest.TestCase):
             self.assertEqual(index_payload["sections"][0]["declared_chapter_number"], 1)
             self.assertEqual(index_payload["sections"][1]["declared_chapter_number"], 4)
             self.assertEqual(chapter_payload["declared_chapter_number"], 4)
+
+    def test_segment_paragraphs_detects_split_chapter_heading_from_word_export(self) -> None:
+        paragraphs = [
+            {"index": 1, "text": "Capítulo 1: Conexão Dimensional.", "is_empty": False},
+            {"index": 2, "text": "Body one.", "is_empty": False},
+            {"index": 3, "text": "C", "is_empty": False},
+            {"index": 4, "text": "Apítulo 3: Reset.", "is_empty": False},
+            {"index": 5, "text": "Body three.", "is_empty": False},
+            {"index": 6, "text": "C", "is_empty": False},
+            {"index": 7, "text": "Apítulo 5: eXilados da Terra.", "is_empty": False},
+            {"index": 8, "text": "Body five.", "is_empty": False},
+        ]
+
+        segmented = segment_paragraphs(paragraphs)
+
+        self.assertEqual(segmented["chapter_count"], 3)
+        self.assertEqual(segmented["sections"][1]["title"], "Capítulo 3: Reset.")
+        self.assertEqual(segmented["sections"][1]["declared_chapter_number"], 3)
+        self.assertEqual(segmented["sections"][2]["title"], "Capítulo 5: eXilados da Terra.")
+        self.assertEqual(segmented["sections"][2]["declared_chapter_number"], 5)
