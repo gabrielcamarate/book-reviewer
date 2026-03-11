@@ -8,6 +8,7 @@ from editorial_core.copyedit import Runner, run_copyedit_pass
 from editorial_core.decisions import append_editorial_decision
 from editorial_core.deliverable_readiness import generate_deliverable_readiness_report
 from editorial_core.export_docx import export_manuscript_docx
+from editorial_core.glossary_curation import curate_glossary_entry
 from editorial_core.review_rollback import rollback_last_review_approval
 from editorial_core.review_application import apply_review_approval
 from editorial_core.style import run_style_pass
@@ -228,4 +229,19 @@ def trigger_rollback_last_approval(
         reviews_dir=reviews_dir,
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
+    )
+
+
+def trigger_curate_glossary_entry(
+    *,
+    glossary_path: Path,
+    entry_title: str,
+    preferred_form: str,
+    aliases_text: str,
+) -> dict[str, object]:
+    return curate_glossary_entry(
+        glossary_path=glossary_path,
+        entry_title=entry_title,
+        preferred_form=preferred_form,
+        aliases_text=aliases_text,
     )

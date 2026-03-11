@@ -18,6 +18,7 @@ from review_web.dashboard import (
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
+    build_glossary_state,
     build_queue_state,
     build_search_state,
     build_world_rules_state,
@@ -27,6 +28,7 @@ from review_web.dashboard import (
     render_consistency_detail_html,
     render_decisions_html,
     render_dashboard_html,
+    render_glossary_html,
     render_queue_html,
     render_search_html,
     render_world_rules_html,
@@ -34,6 +36,7 @@ from review_web.dashboard import (
 from review_web.actions import (
     trigger_generate_characters,
     trigger_append_decision,
+    trigger_curate_glossary_entry,
     trigger_export_docx,
     trigger_generate_world_rules,
     trigger_consistency_report,
@@ -200,6 +203,16 @@ def _build_decisions_loader(
 ) -> Callable[[], dict[str, object]]:
     def _load() -> dict[str, object]:
         return build_decisions_state(decisions_path=decisions_path)
+
+    return _load
+
+
+def _build_glossary_loader(
+    *,
+    glossary_path: Path,
+) -> Callable[[], dict[str, object]]:
+    def _load() -> dict[str, object]:
+        return build_glossary_state(glossary_path=glossary_path)
 
     return _load
 
@@ -496,6 +509,21 @@ def _build_decision_action(
     return _run
 
 
+def _build_glossary_action(
+    *,
+    glossary_path: Path,
+) -> Callable[[str, str, str], dict[str, object]]:
+    def _run(entry_title: str, preferred_form: str, aliases_text: str) -> dict[str, object]:
+        return trigger_curate_glossary_entry(
+            glossary_path=glossary_path,
+            entry_title=entry_title,
+            preferred_form=preferred_form,
+            aliases_text=aliases_text,
+        )
+
+    return _run
+
+
 def _build_characters_action(
     *,
     glossary_path: Path,
@@ -530,6 +558,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     chunk_loader: Callable[[str], dict[str, object]] | None = None
     consistency_loader: Callable[[str], dict[str, object]] | None = None
     decisions_loader: Callable[[], dict[str, object]] | None = None
+    glossary_loader: Callable[[], dict[str, object]] | None = None
     characters_loader: Callable[[], dict[str, object]] | None = None
     world_rules_loader: Callable[[], dict[str, object]] | None = None
     search_loader: Callable[[str], dict[str, object]] | None = None
@@ -544,6 +573,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     export_action: Callable[[str], dict[str, object]] | None = None
     rollback_action: Callable[[], dict[str, object]] | None = None
     decision_action: Callable[[str, str, str], dict[str, object]] | None = None
+    glossary_action: Callable[[str, str, str], dict[str, object]] | None = None
     characters_action: Callable[[], dict[str, object]] | None = None
     world_rules_action: Callable[[], dict[str, object]] | None = None
 
@@ -660,6 +690,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 return
             state = self.decisions_loader()
             payload = render_decisions_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path == "/glossary":
+            if self.glossary_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "glossary loader not configured")
+                return
+            state = self.glossary_loader()
+            payload = render_glossary_html(state).encode("utf-8")
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
@@ -895,6 +938,29 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path == "/glossary":
+            if self.glossary_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "glossary action not configured")
+                return
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            form_data = parse_qs(raw_body, keep_blank_values=False)
+            entry_title = (form_data.get("entry_title", [""])[0]).strip()
+            preferred_form = (form_data.get("preferred_form", [""])[0]).strip()
+            aliases_text = (form_data.get("aliases_text", [""])[0]).strip()
+            if not entry_title or not preferred_form:
+                self.send_error(HTTPStatus.BAD_REQUEST, "entry_title and preferred_form are required")
+                return
+            try:
+                self.glossary_action(entry_title, preferred_form, aliases_text)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/glossary")
+            self.end_headers()
+            return
+
         if self.path == "/characters/run":
             if self.characters_action is None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "characters action not configured")
@@ -927,6 +993,7 @@ def build_handler(
     chunk_loader: Callable[[str], dict[str, object]],
     consistency_loader: Callable[[str], dict[str, object]],
     decisions_loader: Callable[[], dict[str, object]],
+    glossary_loader: Callable[[], dict[str, object]],
     characters_loader: Callable[[], dict[str, object]],
     world_rules_loader: Callable[[], dict[str, object]],
     search_loader: Callable[[str], dict[str, object]],
@@ -941,6 +1008,7 @@ def build_handler(
     export_action: Callable[[str], dict[str, object]],
     rollback_action: Callable[[], dict[str, object]],
     decision_action: Callable[[str, str, str], dict[str, object]],
+    glossary_action: Callable[[str, str, str], dict[str, object]],
     characters_action: Callable[[], dict[str, object]],
     world_rules_action: Callable[[], dict[str, object]],
 ) -> type[DashboardHandler]:
@@ -952,6 +1020,7 @@ def build_handler(
     ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
     ConfiguredDashboardHandler.consistency_loader = staticmethod(consistency_loader)
     ConfiguredDashboardHandler.decisions_loader = staticmethod(decisions_loader)
+    ConfiguredDashboardHandler.glossary_loader = staticmethod(glossary_loader)
     ConfiguredDashboardHandler.characters_loader = staticmethod(characters_loader)
     ConfiguredDashboardHandler.world_rules_loader = staticmethod(world_rules_loader)
     ConfiguredDashboardHandler.search_loader = staticmethod(search_loader)
@@ -966,6 +1035,7 @@ def build_handler(
     ConfiguredDashboardHandler.export_action = staticmethod(export_action)
     ConfiguredDashboardHandler.rollback_action = staticmethod(rollback_action)
     ConfiguredDashboardHandler.decision_action = staticmethod(decision_action)
+    ConfiguredDashboardHandler.glossary_action = staticmethod(glossary_action)
     ConfiguredDashboardHandler.characters_action = staticmethod(characters_action)
     ConfiguredDashboardHandler.world_rules_action = staticmethod(world_rules_action)
     return ConfiguredDashboardHandler
@@ -1035,6 +1105,9 @@ def main() -> int:
         ),
         _build_decisions_loader(
             decisions_path=args.decisions,
+        ),
+        _build_glossary_loader(
+            glossary_path=args.glossary,
         ),
         _build_characters_loader(
             characters_path=args.characters,
@@ -1127,6 +1200,9 @@ def main() -> int:
         ),
         _build_decision_action(
             decisions_path=args.decisions,
+        ),
+        _build_glossary_action(
+            glossary_path=args.glossary,
         ),
         _build_characters_action(
             glossary_path=args.glossary,

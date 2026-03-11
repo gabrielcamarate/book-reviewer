@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-048 — Add glossary curation and alias editing through the web interface
-
-Status: TODO
-
-Description:
-
-Allow the operator to maintain the glossary as repository-backed state from the workstation.
-
-Acceptance Criteria:
-
-- glossary entries and aliases can be edited through controlled forms
-- resulting changes preserve deterministic file structure
-- glossary updates become available to later review passes
-
-Dependencies:
-
-- requires `TASK-007` and `TASK-014`
-
----
-
 ## TASK-049 — Add manual curation for characters and world rules
 
 Status: TODO

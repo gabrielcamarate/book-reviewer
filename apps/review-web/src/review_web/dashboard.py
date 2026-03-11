@@ -10,6 +10,7 @@ from typing import Any
 from editorial_core.chapter_progress import build_chapter_progress
 from editorial_core.characters import read_characters_registry
 from editorial_core.decisions import read_editorial_decisions
+from editorial_core.glossary_curation import parse_glossary_entries
 from editorial_core.job_log import read_recent_job_logs
 from editorial_core.queue import build_review_queue
 from editorial_core.search import search_repository_state
@@ -566,6 +567,14 @@ def build_decisions_state(*, decisions_path: Path) -> dict[str, Any]:
     }
 
 
+def build_glossary_state(*, glossary_path: Path) -> dict[str, Any]:
+    sections = parse_glossary_entries(glossary_path) if glossary_path.exists() else []
+    return {
+        "entry_count": sum(len(section["entries"]) for section in sections),
+        "sections": sections,
+    }
+
+
 def build_characters_state(*, characters_path: Path) -> dict[str, Any]:
     characters = _load_characters(characters_path)
     return {
@@ -897,6 +906,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
           <button type="submit">Buscar</button>
         </form>
         <p style="margin-top: 12px;"><a href="/queue">Abrir fila de revisão</a></p>
+        <p style="margin-top: 12px;"><a href="/glossary">Abrir curadoria do glossário</a></p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
           <form method="post" action="/exports/pt-BR/run" style="margin: 0;">
             <button type="submit">Gerar Export pt-BR</button>
@@ -1032,6 +1042,54 @@ def render_decisions_html(state: dict[str, Any]) -> str:
       </section>
     """
     return _render_page("Decisões Editoriais", body)
+
+
+def render_glossary_html(state: dict[str, Any]) -> str:
+    def _render_entry(entry: dict[str, Any]) -> str:
+        expanded_block = (
+            f"<p class=\"muted\">Forma expandida: <code>{html.escape(entry['expanded_form'])}</code></p>"
+            if entry.get("expanded_form")
+            else ""
+        )
+        evidence_block = (
+            f"<p class=\"muted\">Evidence: {html.escape(entry.get('evidence', ''))}</p>"
+            if entry.get("evidence")
+            else ""
+        )
+        return (
+            "<article style=\"margin-bottom: 16px;\">"
+            f"<h3>{html.escape(entry['title'])}</h3>"
+            f"<p class=\"muted\">Forma preferencial atual: <code>{html.escape(entry.get('preferred_form', ''))}</code></p>"
+            "<form method=\"post\" action=\"/glossary\">"
+            f"<input type=\"hidden\" name=\"entry_title\" value=\"{html.escape(entry['title'])}\">"
+            f"<p><label>Forma preferencial<br><input type=\"text\" name=\"preferred_form\" value=\"{html.escape(entry.get('preferred_form', ''))}\" style=\"width: 100%;\"></label></p>"
+            f"<p><label>Aliases separados por vírgula<br><input type=\"text\" name=\"aliases_text\" value=\"{html.escape(', '.join(entry.get('aliases', [])))}\" style=\"width: 100%;\"></label></p>"
+            "<button type=\"submit\">Salvar Ajustes do Glossário</button>"
+            "</form>"
+            f"{expanded_block}"
+            f"{evidence_block}"
+            "</article>"
+        )
+
+    section_blocks = "".join(
+        (
+            "<section style=\"margin-top: 18px;\">"
+            f"<h2>{html.escape(section['title'])}</h2>"
+            + "".join(_render_entry(entry) for entry in section["entries"])
+            + "</section>"
+        )
+        for section in state["sections"]
+    ) or "<p class=\"muted\">Nenhuma entrada curável disponível no glossário.</p>"
+
+    body = f"""
+      <nav><a href=\"/\">← Painel</a></nav>
+      <section>
+        <h1>Curadoria do Glossário</h1>
+        <p class=\"muted\">Entradas editáveis: <code>{state['entry_count']}</code></p>
+      </section>
+      {section_blocks}
+    """
+    return _render_page("Curadoria do Glossário", body)
 
 
 def render_characters_html(state: dict[str, Any]) -> str:

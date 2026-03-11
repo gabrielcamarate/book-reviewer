@@ -154,6 +154,7 @@ Responsibilities:
 - present summary metrics, recent chunks, consistency findings, and deliverables
 - expose chapter-level completion rollups derived from repository state
 - expose repository-backed editorial memory such as `DECISIONS.md`
+- expose controlled curation workflows for repository-backed editorial memory such as `GLOSSARY.md`
 - keep all editorial decisions delegated to existing backend commands and persisted artifacts
 
 Rules:
@@ -415,6 +416,12 @@ Current persisted editorial memory includes:
 - `WORLD_RULES.md`
 
 The web layer may inspect and regenerate these artifacts, but it must not replace the repository as the source of truth.
+
+Glossary curation is part of the operator workflow:
+
+- operators may edit preferred forms and alias lists through controlled web forms
+- glossary edits must preserve deterministic Markdown structure
+- later review and translation passes must consume the curated glossary state from the repository
 
 Operator navigation is expected to remain local-first and deterministic:
 

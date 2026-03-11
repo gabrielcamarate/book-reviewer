@@ -12,6 +12,7 @@ from review_web.dashboard import (
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
+    build_glossary_state,
     build_queue_state,
     build_search_state,
     build_world_rules_state,
@@ -22,6 +23,7 @@ from review_web.dashboard import (
     render_consistency_detail_html,
     render_decisions_html,
     render_dashboard_html,
+    render_glossary_html,
     render_queue_html,
     render_search_html,
     render_world_rules_html,
@@ -29,6 +31,7 @@ from review_web.dashboard import (
 from review_web.actions import (
     trigger_generate_characters,
     trigger_append_decision,
+    trigger_curate_glossary_entry,
     trigger_export_docx,
     trigger_generate_world_rules,
     trigger_consistency_report,
@@ -757,6 +760,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("/consistency/run", html)
         self.assertIn("/exports/pt-BR/run", html)
         self.assertIn("/decisions", html)
+        self.assertIn("/glossary", html)
         self.assertIn("Preservar tratamento solene", html)
         self.assertIn("copyedit", html)
         self.assertIn("Gerar Export pt-BR", html)
@@ -798,6 +802,32 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Decisões Editoriais", html)
             self.assertIn("Manter repetições deliberadas", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0002", html)
+
+    def test_build_glossary_state_reads_curatable_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            glossary_path.parent.mkdir(parents=True, exist_ok=True)
+            glossary_path.write_text(
+                "# Glossary\n\n"
+                "## Organizations and Acronyms\n\n"
+                "### SEU\n"
+                "- Preferred form: `SEU`\n"
+                "- Expanded form: `Soberana Energia Universal`\n"
+                "- Observed aliases or variants: `Soberania Energia Universal`\n"
+                "- Evidence: `p-1`\n",
+                encoding="utf-8",
+            )
+
+            state = build_glossary_state(glossary_path=glossary_path)
+
+            self.assertEqual(state["entry_count"], 1)
+            self.assertEqual(state["sections"][0]["entries"][0]["title"], "SEU")
+
+            html = render_glossary_html(state)
+            self.assertIn("Curadoria do Glossário", html)
+            self.assertIn("Soberania Energia Universal", html)
+            self.assertIn("Salvar Ajustes do Glossário", html)
 
     def test_build_characters_state_reads_registry_entries(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -2668,3 +2698,31 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(summary["reverted_change_count"], 1)
             self.assertTrue(Path(summary["rollback_path"]).exists())
             self.assertEqual(consolidated_section["paragraphs"][0]["text"], "Texto original.")
+
+    def test_trigger_curate_glossary_entry_persists_repo_backed_edit(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            glossary_path.parent.mkdir(parents=True, exist_ok=True)
+            glossary_path.write_text(
+                "# Glossary\n\n"
+                "## Organizations and Acronyms\n\n"
+                "### SEU\n"
+                "- Preferred form: `SEU`\n"
+                "- Expanded form: `Soberana Energia Universal`\n"
+                "- Observed aliases or variants: `Soberania Energia Universal`\n"
+                "- Evidence: `p-1`\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_curate_glossary_entry(
+                glossary_path=glossary_path,
+                entry_title="SEU",
+                preferred_form="Soberana Energia Universal",
+                aliases_text="SEU, Soberania Energia Universal",
+            )
+
+            updated_text = glossary_path.read_text(encoding="utf-8")
+            self.assertEqual(summary["entry_title"], "SEU")
+            self.assertIn("- Preferred form: `Soberana Energia Universal`", updated_text)
+            self.assertIn("`SEU`, `Soberania Energia Universal`", updated_text)
