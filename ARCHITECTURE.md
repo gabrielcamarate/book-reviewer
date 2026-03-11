@@ -363,6 +363,12 @@ Required provenance fields:
 - prompt hash
 - hashes of persisted editorial inputs such as style guide, glossary, and decisions
 
+Current persisted pass artifacts:
+
+- `reviews/ptbr/*.copyedit.json`
+- `reviews/ptbr/*.style.json`
+- `reviews/es/*.translation-es.json`
+
 ---
 
 # Editorial Memory

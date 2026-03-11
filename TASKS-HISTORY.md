@@ -852,3 +852,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-009` and `TASK-012`
+
+---
+
+## TASK-039 — Implement the `style` pass in `pt-BR`
+
+Status: DONE
+
+Description:
+
+Add the second editorial pass focused on fluency and cadence while preserving the author's voice.
+
+Acceptance Criteria:
+
+- style pass runs only on already copyedited and stable material
+- output remains structured and auditable
+- prompts consume style guide, glossary, and decisions
+
+Dependencies:
+
+- requires `TASK-009`, `TASK-010`, and `TASK-026`
