@@ -12,6 +12,7 @@ from review_web.dashboard import (
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
+    build_queue_state,
     build_search_state,
     build_world_rules_state,
     compute_export_readiness,
@@ -21,6 +22,7 @@ from review_web.dashboard import (
     render_consistency_detail_html,
     render_decisions_html,
     render_dashboard_html,
+    render_queue_html,
     render_search_html,
     render_world_rules_html,
 )
@@ -792,6 +794,64 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Resultados da Busca", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001", html)
             self.assertIn("#glossary-results", html)
+
+    def test_build_queue_state_exposes_resume_link_and_progress_counts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 2,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "chunk_order": 1,
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            },
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0002",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "chunk_order": 2,
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0002.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json").write_text(
+                "{}",
+                encoding="utf-8",
+            )
+
+            state = build_queue_state(
+                chunks_dir=chunks_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
+            )
+
+            self.assertEqual(state["summary"]["awaiting_approval_count"], 1)
+            self.assertEqual(state["next_recommended"]["link"], "/chunks/chapter-0001-conexao-dimensional-chunk-0001")
+
+            html = render_queue_html(state)
+            self.assertIn("Fila de Revisão", html)
+            self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001", html)
+            self.assertIn("Retomar Próximo Chunk", html)
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

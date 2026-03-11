@@ -672,3 +672,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-027` and `TASK-028`
+
+---
+
+## TASK-030 — Add review queue controls and resumable operator workflow
+
+Status: DONE
+
+Description:
+
+Turn the chunk flow into an explicit operational queue with progress awareness.
+
+Acceptance Criteria:
+
+- queue can show next recommended chunk
+- queue reflects review progress by status
+- operator can resume work without losing context
+
+Dependencies:
+
+- requires `TASK-020` and `TASK-029`

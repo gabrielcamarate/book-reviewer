@@ -8,6 +8,7 @@ from typing import Any
 
 from editorial_core.characters import read_characters_registry
 from editorial_core.decisions import read_editorial_decisions
+from editorial_core.queue import build_review_queue
 from editorial_core.search import search_repository_state
 from editorial_core.translation_es import STABLE_REVIEW_STATUSES
 from editorial_core.world_rules import read_world_rules_registry
@@ -421,6 +422,19 @@ def build_search_state(
     )
 
 
+def build_queue_state(
+    *,
+    chunks_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+) -> dict[str, Any]:
+    return build_review_queue(
+        chunks_dir=chunks_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
+
+
 def build_chapter_detail_state(
     *,
     chapter_id: str,
@@ -633,6 +647,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
           <label>Buscar no projeto<br><input type="text" name="q" placeholder="Sistema Terra, Joseph Harrison..." style="width: min(520px, 100%);"></label>
           <button type="submit">Buscar</button>
         </form>
+        <p style="margin-top: 12px;"><a href="/queue">Abrir fila de revisão</a></p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
           <form method="post" action="/exports/pt-BR/run" style="margin: 0;">
             <button type="submit">Gerar Export pt-BR</button>
@@ -903,6 +918,49 @@ def render_search_html(state: dict[str, Any]) -> str:
       </div>
     """
     return _render_page("Resultados da Busca", body)
+
+
+def render_queue_html(state: dict[str, Any]) -> str:
+    summary = state["summary"]
+    next_recommended = state["next_recommended"]
+    queue_items = "".join(
+        (
+            "<li>"
+            f"<a class=\"chunk-link\" href=\"{html.escape(item['link'])}\">{html.escape(item['chunk_id'])}</a> "
+            f"<code>{html.escape(item['queue_status'])}</code> "
+            f"<span class=\"muted\">{html.escape(item['section_title'])}</span>"
+            "</li>"
+        )
+        for item in state["queue_items"]
+    ) or "<li>Nenhum chunk disponível na fila.</li>"
+
+    resume_block = (
+        f"<p><a class=\"chunk-link\" href=\"{html.escape(next_recommended['link'])}\">Retomar Próximo Chunk</a></p>"
+        f"<p class=\"muted\">Próximo recomendado: <code>{html.escape(next_recommended['chunk_id'])}</code> · <code>{html.escape(next_recommended['queue_status'])}</code></p>"
+        if next_recommended is not None
+        else "<p class=\"muted\">Nenhum chunk pendente para retomada.</p>"
+    )
+
+    body = f"""
+      <nav><a href=\"/\">← Painel</a></nav>
+      <section>
+        <h1>Fila de Revisão</h1>
+        {resume_block}
+      </section>
+      <div class="grid">
+        <div class="card"><span>Total de Chunks</span><strong>{summary['total_chunks']}</strong></div>
+        <div class="card"><span>Pendentes de Copyedit</span><strong>{summary['pending_copyedit_count']}</strong></div>
+        <div class="card"><span>Aguardando Aprovação</span><strong>{summary['awaiting_approval_count']}</strong></div>
+        <div class="card"><span>Aprovados</span><strong>{summary['approved_count']}</strong></div>
+        <div class="card"><span>Traduzidos</span><strong>{summary['translated_count']}</strong></div>
+        <div class="card"><span>Referência Aprovada</span><strong>{summary['reference_count']}</strong></div>
+      </div>
+      <section>
+        <h2>Ordem Operacional</h2>
+        <ul>{queue_items}</ul>
+      </section>
+    """
+    return _render_page("Fila de Revisão", body)
 
 
 def render_chapter_detail_html(state: dict[str, Any]) -> str:
