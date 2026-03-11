@@ -116,3 +116,5 @@ Future channels may include:
 - other bot-style interfaces
 
 These future channels must reuse the same backend/core contracts and persisted repository state.
+
+The current future-channel boundary is documented in `WHATSAPP-BOUNDARY.md`.

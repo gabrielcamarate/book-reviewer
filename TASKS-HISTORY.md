@@ -752,3 +752,43 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-015` and `TASK-032`
+
+---
+
+## TASK-034 — Define WhatsApp integration boundary over the existing backend
+
+Status: DONE
+
+Description:
+
+Prepare the future bot channel without implementing it prematurely.
+
+Acceptance Criteria:
+
+- WhatsApp scope is documented
+- required backend contracts are explicit
+- no WhatsApp-specific business logic leaks into current web flow
+
+Dependencies:
+
+- requires `TASK-023` and `TASK-031`
+
+---
+
+## TASK-035 — Create the first end-to-end editorial runbook
+
+Status: DONE
+
+Description:
+
+Document the exact operator sequence to review, approve, translate, and export the manuscript.
+
+Acceptance Criteria:
+
+- runbook covers `pt-BR` review flow
+- runbook covers Spanish translation flow
+- runbook covers web, CLI fallback, and deliverable generation
+
+Dependencies:
+
+- requires `TASK-025`, `TASK-030`, and `TASK-031`

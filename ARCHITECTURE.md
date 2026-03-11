@@ -116,6 +116,7 @@ Current app:
 Future interface note:
 
 - a future WhatsApp or bot channel must consume the same persisted backend/core outputs rather than duplicating editorial logic
+- the future WhatsApp channel boundary is documented in `WHATSAPP-BOUNDARY.md`
 
 ## CLI Layer
 
@@ -412,3 +413,5 @@ Phase 3:
 - final export
 
 Future architectural changes must be documented here.
+
+The current operator sequence is documented in `RUNBOOK.md`.
