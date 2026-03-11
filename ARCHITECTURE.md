@@ -102,6 +102,9 @@ deliverables/
   ptbr/
   es/
   snapshots/
+
+fixtures/
+  bot-contracts/
 ```
 
 ---
@@ -126,6 +129,7 @@ Future interface note:
 
 - a future WhatsApp or bot channel must consume the same persisted backend/core outputs rather than duplicating editorial logic
 - the future WhatsApp channel boundary is documented in `WHATSAPP-BOUNDARY.md`
+- fixture examples for future adapter contract testing live under `fixtures/bot-contracts/`
 
 ## CLI Layer
 

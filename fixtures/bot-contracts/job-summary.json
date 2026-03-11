@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-03-11T00:45:13.046756",
+  "job_type": "export",
+  "status": "succeeded",
+  "target_id": "pt-BR",
+  "details": {
+    "language": "pt-BR",
+    "paragraph_count": 1428,
+    "output_path": "deliverables/ptbr/exilados-da-terra.ptbr.docx",
+    "section_count": 13,
+    "snapshot_manifest_path": "deliverables/snapshots/export-ptbr-20260311T004511.json",
+    "snapshot_file_count": 17
+  }
+}

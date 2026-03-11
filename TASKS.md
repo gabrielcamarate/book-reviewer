@@ -47,24 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-055 — Prepare adapter fixtures for future bot-channel contract testing
-
-Status: TODO
-
-Description:
-
-Create stable fixtures and contract examples so future WhatsApp or bot adapters can be validated against existing backend expectations.
-
-Acceptance Criteria:
-
-- fixtures cover queue, chunk summary, job summary, and export readiness contracts
-- fixtures do not introduce any bot-specific business logic
-- future adapter work can start from deterministic examples
-
-Dependencies:
-
-- requires `TASK-034` and `TASK-037`
-
 # Notes for Agents
 
 - the current manuscript is the only available source of truth

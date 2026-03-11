@@ -1,0 +1,10 @@
+{
+  "pt-BR": {
+    "eligible": true,
+    "reason": "O export em pt-BR está disponível."
+  },
+  "es": {
+    "eligible": false,
+    "reason": "Faltam traduções para 284 parágrafo(s)."
+  }
+}
