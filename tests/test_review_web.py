@@ -50,6 +50,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir = temp_path / "reviews" / "es"
             deliverables_dir = temp_path / "deliverables"
             decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            jobs_dir = temp_path / "reports" / "jobs"
 
             chapters_dir.mkdir(parents=True, exist_ok=True)
             chunks_dir.mkdir(parents=True, exist_ok=True)
@@ -59,6 +60,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir.mkdir(parents=True, exist_ok=True)
             (deliverables_dir / "ptbr").mkdir(parents=True, exist_ok=True)
             decisions_path.parent.mkdir(parents=True, exist_ok=True)
+            jobs_dir.mkdir(parents=True, exist_ok=True)
 
             (chapters_dir / "index.json").write_text(
                 json.dumps(
@@ -209,6 +211,20 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 "- Rationale: O narrador mantém registro elevado.\n",
                 encoding="utf-8",
             )
+            (jobs_dir / "2026-03-10T10-00-00-copyedit-succeeded.json").write_text(
+                json.dumps(
+                    {
+                        "job_type": "copyedit",
+                        "status": "succeeded",
+                        "target_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "details": {"suggestion_count": 2},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             (deliverables_dir / "ptbr" / "exilados-da-terra.ptbr.docx").write_text(
                 "fake-docx",
                 encoding="utf-8",
@@ -223,6 +239,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 reviews_es_dir=reviews_es_dir,
                 deliverables_dir=deliverables_dir,
                 decisions_path=decisions_path,
+                jobs_dir=jobs_dir,
             )
 
             self.assertEqual(state["summary"]["pending_chunk_count"], 2)
@@ -231,11 +248,13 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["summary"]["translation_review_count"], 1)
             self.assertEqual(state["summary"]["deliverable_count"], 1)
             self.assertEqual(state["summary"]["decision_count"], 1)
+            self.assertEqual(state["summary"]["job_count"], 1)
             self.assertEqual(state["chapters"][0]["id"], "chapter-0001-conexao-dimensional")
             self.assertEqual(state["chapters"][0]["chunk_count"], 2)
             self.assertEqual(state["consistency_report"]["finding_count"], 12)
             self.assertEqual(state["recent_chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
             self.assertEqual(state["recent_decisions"][0]["title"], "Preservar tratamento solene")
+            self.assertEqual(state["recent_jobs"][0]["job_type"], "copyedit")
 
     def test_compute_export_readiness_blocks_spanish_when_translations_are_incomplete(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -335,6 +354,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir = temp_path / "reviews" / "es"
             deliverables_dir = temp_path / "deliverables"
             decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            jobs_dir = temp_path / "reports" / "jobs"
 
             chapters_dir.mkdir(parents=True, exist_ok=True)
             chunks_dir.mkdir(parents=True, exist_ok=True)
@@ -344,6 +364,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir.mkdir(parents=True, exist_ok=True)
             deliverables_dir.mkdir(parents=True, exist_ok=True)
             decisions_path.parent.mkdir(parents=True, exist_ok=True)
+            jobs_dir.mkdir(parents=True, exist_ok=True)
 
             (chapters_dir / "index.json").write_text(
                 json.dumps(
@@ -456,6 +477,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 reviews_es_dir=reviews_es_dir,
                 deliverables_dir=deliverables_dir,
                 decisions_path=decisions_path,
+                jobs_dir=jobs_dir,
             )
 
             chapter_ids = [chapter["id"] for chapter in state["chapters"]]
@@ -477,6 +499,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
                     "copyedit_review_count": 1,
                     "translation_review_count": 1,
                     "deliverable_count": 1,
+                    "job_count": 1,
                 },
                 "consistency_report": {
                     "finding_count": 12,
@@ -514,6 +537,14 @@ class ReviewWebDashboardTest(unittest.TestCase):
                         "timestamp": "2026-03-10T10:00:00",
                     }
                 ],
+                "recent_jobs": [
+                    {
+                        "job_type": "copyedit",
+                        "status": "succeeded",
+                        "target_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "details": {"suggestion_count": 2},
+                    }
+                ],
                 "export_readiness": {
                     "pt-BR": {"eligible": True, "reason": "O export em pt-BR está disponível."},
                     "es": {"eligible": False, "reason": "Faltam traduções para 3 parágrafo(s)."},
@@ -531,6 +562,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("/exports/pt-BR/run", html)
         self.assertIn("/decisions", html)
         self.assertIn("Preservar tratamento solene", html)
+        self.assertIn("copyedit", html)
         self.assertIn("Gerar Export pt-BR", html)
         self.assertIn("Export espanhol indisponível", html)
 

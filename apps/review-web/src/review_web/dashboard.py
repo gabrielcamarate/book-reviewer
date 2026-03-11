@@ -8,6 +8,7 @@ from typing import Any
 
 from editorial_core.characters import read_characters_registry
 from editorial_core.decisions import read_editorial_decisions
+from editorial_core.job_log import read_recent_job_logs
 from editorial_core.queue import build_review_queue
 from editorial_core.search import search_repository_state
 from editorial_core.translation_es import STABLE_REVIEW_STATUSES
@@ -94,6 +95,10 @@ def _load_characters(characters_path: Path) -> list[dict[str, Any]]:
 
 def _load_world_rules(world_rules_path: Path) -> dict[str, list[dict[str, Any]]]:
     return read_world_rules_registry(world_rules_path)
+
+
+def _load_recent_jobs(jobs_dir: Path) -> list[dict[str, Any]]:
+    return read_recent_job_logs(jobs_dir=jobs_dir)
 
 
 def _build_paragraph_chunk_map(chunks_dir: Path) -> dict[str, str]:
@@ -343,6 +348,7 @@ def build_dashboard_state(
     reviews_es_dir: Path,
     deliverables_dir: Path,
     decisions_path: Path,
+    jobs_dir: Path,
 ) -> dict[str, Any]:
     pending_chunk_count, recent_chunks, chunks_by_section = _load_chunk_summary(chunks_dir)
     consolidated_index = _load_consolidated_index(consolidated_dir)
@@ -353,6 +359,7 @@ def build_dashboard_state(
         chunks_by_section=chunks_by_section,
     )
     decisions = _load_decisions(decisions_path)
+    recent_jobs = _load_recent_jobs(jobs_dir)
     export_readiness = compute_export_readiness(
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
@@ -367,12 +374,14 @@ def build_dashboard_state(
             "translation_review_count": _count_review_files(reviews_es_dir, "*.translation-es.json"),
             "deliverable_count": len(deliverables),
             "decision_count": len(decisions),
+            "job_count": len(recent_jobs),
         },
         "consistency_report": consistency_report,
         "recent_chunks": recent_chunks,
         "chapters": chapters,
         "deliverables": deliverables,
         "recent_decisions": decisions[:5],
+        "recent_jobs": recent_jobs,
         "export_readiness": export_readiness,
     }
 
@@ -586,6 +595,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
     chapters = state["chapters"]
     deliverables = state["deliverables"]
     recent_decisions = state["recent_decisions"]
+    recent_jobs = state.get("recent_jobs", [])
     export_readiness = state["export_readiness"]
 
     chapter_items = "".join(
@@ -638,6 +648,16 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         )
         for item in recent_decisions
     ) or "<li>Nenhuma decisão editorial registrada.</li>"
+    job_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item.get('job_type', 'job'))}</strong> "
+            f"<code>{html.escape(item.get('status', 'unknown'))}</code> "
+            f"<span class=\"muted\">{html.escape(item.get('target_id', ''))}</span>"
+            "</li>"
+        )
+        for item in recent_jobs
+    ) or "<li>Nenhum job recente registrado.</li>"
 
     body = f"""
       <header>
@@ -667,6 +687,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         <div class="card"><span>Entregáveis Gerados</span><strong>{summary['deliverable_count']}</strong></div>
         <div class="card"><span>Achados de Consistência</span><strong>{consistency_report['finding_count']}</strong></div>
         <div class="card"><span>Decisões Editoriais</span><strong>{summary.get('decision_count', len(recent_decisions))}</strong></div>
+        <div class="card"><span>Jobs Recentes</span><strong>{summary.get('job_count', len(recent_jobs))}</strong></div>
       </div>
       <div class="layout">
         <section>
@@ -729,6 +750,12 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
           <form method="post" action="/world-rules/run">
             <button type="submit">Gerar Registro de Regras do Mundo</button>
           </form>
+        </section>
+      </div>
+      <div class="layout" style="margin-top: 18px;">
+        <section>
+          <h2>Jobs Recentes</h2>
+          <ul>{job_items}</ul>
         </section>
       </div>
     """

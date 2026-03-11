@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, unquote
 from typing import Callable
 
 from editorial_core.codex_runner import run_codex_with_schema
+from editorial_core.job_log import append_job_log
 from review_web.dashboard import (
     build_chapter_detail_state,
     build_characters_state,
@@ -43,6 +44,35 @@ from review_web.actions import (
 DashboardLoader = Callable[[], dict[str, object]]
 
 
+def _run_logged_job(
+    *,
+    jobs_dir: Path,
+    job_type: str,
+    target_id: str,
+    action: Callable[[], dict[str, object]],
+) -> dict[str, object]:
+    try:
+        result = action()
+    except Exception as error:
+        append_job_log(
+            jobs_dir=jobs_dir,
+            job_type=job_type,
+            status="failed",
+            target_id=target_id,
+            details={"error": str(error)},
+        )
+        raise
+
+    append_job_log(
+        jobs_dir=jobs_dir,
+        job_type=job_type,
+        status="succeeded",
+        target_id=target_id,
+        details=result,
+    )
+    return result
+
+
 def _build_loader(
     *,
     chapters_dir: Path,
@@ -53,6 +83,7 @@ def _build_loader(
     reviews_es_dir: Path,
     deliverables_dir: Path,
     decisions_path: Path,
+    jobs_dir: Path,
 ) -> DashboardLoader:
     def _load() -> dict[str, object]:
         return build_dashboard_state(
@@ -64,6 +95,7 @@ def _build_loader(
             reviews_es_dir=reviews_es_dir,
             deliverables_dir=deliverables_dir,
             decisions_path=decisions_path,
+            jobs_dir=jobs_dir,
         )
 
     return _load
@@ -200,18 +232,24 @@ def _build_copyedit_action(
     style_guide_path: Path,
     glossary_path: Path,
     decisions_path: Path,
+    jobs_dir: Path,
     model: str,
 ) -> Callable[[str], dict[str, object]]:
     def _run(chunk_id: str) -> dict[str, object]:
-        return trigger_copyedit(
-            chunk_id=chunk_id,
-            chunks_dir=chunks_dir,
-            reviews_dir=reviews_ptbr_dir,
-            style_guide_path=style_guide_path,
-            glossary_path=glossary_path,
-            decisions_path=decisions_path,
-            runner=_codex_runner,
-            model=model,
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="copyedit",
+            target_id=chunk_id,
+            action=lambda: trigger_copyedit(
+                chunk_id=chunk_id,
+                chunks_dir=chunks_dir,
+                reviews_dir=reviews_ptbr_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=_codex_runner,
+                model=model,
+            ),
         )
 
     return _run
@@ -242,12 +280,18 @@ def _build_consistency_action(
     consolidated_dir: Path,
     glossary_path: Path,
     reports_dir: Path,
+    jobs_dir: Path,
 ) -> Callable[[], dict[str, object]]:
     def _run() -> dict[str, object]:
-        return trigger_consistency_report(
-            consolidated_dir=consolidated_dir,
-            glossary_path=glossary_path,
-            reports_dir=reports_dir,
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="consistency",
+            target_id="ptbr-consistency-report",
+            action=lambda: trigger_consistency_report(
+                consolidated_dir=consolidated_dir,
+                glossary_path=glossary_path,
+                reports_dir=reports_dir,
+            ),
         )
 
     return _run
@@ -272,20 +316,26 @@ def _build_translation_action(
     style_guide_path: Path,
     glossary_path: Path,
     decisions_path: Path,
+    jobs_dir: Path,
     model: str,
 ) -> Callable[[str], dict[str, object]]:
     def _run(chunk_id: str) -> dict[str, object]:
-        return trigger_translation_es(
-            chunk_id=chunk_id,
-            chunks_dir=chunks_dir,
-            chapters_dir=chapters_dir,
-            consolidated_dir=consolidated_dir,
-            reviews_dir=reviews_es_dir,
-            style_guide_path=style_guide_path,
-            glossary_path=glossary_path,
-            decisions_path=decisions_path,
-            runner=_translation_runner,
-            model=model,
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="translation-es",
+            target_id=chunk_id,
+            action=lambda: trigger_translation_es(
+                chunk_id=chunk_id,
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_dir=reviews_es_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=_translation_runner,
+                model=model,
+            ),
         )
 
     return _run
@@ -298,15 +348,21 @@ def _build_export_action(
     consolidated_dir: Path,
     reviews_es_dir: Path,
     deliverables_dir: Path,
+    jobs_dir: Path,
 ) -> Callable[[str], dict[str, object]]:
     def _run(language: str) -> dict[str, object]:
-        return trigger_export_docx(
-            template_path=template_path,
-            chapters_dir=chapters_dir,
-            consolidated_dir=consolidated_dir,
-            translations_dir=reviews_es_dir,
-            deliverables_dir=deliverables_dir,
-            language=language,
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="export",
+            target_id=language,
+            action=lambda: trigger_export_docx(
+                template_path=template_path,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                translations_dir=reviews_es_dir,
+                deliverables_dir=deliverables_dir,
+                language=language,
+            ),
         )
 
     return _run
@@ -730,6 +786,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--template", type=Path, default=Path("livro.docx"))
     parser.add_argument("--style-guide", type=Path, default=Path("editorial/STYLE_GUIDE.md"))
     parser.add_argument("--glossary", type=Path, default=Path("editorial/GLOSSARY.md"))
+    parser.add_argument("--jobs-dir", type=Path, default=Path("reports/jobs"))
     parser.add_argument("--decisions", type=Path, default=Path("editorial/DECISIONS.md"))
     parser.add_argument("--characters", type=Path, default=Path("editorial/CHARACTERS.md"))
     parser.add_argument("--world-rules", type=Path, default=Path("editorial/WORLD_RULES.md"))
@@ -751,6 +808,7 @@ def main() -> int:
             reviews_es_dir=args.reviews_es_dir,
             deliverables_dir=args.deliverables_dir,
             decisions_path=args.decisions,
+            jobs_dir=args.jobs_dir,
         ),
         _build_chapter_loader(
             chunks_dir=args.chunks_dir,
@@ -792,6 +850,7 @@ def main() -> int:
             style_guide_path=args.style_guide,
             glossary_path=args.glossary,
             decisions_path=args.decisions,
+            jobs_dir=args.jobs_dir,
             model=args.model,
         ),
         _build_approval_action(
@@ -804,6 +863,7 @@ def main() -> int:
             consolidated_dir=args.consolidated_dir,
             glossary_path=args.glossary,
             reports_dir=args.reports_dir,
+            jobs_dir=args.jobs_dir,
         ),
         _build_translation_action(
             chunks_dir=args.chunks_dir,
@@ -813,6 +873,7 @@ def main() -> int:
             style_guide_path=args.style_guide,
             glossary_path=args.glossary,
             decisions_path=args.decisions,
+            jobs_dir=args.jobs_dir,
             model=args.model,
         ),
         _build_export_action(
@@ -821,6 +882,7 @@ def main() -> int:
             consolidated_dir=args.consolidated_dir,
             reviews_es_dir=args.reviews_es_dir,
             deliverables_dir=args.deliverables_dir,
+            jobs_dir=args.jobs_dir,
         ),
         _build_decision_action(
             decisions_path=args.decisions,

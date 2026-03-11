@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-031 — Add job logging for long-running review and export actions
-
-Status: TODO
-
-Description:
-
-Persist operational logs for expensive or slow actions.
-
-Acceptance Criteria:
-
-- long-running actions generate structured logs
-- web interface can display recent job outcomes
-- failures are visible without reading terminal output
-
-Dependencies:
-
-- requires `TASK-025` and `TASK-030`
-
----
-
 ## TASK-032 — Add preview deployment path for the local web interface
 
 Status: TODO

@@ -371,6 +371,7 @@ Operator navigation is expected to remain local-first and deterministic:
 - search results link back to chunk, chapter, glossary, and decision workflows
 - no external search index or hidden database is required for the initial operator experience
 - the review queue is derived from chunk index plus persisted review artifacts, not from session memory
+- long-running operator actions persist job outcomes under `reports/jobs/`
 
 ---
 
