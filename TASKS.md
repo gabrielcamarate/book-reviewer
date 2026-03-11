@@ -49,29 +49,9 @@ Goal:
 
 ## TASK-020 — Approve and apply selected `copyedit` suggestions from the web interface
 
-## TASK-021 — Surface consolidated paragraph state and audit trail in the web interface
-
-Status: IN_PROGRESS
-
-Description:
-
-Expose what changed in consolidated manuscript state after approvals.
-
-Acceptance Criteria:
-
-- consolidated paragraph text is visible
-- source text remains inspectable
-- applied review metadata is shown for changed paragraphs
-
-Dependencies:
-
-- requires `TASK-020`
-
----
-
 ## TASK-022 — Trigger and browse consistency findings by type in the web interface
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

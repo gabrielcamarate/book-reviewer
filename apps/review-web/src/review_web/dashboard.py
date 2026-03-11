@@ -303,6 +303,7 @@ def build_chunk_detail_state(
     *,
     chunk_id: str,
     chunks_dir: Path,
+    consolidated_dir: Path,
     reviews_ptbr_dir: Path,
     reviews_es_dir: Path,
 ) -> dict[str, Any]:
@@ -318,12 +319,23 @@ def build_chunk_detail_state(
     copyedit_path = reviews_ptbr_dir / f"{chunk_id}.copyedit.json"
     approval_path = reviews_ptbr_dir / f"{chunk_id}.approval.json"
     translation_path = reviews_es_dir / f"{chunk_id}.translation-es.json"
+    consolidated_path = consolidated_dir / f"{chunk_payload['section_id']}.json"
+    consolidated_payload = _read_json(consolidated_path) if consolidated_path.exists() else None
+    consolidated_paragraphs: list[dict[str, Any]] = []
+    if consolidated_payload is not None:
+        target_paragraph_ids = set(chunk_payload.get("paragraph_ids", []))
+        consolidated_paragraphs = [
+            paragraph
+            for paragraph in consolidated_payload.get("paragraphs", [])
+            if paragraph.get("id") in target_paragraph_ids
+        ]
 
     return {
         "chunk": chunk_payload,
         "copyedit_review": _read_json(copyedit_path) if copyedit_path.exists() else None,
         "approval": _read_json(approval_path) if approval_path.exists() else None,
         "translation_review": _read_json(translation_path) if translation_path.exists() else None,
+        "consolidated_paragraphs": consolidated_paragraphs,
     }
 
 
@@ -468,6 +480,7 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
     copyedit_review = state.get("copyedit_review")
     approval = state.get("approval")
     translation_review = state.get("translation_review")
+    consolidated_paragraphs = state.get("consolidated_paragraphs", [])
     previous_context = "".join(
         f"<li><pre>{html.escape(item.get('text', ''))}</pre></li>"
         for item in chunk.get("previous_context", [])
@@ -529,6 +542,24 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         )
         for item in (translation_review or {}).get("translations", [])
     ) or "<li>No persisted Spanish translation.</li>"
+    consolidated_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(paragraph.get('id', ''))}</strong>"
+            f"<div class=\"muted\">Status: <code>{html.escape(paragraph.get('review_status', 'unknown'))}</code></div>"
+            "<div style=\"margin-top: 8px;\"><strong>Current Text</strong><pre>"
+            f"{html.escape(paragraph.get('text', ''))}"
+            "</pre></div>"
+            "<div style=\"margin-top: 8px;\"><strong>Source Text</strong><pre>"
+            f"{html.escape(paragraph.get('source_text', ''))}"
+            "</pre></div>"
+            "<div style=\"margin-top: 8px;\"><strong>Applied Review Metadata</strong>"
+            f"{_render_applied_review_metadata(paragraph.get('applied_reviews', []))}"
+            "</div>"
+            "</li>"
+        )
+        for paragraph in consolidated_paragraphs
+    ) or "<li>No consolidated paragraph state for this chunk yet.</li>"
 
     body = f"""
       <nav>
@@ -573,5 +604,26 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
           <ul>{translation_items}</ul>
         </section>
       </div>
+      <section style=\"margin-top: 18px;\">
+        <h3>Consolidated Paragraph State</h3>
+        <ul>{consolidated_items}</ul>
+      </section>
     """
     return _render_page(chunk["id"], body)
+
+
+def _render_applied_review_metadata(applied_reviews: list[dict[str, Any]]) -> str:
+    if not applied_reviews:
+        return "<p class=\"muted\">No applied reviews recorded.</p>"
+
+    items = "".join(
+        (
+            "<li>"
+            f"<code>{html.escape(review.get('approval_file', ''))}</code> "
+            f"<span>{html.escape(review.get('change_type', ''))}</span> "
+            f"<span class=\"muted\">{html.escape(review.get('reason', ''))}</span>"
+            "</li>"
+        )
+        for review in applied_reviews
+    )
+    return f"<ul>{items}</ul>"

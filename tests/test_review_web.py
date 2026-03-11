@@ -291,9 +291,11 @@ class ReviewWebDashboardTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
             reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
             reviews_es_dir = temp_path / "reviews" / "es"
             chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
             reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
             reviews_es_dir.mkdir(parents=True, exist_ok=True)
 
@@ -400,10 +402,48 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_text": "Trecho principal.",
+                                "text": "Trecho principal revisado.",
+                                "review_status": "approved",
+                                "applied_reviews": [
+                                    {
+                                        "approval_file": "chapter-0001-conexao-dimensional-chunk-0001.approval.json",
+                                        "review_file": "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json",
+                                        "suggestion_index": 0,
+                                        "change_type": "pontuação",
+                                        "reason": "Ajuste de clareza.",
+                                        "confidence": 0.88,
+                                    }
+                                ],
+                            },
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0002",
+                                "source_text": "Parágrafo sem alteração.",
+                                "text": "Parágrafo sem alteração.",
+                                "review_status": "pending_review",
+                                "applied_reviews": [],
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
 
             state = build_chunk_detail_state(
                 chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
                 chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
                 reviews_ptbr_dir=reviews_ptbr_dir,
                 reviews_es_dir=reviews_es_dir,
             )
@@ -414,6 +454,12 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["copyedit_review"]["suggestions"][0]["suggested"], "Trecho principal revisado.")
             self.assertEqual(state["approval"]["applied_change_count"], 1)
             self.assertEqual(state["translation_review"]["translations"][0]["translated_text"], "Fragmento principal.")
+            self.assertEqual(state["consolidated_paragraphs"][0]["text"], "Trecho principal revisado.")
+            self.assertEqual(state["consolidated_paragraphs"][0]["source_text"], "Trecho principal.")
+            self.assertEqual(
+                state["consolidated_paragraphs"][0]["applied_reviews"][0]["approval_file"],
+                "chapter-0001-conexao-dimensional-chunk-0001.approval.json",
+            )
 
             html = render_chunk_detail_html(state)
             self.assertIn("Chunk Detail", html)
@@ -434,6 +480,11 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("name=\"approve_index\"", html)
             self.assertIn("value=\"0\"", html)
             self.assertIn("Approve Selected Changes", html)
+            self.assertIn("Consolidated Paragraph State", html)
+            self.assertIn("Current Text", html)
+            self.assertIn("Source Text", html)
+            self.assertIn("Applied Review Metadata", html)
+            self.assertIn("chapter-0001-conexao-dimensional-chunk-0001.approval.json", html)
 
     def test_trigger_copyedit_persists_review_for_selected_chunk(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

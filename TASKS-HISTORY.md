@@ -492,3 +492,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-019`
+
+---
+
+## TASK-021 — Surface consolidated paragraph state and audit trail in the web interface
+
+Status: DONE
+
+Description:
+
+Expose what changed in consolidated manuscript state after approvals.
+
+Acceptance Criteria:
+
+- consolidated paragraph text is visible
+- source text remains inspectable
+- applied review metadata is shown for changed paragraphs
+
+Dependencies:
+
+- requires `TASK-020`

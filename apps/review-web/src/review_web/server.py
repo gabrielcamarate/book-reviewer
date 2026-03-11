@@ -62,6 +62,7 @@ def _build_chapter_loader(
 def _build_chunk_loader(
     *,
     chunks_dir: Path,
+    consolidated_dir: Path,
     reviews_ptbr_dir: Path,
     reviews_es_dir: Path,
 ) -> Callable[[str], dict[str, object]]:
@@ -69,6 +70,7 @@ def _build_chunk_loader(
         return build_chunk_detail_state(
             chunk_id=chunk_id,
             chunks_dir=chunks_dir,
+            consolidated_dir=consolidated_dir,
             reviews_ptbr_dir=reviews_ptbr_dir,
             reviews_es_dir=reviews_es_dir,
         )
@@ -309,6 +311,7 @@ def main() -> int:
         ),
         _build_chunk_loader(
             chunks_dir=args.chunks_dir,
+            consolidated_dir=args.consolidated_dir,
             reviews_ptbr_dir=args.reviews_ptbr_dir,
             reviews_es_dir=args.reviews_es_dir,
         ),
