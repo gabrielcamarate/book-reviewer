@@ -552,3 +552,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-020` and `TASK-022`
+
+---
+
+## TASK-024 — Compare `pt-BR` and Spanish chunk outputs side by side
+
+Status: DONE
+
+Description:
+
+Provide a bilingual inspection view for translated chunks.
+
+Acceptance Criteria:
+
+- `pt-BR` and `es` chunk texts are shown side by side
+- paragraph alignment is preserved
+- operator can inspect translation rationale and confidence
+
+Dependencies:
+
+- requires `TASK-023`

@@ -560,6 +560,9 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["consolidated_paragraphs"][0]["source_text"], "Trecho principal.")
             self.assertFalse(state["translation_eligibility"]["eligible"])
             self.assertIn("already exists", state["translation_eligibility"]["reason"])
+            self.assertEqual(state["translation_comparison"][0]["paragraph_id"], "chapter-0001-conexao-dimensional-p-0001")
+            self.assertEqual(state["translation_comparison"][0]["ptbr_text"], "Trecho principal revisado.")
+            self.assertEqual(state["translation_comparison"][0]["translated_text"], "Fragmento principal.")
             self.assertEqual(
                 state["consolidated_paragraphs"][0]["applied_reviews"][0]["approval_file"],
                 "chapter-0001-conexao-dimensional-chunk-0001.approval.json",
@@ -590,6 +593,11 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Applied Review Metadata", html)
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001.approval.json", html)
             self.assertIn("Translation unavailable", html)
+            self.assertIn("pt-BR and Spanish Comparison", html)
+            self.assertIn("Trecho principal revisado.", html)
+            self.assertIn("Fragmento principal.", html)
+            self.assertIn("Mantém o tom.", html)
+            self.assertIn("0.74", html)
 
     def test_trigger_copyedit_persists_review_for_selected_chunk(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

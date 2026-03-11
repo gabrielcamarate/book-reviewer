@@ -400,6 +400,24 @@ def build_chunk_detail_state(
                 "eligible": False,
                 "reason": "Chunk requires stable pt-BR approval before Spanish translation.",
             }
+    translation_comparison: list[dict[str, Any]] = []
+    translation_map = {
+        item.get("paragraph_id"): item
+        for item in ( _read_json(translation_path).get("translations", []) if translation_path.exists() else [] )
+    }
+    for paragraph in consolidated_paragraphs:
+        translation = translation_map.get(paragraph.get("id"))
+        if translation is None:
+            continue
+        translation_comparison.append(
+            {
+                "paragraph_id": paragraph.get("id"),
+                "ptbr_text": paragraph.get("text", ""),
+                "translated_text": translation.get("translated_text", ""),
+                "rationale": translation.get("rationale", ""),
+                "confidence": translation.get("confidence", ""),
+            }
+        )
 
     return {
         "chunk": chunk_payload,
@@ -408,6 +426,7 @@ def build_chunk_detail_state(
         "translation_review": _read_json(translation_path) if translation_path.exists() else None,
         "consolidated_paragraphs": consolidated_paragraphs,
         "translation_eligibility": translation_eligibility,
+        "translation_comparison": translation_comparison,
     }
 
 
@@ -585,6 +604,7 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
     approval = state.get("approval")
     translation_review = state.get("translation_review")
     consolidated_paragraphs = state.get("consolidated_paragraphs", [])
+    translation_comparison = state.get("translation_comparison", [])
     translation_eligibility = state.get(
         "translation_eligibility",
         {"eligible": False, "reason": "Chunk is not ready for Spanish translation."},
@@ -678,6 +698,26 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         )
         for paragraph in consolidated_paragraphs
     ) or "<li>No consolidated paragraph state for this chunk yet.</li>"
+    translation_comparison_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item.get('paragraph_id', ''))}</strong>"
+            "<div class=\"diff-grid\" style=\"margin-top: 8px;\">"
+            "<div class=\"diff-panel\">"
+            "<strong>pt-BR</strong><br>"
+            f"{html.escape(item.get('ptbr_text', ''))}"
+            "</div>"
+            "<div class=\"diff-panel\">"
+            "<strong>Español</strong><br>"
+            f"{html.escape(item.get('translated_text', ''))}"
+            "</div>"
+            "</div>"
+            f"<div class=\"muted\" style=\"margin-top: 8px;\">{html.escape(str(item.get('rationale', '')))}</div>"
+            f"<div class=\"muted\">Confidence: <code>{html.escape(str(item.get('confidence', '')))}</code></div>"
+            "</li>"
+        )
+        for item in translation_comparison
+    ) or "<li>No aligned pt-BR/Spanish comparison available for this chunk yet.</li>"
 
     body = f"""
       <nav>
@@ -726,6 +766,10 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
       <section style=\"margin-top: 18px;\">
         <h3>Consolidated Paragraph State</h3>
         <ul>{consolidated_items}</ul>
+      </section>
+      <section style=\"margin-top: 18px;\">
+        <h3>pt-BR and Spanish Comparison</h3>
+        <ul>{translation_comparison_items}</ul>
       </section>
     """
     return _render_page(chunk["id"], body)

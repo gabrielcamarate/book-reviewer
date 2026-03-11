@@ -49,29 +49,9 @@ Goal:
 
 ## TASK-020 — Approve and apply selected `copyedit` suggestions from the web interface
 
-## TASK-024 — Compare `pt-BR` and Spanish chunk outputs side by side
-
-Status: IN_PROGRESS
-
-Description:
-
-Provide a bilingual inspection view for translated chunks.
-
-Acceptance Criteria:
-
-- `pt-BR` and `es` chunk texts are shown side by side
-- paragraph alignment is preserved
-- operator can inspect translation rationale and confidence
-
-Dependencies:
-
-- requires `TASK-023`
-
----
-
 ## TASK-025 — Trigger `pt-BR` and Spanish export from the web interface
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 
