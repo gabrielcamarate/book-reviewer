@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,22 @@ from editorial_core.queue import build_review_queue
 from editorial_core.search import search_repository_state
 from editorial_core.translation_es import STABLE_REVIEW_STATUSES
 from editorial_core.world_rules import read_world_rules_registry
+
+
+CHAPTER_TITLE_RE = re.compile(
+    r"^Cap[ií]tulo\s+([IVXLCDM]+|\d+)(?::\s*(.+?))?\.?$",
+    re.IGNORECASE,
+)
+
+ROMAN_VALUES = {
+    "I": 1,
+    "V": 5,
+    "X": 10,
+    "L": 50,
+    "C": 100,
+    "D": 500,
+    "M": 1000,
+}
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -28,6 +45,13 @@ def _load_chunk_index(chunks_dir: Path) -> dict[str, Any]:
 
 def _load_consolidated_index(consolidated_dir: Path) -> dict[str, Any]:
     index_path = consolidated_dir / "index.json"
+    if not index_path.exists():
+        return {"section_count": 0, "chapter_count": 0, "sections": []}
+    return _read_json(index_path)
+
+
+def _load_chapter_index(chapters_dir: Path) -> dict[str, Any]:
+    index_path = chapters_dir / "index.json"
     if not index_path.exists():
         return {"section_count": 0, "chapter_count": 0, "sections": []}
     return _read_json(index_path)
@@ -140,6 +164,54 @@ def _collect_deliverables(deliverables_dir: Path) -> list[dict[str, str]]:
     return deliverables
 
 
+def _parse_chapter_number(raw_value: str) -> int | None:
+    stripped = raw_value.strip()
+    if not stripped:
+        return None
+    if stripped.isdigit():
+        return int(stripped)
+
+    total = 0
+    previous_value = 0
+    for character in reversed(stripped.upper()):
+        value = ROMAN_VALUES.get(character)
+        if value is None:
+            return None
+        if value < previous_value:
+            total -= value
+        else:
+            total += value
+            previous_value = value
+    return total if total > 0 else None
+
+
+def _extract_declared_chapter_number(title: str) -> int | None:
+    match = CHAPTER_TITLE_RE.match(title.strip())
+    if match is None:
+        return None
+    return _parse_chapter_number(match.group(1))
+
+
+def _compute_missing_chapter_numbers(chapters: list[dict[str, Any]]) -> list[int]:
+    declared_numbers = sorted(
+        {
+            int(chapter["declared_chapter_number"])
+            for chapter in chapters
+            if chapter.get("declared_chapter_number") is not None and not chapter.get("missing")
+        }
+    )
+    if not declared_numbers:
+        return []
+
+    missing_numbers: list[int] = []
+    previous_number = 0
+    for chapter_number in declared_numbers:
+        if chapter_number > previous_number + 1:
+            missing_numbers.extend(range(previous_number + 1, chapter_number))
+        previous_number = chapter_number
+    return missing_numbers
+
+
 def compute_export_readiness(
     *,
     chapters_dir: Path,
@@ -188,19 +260,40 @@ def compute_export_readiness(
 
 def _build_chapter_summary(
     *,
+    chapters_dir: Path,
     consolidated_dir: Path,
     chunks_by_section: dict[str, list[dict[str, Any]]],
 ) -> list[dict[str, Any]]:
+    chapter_index = _load_chapter_index(chapters_dir)
     consolidated_index = _load_consolidated_index(consolidated_dir)
     chapters_by_id: dict[str, dict[str, Any]] = {}
+    for section in chapter_index.get("sections", []):
+        if not str(section.get("id", "")).startswith("chapter-"):
+            continue
+        chapter_id = section["id"]
+        chapters_by_id[chapter_id] = {
+            "id": chapter_id,
+            "title": section.get("title", "Capítulo sem título"),
+            "review_status": section.get("review_status", "unknown"),
+            "chunk_count": len(chunks_by_section.get(chapter_id, [])),
+            "declared_chapter_number": section.get("declared_chapter_number")
+            or _extract_declared_chapter_number(section.get("title", "")),
+            "missing": False,
+        }
     for section in consolidated_index.get("sections", []):
         if not str(section.get("id", "")).startswith("chapter-"):
             continue
-        chapters_by_id[section["id"]] = {
-            "id": section["id"],
+        chapter_id = section["id"]
+        existing = chapters_by_id.get(chapter_id, {})
+        chapters_by_id[chapter_id] = {
+            "id": chapter_id,
             "title": section.get("title", "Capítulo sem título"),
             "review_status": section.get("review_status", "unknown"),
-            "chunk_count": len(chunks_by_section.get(section["id"], [])),
+            "chunk_count": len(chunks_by_section.get(chapter_id, [])),
+            "declared_chapter_number": section.get("declared_chapter_number")
+            or existing.get("declared_chapter_number")
+            or _extract_declared_chapter_number(section.get("title", "")),
+            "missing": False,
         }
 
     for section_id, chunks in chunks_by_section.items():
@@ -212,9 +305,48 @@ def _build_chapter_summary(
             "title": first_chunk.get("section_title", "Capítulo sem título"),
             "review_status": "unknown",
             "chunk_count": len(chunks),
+            "declared_chapter_number": _extract_declared_chapter_number(
+                first_chunk.get("section_title", "")
+            ),
+            "missing": False,
         }
 
-    return [chapters_by_id[chapter_id] for chapter_id in sorted(chapters_by_id)]
+    ordered_chapters = sorted(
+        chapters_by_id.values(),
+        key=lambda chapter: (
+            chapter.get("declared_chapter_number") is None,
+            chapter.get("declared_chapter_number") or 0,
+            chapter["id"],
+        ),
+    )
+
+    missing_numbers = chapter_index.get("missing_chapter_numbers")
+    if not isinstance(missing_numbers, list):
+        missing_numbers = _compute_missing_chapter_numbers(ordered_chapters)
+    missing_number_set = {int(number) for number in missing_numbers}
+
+    chapters_with_gaps: list[dict[str, Any]] = []
+    previous_number = 0
+    for chapter in ordered_chapters:
+        declared_number = chapter.get("declared_chapter_number")
+        if declared_number is not None:
+            for missing_number in range(previous_number + 1, int(declared_number)):
+                if missing_number not in missing_number_set:
+                    continue
+                chapters_with_gaps.append(
+                    {
+                        "id": f"missing-chapter-{missing_number:04d}",
+                        "title": f"Capítulo {missing_number} — ausente no manuscrito segmentado",
+                        "review_status": "missing_in_manuscript",
+                        "chunk_count": 0,
+                        "declared_chapter_number": missing_number,
+                        "missing": True,
+                    }
+                )
+            previous_number = int(declared_number)
+        chapters_with_gaps.append(chapter)
+
+    return chapters_with_gaps
 
 
 def _render_page(title: str, body: str) -> str:
@@ -355,6 +487,7 @@ def build_dashboard_state(
     consistency_report = _load_consistency_report(reports_dir)
     deliverables = _collect_deliverables(deliverables_dir)
     chapters = _build_chapter_summary(
+        chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
         chunks_by_section=chunks_by_section,
     )
@@ -601,10 +734,18 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
     chapter_items = "".join(
         (
             "<li>"
-            f"<a href=\"/chapters/{html.escape(chapter['id'])}\"><strong>{html.escape(chapter['title'])}</strong></a> "
-            f"<code>{html.escape(chapter['review_status'])}</code> "
-            f"<span class=\"muted\">{chapter['chunk_count']} chunks</span>"
-            "</li>"
+            + (
+                f"<strong>{html.escape(chapter['title'])}</strong> "
+                if chapter.get("missing")
+                else f"<a href=\"/chapters/{html.escape(chapter['id'])}\"><strong>{html.escape(chapter['title'])}</strong></a> "
+            )
+            + f"<code>{html.escape(chapter['review_status'])}</code> "
+            + (
+                "<span class=\"muted\">sem conteúdo segmentado</span>"
+                if chapter.get("missing")
+                else f"<span class=\"muted\">{chapter['chunk_count']} chunks</span>"
+            )
+            + "</li>"
         )
         for chapter in chapters
     ) or "<li>Nenhum capítulo disponível.</li>"

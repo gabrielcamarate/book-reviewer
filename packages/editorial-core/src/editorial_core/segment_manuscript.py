@@ -35,6 +35,16 @@ BACKMATTER_TITLES = {
     "posfacio",
 }
 
+ROMAN_VALUES = {
+    "I": 1,
+    "V": 5,
+    "X": 10,
+    "L": 50,
+    "C": 100,
+    "D": 500,
+    "M": 1000,
+}
+
 
 def _normalize_heading(text: str) -> str:
     return " ".join(text.split()).strip().casefold()
@@ -68,6 +78,46 @@ def _is_heading_candidate(text: str) -> bool:
 
 def _build_section_id(section_type: str, order: int, title_slug: str) -> str:
     return f"{section_type}-{order:04d}-{title_slug}"
+
+
+def _parse_chapter_number(raw_value: str) -> int | None:
+    stripped = raw_value.strip()
+    if not stripped:
+        return None
+    if stripped.isdigit():
+        return int(stripped)
+
+    total = 0
+    previous_value = 0
+    for character in reversed(stripped.upper()):
+        value = ROMAN_VALUES.get(character)
+        if value is None:
+            return None
+        if value < previous_value:
+            total -= value
+        else:
+            total += value
+            previous_value = value
+    return total if total > 0 else None
+
+
+def _compute_missing_chapter_numbers(sections: list[dict[str, Any]]) -> tuple[list[int], list[int]]:
+    declared_numbers = [
+        int(section["declared_chapter_number"])
+        for section in sections
+        if section["type"] == "chapter" and section.get("declared_chapter_number") is not None
+    ]
+    if not declared_numbers:
+        return [], []
+
+    unique_numbers = sorted(set(declared_numbers))
+    missing_numbers: list[int] = []
+    previous_number = 0
+    for chapter_number in unique_numbers:
+        if chapter_number > previous_number + 1:
+            missing_numbers.extend(range(previous_number + 1, chapter_number))
+        previous_number = chapter_number
+    return unique_numbers, missing_numbers
 
 
 def _start_section(
@@ -157,6 +207,7 @@ def segment_paragraphs(paragraphs: list[dict[str, Any]]) -> dict[str, Any]:
             if chapter_match:
                 has_seen_chapter = True
                 section_type = "chapter"
+                declared_chapter_number = _parse_chapter_number(chapter_match.group(1))
                 title_suffix = chapter_match.group(2)
 
                 if title_suffix:
@@ -190,6 +241,8 @@ def segment_paragraphs(paragraphs: list[dict[str, Any]]) -> dict[str, Any]:
                 slug_source,
                 int(paragraph["index"]),
             )
+            if chapter_match:
+                current_section["declared_chapter_number"] = declared_chapter_number
             inside_toc = normalized in {"sumário", "sumario"}
 
             if consume_subtitle:
@@ -225,6 +278,9 @@ def segment_extracted_manuscript(extracted_dir: Path, output_dir: Path) -> dict[
     paragraphs = json.loads(paragraphs_path.read_text(encoding="utf-8"))
 
     segmented = segment_paragraphs(paragraphs)
+    chapter_number_sequence, missing_chapter_numbers = _compute_missing_chapter_numbers(
+        segmented["sections"]
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for existing_file in output_dir.glob("*.json"):
@@ -233,6 +289,8 @@ def segment_extracted_manuscript(extracted_dir: Path, output_dir: Path) -> dict[
     index_payload = {
         "section_count": segmented["section_count"],
         "chapter_count": segmented["chapter_count"],
+        "chapter_number_sequence": chapter_number_sequence,
+        "missing_chapter_numbers": missing_chapter_numbers,
         "sections": [
             {
                 "id": section["id"],
@@ -243,6 +301,7 @@ def segment_extracted_manuscript(extracted_dir: Path, output_dir: Path) -> dict[
                 "source_start_index": section["source_start_index"],
                 "source_end_index": section["source_end_index"],
                 "paragraph_count": section["paragraph_count"],
+                "declared_chapter_number": section.get("declared_chapter_number"),
                 "file": f"{section['id']}.json",
             }
             for section in segmented["sections"]
@@ -257,5 +316,7 @@ def segment_extracted_manuscript(extracted_dir: Path, output_dir: Path) -> dict[
     return {
         "section_count": segmented["section_count"],
         "chapter_count": segmented["chapter_count"],
+        "chapter_number_sequence": chapter_number_sequence,
+        "missing_chapter_numbers": missing_chapter_numbers,
         "output_dir": str(output_dir),
     }

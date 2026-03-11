@@ -490,6 +490,167 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
             self.assertEqual(state["chapters"][1]["title"], "Capítulo 2: Supremo Poder Anônimo.")
 
+    def test_build_dashboard_state_reports_missing_declared_chapter_numbers(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reports_dir = temp_path / "reports"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            deliverables_dir = temp_path / "deliverables"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            jobs_dir = temp_path / "reports" / "jobs"
+
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+            deliverables_dir.mkdir(parents=True, exist_ok=True)
+            decisions_path.parent.mkdir(parents=True, exist_ok=True)
+            jobs_dir.mkdir(parents=True, exist_ok=True)
+
+            (chapters_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 2,
+                        "chapter_count": 2,
+                        "chapter_number_sequence": [1, 4],
+                        "missing_chapter_numbers": [2, 3],
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "declared_chapter_number": 1,
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            },
+                            {
+                                "id": "chapter-0002-guerra-dimensional",
+                                "type": "chapter",
+                                "order": 2,
+                                "title": "Capítulo 4: Guerra Dimensional.",
+                                "declared_chapter_number": 4,
+                                "file": "chapter-0002-guerra-dimensional.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [{"id": "p-1", "text": "A"}],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0002-guerra-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0002-guerra-dimensional",
+                        "title": "Capítulo 4: Guerra Dimensional.",
+                        "paragraphs": [{"id": "p-2", "text": "B"}],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 2,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            },
+                            {
+                                "id": "chapter-0002-guerra-dimensional-chunk-0001",
+                                "section_id": "chapter-0002-guerra-dimensional",
+                                "section_title": "Capítulo 4: Guerra Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0002-guerra-dimensional-chunk-0001.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 2,
+                        "chapter_count": 2,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "declared_chapter_number": 1,
+                                "review_status": "mixed",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            },
+                            {
+                                "id": "chapter-0002-guerra-dimensional",
+                                "title": "Capítulo 4: Guerra Dimensional.",
+                                "declared_chapter_number": 4,
+                                "review_status": "pending_review",
+                                "file": "chapter-0002-guerra-dimensional.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_dashboard_state(
+                chapters_dir=chapters_dir,
+                chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
+                reports_dir=reports_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
+                deliverables_dir=deliverables_dir,
+                decisions_path=decisions_path,
+                jobs_dir=jobs_dir,
+            )
+
+            self.assertEqual(
+                [chapter["title"] for chapter in state["chapters"]],
+                [
+                    "Capítulo 1: Conexão Dimensional.",
+                    "Capítulo 2 — ausente no manuscrito segmentado",
+                    "Capítulo 3 — ausente no manuscrito segmentado",
+                    "Capítulo 4: Guerra Dimensional.",
+                ],
+            )
+            self.assertTrue(state["chapters"][1]["missing"])
+            self.assertEqual(state["chapters"][3]["declared_chapter_number"], 4)
+
     def test_render_dashboard_html_includes_web_operational_sections(self) -> None:
         html = render_dashboard_html(
             {

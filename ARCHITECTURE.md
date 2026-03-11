@@ -320,6 +320,17 @@ Suggested starting approach:
 - target window roughly equivalent to 12 to 20 useful lines
 - light contextual overlap
 
+## Chapter Number Integrity
+
+The segmentation pipeline must not silently normalize chapter numbering gaps away.
+
+Rules:
+
+- declared chapter numbers should be persisted when they can be inferred from headings
+- missing declared chapter numbers must be surfaced explicitly as metadata
+- operator navigation should show missing chapter placeholders instead of pretending the gap does not exist
+- existing repository-backed identifiers should remain stable unless a deliberate migration is performed
+
 ---
 
 # Review Strategy

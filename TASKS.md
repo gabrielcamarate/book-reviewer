@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-036 — Repair chapter segmentation gaps and missing chapter discovery
-
-Status: TODO
-
-Description:
-
-Investigate and fix the segmentation pipeline so missing chapters such as `3` and `5` are either recovered correctly or explicitly classified.
-
-Acceptance Criteria:
-
-- segmentation explains every detected chapter transition
-- missing chapter identifiers are resolved or reported explicitly
-- web chapter navigation reflects the corrected structure
-
-Dependencies:
-
-- requires `TASK-004`, `TASK-016`, and `TASK-033`
-
----
-
 ## TASK-037 — Add a repository doctor command for operator diagnostics
 
 Status: TODO

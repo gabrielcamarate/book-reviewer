@@ -85,3 +85,35 @@ class SegmentManuscriptTest(unittest.TestCase):
             self.assertEqual(index_payload["sections"][1]["id"], "chapter-0001-conexao-dimensional")
             self.assertEqual(chapter_payload["paragraphs"][0]["text"], "Body.")
             self.assertFalse(stale_path.exists())
+
+    def test_segment_extracted_manuscript_persists_missing_chapter_number_metadata(self) -> None:
+        paragraphs = [
+            {"index": 1, "text": "Capítulo 1: Conexão Dimensional.", "is_empty": False},
+            {"index": 2, "text": "Body one.", "is_empty": False},
+            {"index": 3, "text": "Capítulo 4: Guerra Dimensional.", "is_empty": False},
+            {"index": 4, "text": "Body four.", "is_empty": False},
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            extracted_dir = temp_path / "extracted"
+            output_dir = temp_path / "chapters"
+            extracted_dir.mkdir(parents=True, exist_ok=True)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (extracted_dir / "paragraphs.json").write_text(
+                json.dumps(paragraphs, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+            segment_extracted_manuscript(extracted_dir, output_dir)
+
+            index_payload = json.loads((output_dir / "index.json").read_text(encoding="utf-8"))
+            chapter_payload = json.loads(
+                (output_dir / "chapter-0002-guerra-dimensional.json").read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(index_payload["chapter_number_sequence"], [1, 4])
+            self.assertEqual(index_payload["missing_chapter_numbers"], [2, 3])
+            self.assertEqual(index_payload["sections"][0]["declared_chapter_number"], 1)
+            self.assertEqual(index_payload["sections"][1]["declared_chapter_number"], 4)
+            self.assertEqual(chapter_payload["declared_chapter_number"], 4)
