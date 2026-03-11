@@ -4,6 +4,7 @@ from pathlib import Path
 
 from editorial_core.consistency_report import generate_consistency_report
 from editorial_core.copyedit import Runner, run_copyedit_pass
+from editorial_core.export_docx import export_manuscript_docx
 from editorial_core.review_application import apply_review_approval
 from editorial_core.translation_es import run_translation_es_pass
 
@@ -82,4 +83,25 @@ def trigger_translation_es(
         runner=runner,
         model=model,
         chunk_id=chunk_id,
+    )
+
+
+def trigger_export_docx(
+    *,
+    template_path: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    translations_dir: Path,
+    deliverables_dir: Path,
+    language: str,
+) -> dict[str, object]:
+    language_slug = "ptbr" if language == "pt-BR" else "es"
+    output_path = deliverables_dir / language_slug / f"exilados-da-terra.{language_slug}.docx"
+    return export_manuscript_docx(
+        template_path=template_path,
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
+        translations_dir=translations_dir,
+        output_path=output_path,
+        language=language,
     )

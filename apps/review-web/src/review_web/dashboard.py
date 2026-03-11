@@ -118,6 +118,52 @@ def _collect_deliverables(deliverables_dir: Path) -> list[dict[str, str]]:
     return deliverables
 
 
+def compute_export_readiness(
+    *,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_es_dir: Path,
+) -> dict[str, dict[str, Any]]:
+    chapter_index = _read_json(chapters_dir / "index.json")
+    translation_map: dict[str, str] = {}
+    if reviews_es_dir.exists():
+        for translation_path in sorted(reviews_es_dir.glob("*.translation-es.json")):
+            payload = _read_json(translation_path)
+            for entry in payload.get("translations", []):
+                translation_map[entry["paragraph_id"]] = entry["translated_text"]
+
+    required_paragraph_ids: list[str] = []
+    for section in chapter_index.get("sections", []):
+        section_path = consolidated_dir / section["file"]
+        if section_path.exists():
+            section_payload = _read_json(section_path)
+        else:
+            section_payload = _read_json(chapters_dir / section["file"])
+        required_paragraph_ids.extend(
+            paragraph["id"]
+            for paragraph in section_payload.get("paragraphs", [])
+        )
+
+    missing_translation_ids = [
+        paragraph_id for paragraph_id in required_paragraph_ids if paragraph_id not in translation_map
+    ]
+
+    return {
+        "pt-BR": {
+            "eligible": True,
+            "reason": "O export em pt-BR está disponível.",
+        },
+        "es": {
+            "eligible": not missing_translation_ids,
+            "reason": (
+                "O export em espanhol está disponível."
+                if not missing_translation_ids
+                else f"Faltam traduções para {len(missing_translation_ids)} parágrafo(s)."
+            ),
+        },
+    }
+
+
 def _build_chapter_summary(
     *,
     consolidated_dir: Path,
@@ -272,6 +318,7 @@ def _render_page(title: str, body: str) -> str:
 
 def build_dashboard_state(
     *,
+    chapters_dir: Path,
     chunks_dir: Path,
     consolidated_dir: Path,
     reports_dir: Path,
@@ -287,6 +334,11 @@ def build_dashboard_state(
         consolidated_dir=consolidated_dir,
         chunks_by_section=chunks_by_section,
     )
+    export_readiness = compute_export_readiness(
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
+        reviews_es_dir=reviews_es_dir,
+    )
 
     return {
         "summary": {
@@ -300,6 +352,7 @@ def build_dashboard_state(
         "recent_chunks": recent_chunks,
         "chapters": chapters,
         "deliverables": deliverables,
+        "export_readiness": export_readiness,
     }
 
 
@@ -453,6 +506,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
     recent_chunks = state["recent_chunks"]
     chapters = state["chapters"]
     deliverables = state["deliverables"]
+    export_readiness = state["export_readiness"]
 
     chapter_items = "".join(
         (
@@ -499,6 +553,16 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
       <header>
         <h1>Painel de Revisão Editorial</h1>
         <p>Interface web local sobre o backend persistido de revisão editorial.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
+          <form method="post" action="/exports/pt-BR/run" style="margin: 0;">
+            <button type="submit">Gerar Export pt-BR</button>
+          </form>
+          {
+            f'<form method="post" action="/exports/es/run" style="margin: 0;"><button type="submit">Gerar Export Espanhol</button></form>'
+            if export_readiness["es"]["eligible"]
+            else f'<p class="muted" style="margin: 0;">Export espanhol indisponível: {html.escape(export_readiness["es"]["reason"])}</p>'
+          }
+        </div>
       </header>
       <div class="grid">
         <div class="card"><span>Chunks Pendentes de Revisão</span><strong>{summary['pending_chunk_count']}</strong></div>

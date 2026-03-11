@@ -49,27 +49,9 @@ Goal:
 
 ## TASK-025 — Trigger `pt-BR` and Spanish export from the web interface
 
-Status: IN_PROGRESS
-
-Description:
-
-Expose deliverable generation through the operator workflow.
-
-Acceptance Criteria:
-
-- export actions are available from the web interface
-- generated `.docx` deliverables are persisted under `deliverables/`
-- interface reflects the latest deliverables
-
-Dependencies:
-
-- requires `TASK-023`
-
----
-
 ## TASK-026 — Add repository-backed editorial decisions management
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

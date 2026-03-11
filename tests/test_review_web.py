@@ -10,12 +10,14 @@ from review_web.dashboard import (
     build_chunk_detail_state,
     build_consistency_detail_state,
     build_dashboard_state,
+    compute_export_readiness,
     render_chapter_detail_html,
     render_chunk_detail_html,
     render_consistency_detail_html,
     render_dashboard_html,
 )
 from review_web.actions import (
+    trigger_export_docx,
     trigger_consistency_report,
     trigger_copyedit,
     trigger_review_approval,
@@ -27,6 +29,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
     def test_build_dashboard_state_reads_persisted_project_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
+            chapters_dir = temp_path / "manuscript" / "chapters"
             chunks_dir = temp_path / "manuscript" / "chunks"
             consolidated_dir = temp_path / "manuscript" / "consolidated"
             reports_dir = temp_path / "reports"
@@ -34,6 +37,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir = temp_path / "reviews" / "es"
             deliverables_dir = temp_path / "deliverables"
 
+            chapters_dir.mkdir(parents=True, exist_ok=True)
             chunks_dir.mkdir(parents=True, exist_ok=True)
             consolidated_dir.mkdir(parents=True, exist_ok=True)
             reports_dir.mkdir(parents=True, exist_ok=True)
@@ -41,6 +45,49 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir.mkdir(parents=True, exist_ok=True)
             (deliverables_dir / "ptbr").mkdir(parents=True, exist_ok=True)
 
+            (chapters_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "text": "Primeiro chunk pendente.",
+                            },
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0002",
+                                "text": "Segundo chunk pendente.",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             (chunks_dir / "index.json").write_text(
                 json.dumps(
                     {
@@ -146,6 +193,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
 
             state = build_dashboard_state(
+                chapters_dir=chapters_dir,
                 chunks_dir=chunks_dir,
                 consolidated_dir=consolidated_dir,
                 reports_dir=reports_dir,
@@ -164,9 +212,97 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["consistency_report"]["finding_count"], 12)
             self.assertEqual(state["recent_chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
 
+    def test_compute_export_readiness_blocks_spanish_when_translations_are_incomplete(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+
+            (chapters_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [
+                            {"id": "p-1", "text": "A"},
+                            {"id": "p-2", "text": "B"},
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [
+                            {"id": "p-1", "text": "A", "source_text": "A", "review_status": "approved"},
+                            {"id": "p-2", "text": "B", "source_text": "B", "review_status": "approved"},
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_es_dir / "chunk.translation-es.json").write_text(
+                json.dumps(
+                    {
+                        "translations": [
+                            {"paragraph_id": "p-1", "translated_text": "A-es"},
+                        ]
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            readiness = compute_export_readiness(
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_es_dir=reviews_es_dir,
+            )
+
+            self.assertTrue(readiness["pt-BR"]["eligible"])
+            self.assertFalse(readiness["es"]["eligible"])
+            self.assertIn("1 parágrafo(s)", readiness["es"]["reason"])
+
     def test_build_dashboard_state_includes_chunk_only_chapters_when_consolidated_index_is_incomplete(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
+            chapters_dir = temp_path / "manuscript" / "chapters"
             chunks_dir = temp_path / "manuscript" / "chunks"
             consolidated_dir = temp_path / "manuscript" / "consolidated"
             reports_dir = temp_path / "reports"
@@ -174,6 +310,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir = temp_path / "reviews" / "es"
             deliverables_dir = temp_path / "deliverables"
 
+            chapters_dir.mkdir(parents=True, exist_ok=True)
             chunks_dir.mkdir(parents=True, exist_ok=True)
             consolidated_dir.mkdir(parents=True, exist_ok=True)
             reports_dir.mkdir(parents=True, exist_ok=True)
@@ -181,6 +318,60 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir.mkdir(parents=True, exist_ok=True)
             deliverables_dir.mkdir(parents=True, exist_ok=True)
 
+            (chapters_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 2,
+                        "chapter_count": 2,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            },
+                            {
+                                "id": "chapter-0002-supremo-poder-anonimo",
+                                "type": "chapter",
+                                "order": 2,
+                                "title": "Capítulo 2: Supremo Poder Anônimo.",
+                                "file": "chapter-0002-supremo-poder-anonimo.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0002-supremo-poder-anonimo.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0002-supremo-poder-anonimo",
+                        "title": "Capítulo 2: Supremo Poder Anônimo.",
+                        "paragraphs": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             (chunks_dir / "index.json").write_text(
                 json.dumps(
                     {
@@ -230,6 +421,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
 
             state = build_dashboard_state(
+                chapters_dir=chapters_dir,
                 chunks_dir=chunks_dir,
                 consolidated_dir=consolidated_dir,
                 reports_dir=reports_dir,
@@ -286,6 +478,10 @@ class ReviewWebDashboardTest(unittest.TestCase):
                         "name": "exilados-da-terra.ptbr.docx",
                     }
                 ],
+                "export_readiness": {
+                    "pt-BR": {"eligible": True, "reason": "O export em pt-BR está disponível."},
+                    "es": {"eligible": False, "reason": "Faltam traduções para 3 parágrafo(s)."},
+                },
             }
         )
 
@@ -296,6 +492,9 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("exilados-da-terra.ptbr.docx", html)
         self.assertIn("/consistency/alias_usage", html)
         self.assertIn("/consistency/run", html)
+        self.assertIn("/exports/pt-BR/run", html)
+        self.assertIn("Gerar Export pt-BR", html)
+        self.assertIn("Export espanhol indisponível", html)
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1199,3 +1398,103 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertTrue(
                 (reviews_es_dir / "chapter-0001-conexao-dimensional-chunk-0001.translation-es.json").exists()
             )
+
+    def test_trigger_export_docx_persists_ptbr_deliverable_for_web_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            template_path = temp_path / "template.docx"
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            translations_dir = temp_path / "reviews" / "es"
+            deliverables_dir = temp_path / "deliverables"
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            translations_dir.mkdir(parents=True, exist_ok=True)
+            deliverables_dir.mkdir(parents=True, exist_ok=True)
+
+            from test_export_docx import build_template_docx
+
+            build_template_docx(template_path)
+
+            (chapters_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "heading_source_index": 2,
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "type": "chapter",
+                        "order": 1,
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "heading_source_index": 2,
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_index": 3,
+                                "text": "Texto original.",
+                                "review_status": "pending_review",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "type": "chapter",
+                        "order": 1,
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "heading_source_index": 2,
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_index": 3,
+                                "source_text": "Texto original.",
+                                "text": "Texto consolidado.",
+                                "review_status": "approved",
+                                "applied_reviews": [],
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_export_docx(
+                template_path=template_path,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                translations_dir=translations_dir,
+                deliverables_dir=deliverables_dir,
+                language="pt-BR",
+            )
+
+            self.assertEqual(summary["language"], "pt-BR")
+            self.assertTrue((deliverables_dir / "ptbr" / "exilados-da-terra.ptbr.docx").exists())
