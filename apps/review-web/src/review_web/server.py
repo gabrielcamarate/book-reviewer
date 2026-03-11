@@ -10,6 +10,10 @@ from typing import Callable
 
 from editorial_core.codex_runner import run_codex_with_schema
 from editorial_core.job_log import append_job_log
+from editorial_core.preview_health import (
+    build_preview_diagnostics_payload,
+    build_preview_health_payload,
+)
 from editorial_core.repository_validation import validate_repository_state
 from review_web.dashboard import (
     build_chapter_detail_state,
@@ -594,6 +598,26 @@ def _build_world_rule_curation_action(
     return _run
 
 
+def _build_preview_health_loader(
+    *,
+    root_dir: Path,
+) -> Callable[[], dict[str, object]]:
+    def _load() -> dict[str, object]:
+        return build_preview_health_payload(root_dir=root_dir)
+
+    return _load
+
+
+def _build_preview_diagnostics_loader(
+    *,
+    root_dir: Path,
+) -> Callable[[], dict[str, object]]:
+    def _load() -> dict[str, object]:
+        return build_preview_diagnostics_payload(root_dir=root_dir)
+
+    return _load
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
@@ -620,8 +644,34 @@ class DashboardHandler(BaseHTTPRequestHandler):
     world_rules_action: Callable[[], dict[str, object]] | None = None
     character_curation_action: Callable[[str, str, str], dict[str, object]] | None = None
     world_rule_curation_action: Callable[[str, str, str, str], dict[str, object]] | None = None
+    preview_health_loader: Callable[[], dict[str, object]] | None = None
+    preview_diagnostics_loader: Callable[[], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
+        if self.path == "/healthz":
+            if self.preview_health_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "preview health loader not configured")
+                return
+            payload = json.dumps(self.preview_health_loader(), ensure_ascii=False, indent=2).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path == "/diagnostics":
+            if self.preview_diagnostics_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "preview diagnostics loader not configured")
+                return
+            payload = json.dumps(self.preview_diagnostics_loader(), ensure_ascii=False, indent=2).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
         if self.dashboard_loader is None:
             self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "dashboard loader not configured")
             return
@@ -1109,6 +1159,8 @@ def build_handler(
     world_rules_action: Callable[[], dict[str, object]],
     character_curation_action: Callable[[str, str, str], dict[str, object]],
     world_rule_curation_action: Callable[[str, str, str, str], dict[str, object]],
+    preview_health_loader: Callable[[], dict[str, object]],
+    preview_diagnostics_loader: Callable[[], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -1138,6 +1190,8 @@ def build_handler(
     ConfiguredDashboardHandler.world_rules_action = staticmethod(world_rules_action)
     ConfiguredDashboardHandler.character_curation_action = staticmethod(character_curation_action)
     ConfiguredDashboardHandler.world_rule_curation_action = staticmethod(world_rule_curation_action)
+    ConfiguredDashboardHandler.preview_health_loader = staticmethod(preview_health_loader)
+    ConfiguredDashboardHandler.preview_diagnostics_loader = staticmethod(preview_diagnostics_loader)
     return ConfiguredDashboardHandler
 
 
@@ -1319,6 +1373,12 @@ def main() -> int:
         ),
         _build_world_rule_curation_action(
             world_rules_path=args.world_rules,
+        ),
+        _build_preview_health_loader(
+            root_dir=Path.cwd(),
+        ),
+        _build_preview_diagnostics_loader(
+            root_dir=Path.cwd(),
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)

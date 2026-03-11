@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-053 — Add preview healthcheck and operational diagnostics endpoint
-
-Status: TODO
-
-Description:
-
-Expose a lightweight operational endpoint for preview environments that reports health without leaking editorial data.
-
-Acceptance Criteria:
-
-- health endpoint is explicit and minimal
-- endpoint reflects repository validation status safely
-- preview workflow documents how to use it
-
-Dependencies:
-
-- requires `TASK-032` and `TASK-033`
-
----
-
 ## TASK-054 — Add preview access control for non-local environments
 
 Status: TODO

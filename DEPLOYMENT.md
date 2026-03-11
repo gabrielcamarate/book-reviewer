@@ -87,6 +87,18 @@ Then open:
 http://127.0.0.1:8765/
 ```
 
+Preview health endpoints:
+
+```text
+http://127.0.0.1:8765/healthz
+http://127.0.0.1:8765/diagnostics
+```
+
+Expected usage:
+
+- `/healthz` returns a minimal JSON summary for uptime and repository readiness checks
+- `/diagnostics` returns the repository doctor summary with blocking and advisory findings, without exposing manuscript content
+
 Remote preview on a Linux machine or VM:
 
 1. clone the repository on the target machine
@@ -94,6 +106,7 @@ Remote preview on a Linux machine or VM:
 3. ensure manuscript and editorial state files are present in the checkout
 4. run `docker compose -f docker-compose.yml -f docker-compose.preview.yml up --build review-web`
 5. expose port `8765` only through the intended preview ingress or tunnel
+6. use `/healthz` for automated health probes and `/diagnostics` for operator-facing preview diagnostics
 
 ## State Rules for Preview
 
