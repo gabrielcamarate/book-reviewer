@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+from editorial_core.decisions import read_editorial_decisions
 from editorial_core.translation_es import STABLE_REVIEW_STATUSES
 
 
@@ -77,6 +78,10 @@ def _load_consistency_report(reports_dir: Path) -> dict[str, Any]:
         "finding_types": finding_types,
         "findings_by_type": findings_by_type,
     }
+
+
+def _load_decisions(decisions_path: Path) -> list[dict[str, str]]:
+    return list(reversed(read_editorial_decisions(decisions_path)))
 
 
 def _build_paragraph_chunk_map(chunks_dir: Path) -> dict[str, str]:
@@ -325,6 +330,7 @@ def build_dashboard_state(
     reviews_ptbr_dir: Path,
     reviews_es_dir: Path,
     deliverables_dir: Path,
+    decisions_path: Path,
 ) -> dict[str, Any]:
     pending_chunk_count, recent_chunks, chunks_by_section = _load_chunk_summary(chunks_dir)
     consolidated_index = _load_consolidated_index(consolidated_dir)
@@ -334,6 +340,7 @@ def build_dashboard_state(
         consolidated_dir=consolidated_dir,
         chunks_by_section=chunks_by_section,
     )
+    decisions = _load_decisions(decisions_path)
     export_readiness = compute_export_readiness(
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
@@ -347,12 +354,22 @@ def build_dashboard_state(
             "copyedit_review_count": _count_review_files(reviews_ptbr_dir, "*.copyedit.json"),
             "translation_review_count": _count_review_files(reviews_es_dir, "*.translation-es.json"),
             "deliverable_count": len(deliverables),
+            "decision_count": len(decisions),
         },
         "consistency_report": consistency_report,
         "recent_chunks": recent_chunks,
         "chapters": chapters,
         "deliverables": deliverables,
+        "recent_decisions": decisions[:5],
         "export_readiness": export_readiness,
+    }
+
+
+def build_decisions_state(*, decisions_path: Path) -> dict[str, Any]:
+    decisions = _load_decisions(decisions_path)
+    return {
+        "decision_count": len(decisions),
+        "decisions": decisions,
     }
 
 
@@ -506,6 +523,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
     recent_chunks = state["recent_chunks"]
     chapters = state["chapters"]
     deliverables = state["deliverables"]
+    recent_decisions = state["recent_decisions"]
     export_readiness = state["export_readiness"]
 
     chapter_items = "".join(
@@ -548,6 +566,16 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         )
         for item in deliverables
     ) or "<li>Nenhum entregável gerado ainda.</li>"
+    decision_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item['title'])}</strong> "
+            f"<code>{html.escape(item.get('scope', 'global'))}</code>"
+            f"<div class=\"muted\">{html.escape(item.get('rationale', ''))}</div>"
+            "</li>"
+        )
+        for item in recent_decisions
+    ) or "<li>Nenhuma decisão editorial registrada.</li>"
 
     body = f"""
       <header>
@@ -571,6 +599,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
         <div class="card"><span>Arquivos de Tradução Espanhola</span><strong>{summary['translation_review_count']}</strong></div>
         <div class="card"><span>Entregáveis Gerados</span><strong>{summary['deliverable_count']}</strong></div>
         <div class="card"><span>Achados de Consistência</span><strong>{consistency_report['finding_count']}</strong></div>
+        <div class="card"><span>Decisões Editoriais</span><strong>{summary.get('decision_count', len(recent_decisions))}</strong></div>
       </div>
       <div class="layout">
         <section>
@@ -595,8 +624,54 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
           <ul>{deliverable_items}</ul>
         </section>
       </div>
+      <div class="layout" style="margin-top: 18px;">
+        <section>
+          <h2>Decisões Editoriais</h2>
+          <p><a href="/decisions">Abrir registro completo de decisões</a></p>
+          <ul>{decision_items}</ul>
+        </section>
+        <section>
+          <h2>Registrar Nova Decisão</h2>
+          <form method="post" action="/decisions">
+            <p><label>Título<br><input type="text" name="title" required style="width: 100%;"></label></p>
+            <p><label>Escopo<br><input type="text" name="scope" placeholder="chapter-0001... ou global" style="width: 100%;"></label></p>
+            <p><label>Justificativa<br><textarea name="rationale" required style="width: 100%; min-height: 120px;"></textarea></label></p>
+            <button type="submit">Salvar Decisão Editorial</button>
+          </form>
+        </section>
+      </div>
     """
     return _render_page("Painel de Revisão Editorial", body)
+
+
+def render_decisions_html(state: dict[str, Any]) -> str:
+    decision_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item['title'])}</strong><br>"
+            f"<span class=\"muted\">{html.escape(item.get('timestamp', ''))}</span><br>"
+            + (
+                f"<a class=\"chunk-link\" href=\"/chunks/{html.escape(item['scope'])}\">{html.escape(item['scope'])}</a><br>"
+                if item.get("scope", "").startswith("chapter-") and "-chunk-" in item.get("scope", "")
+                else f"<code>{html.escape(item.get('scope', 'global'))}</code><br>"
+            )
+            + f"<span>{html.escape(item.get('rationale', ''))}</span>"
+            "</li>"
+        )
+        for item in state["decisions"]
+    ) or "<li>Nenhuma decisão editorial registrada.</li>"
+
+    body = f"""
+      <nav><a href=\"/\">← Painel</a></nav>
+      <section>
+        <h1>Decisões Editoriais</h1>
+        <p class=\"muted\">Total de decisões registradas: <code>{state['decision_count']}</code></p>
+      </section>
+      <section style=\"margin-top: 18px;\">
+        <ul>{decision_items}</ul>
+      </section>
+    """
+    return _render_page("Decisões Editoriais", body)
 
 
 def render_chapter_detail_html(state: dict[str, Any]) -> str:

@@ -9,6 +9,7 @@ def build_copyedit_prompt(
     chunk_payload: dict[str, Any],
     style_guide_text: str,
     glossary_text: str,
+    decisions_text: str,
 ) -> str:
     prompt_payload = {
         "task": "copyedit-ptbr",
@@ -29,6 +30,7 @@ def build_copyedit_prompt(
         },
         "style_guide": style_guide_text,
         "glossary": glossary_text,
+        "editorial_decisions": decisions_text,
     }
 
     return (

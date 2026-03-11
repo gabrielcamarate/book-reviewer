@@ -19,6 +19,12 @@ def _review_output_path(reviews_dir: Path, chunk_id: str) -> Path:
     return reviews_dir / f"{chunk_id}.copyedit.json"
 
 
+def _read_optional_text(path: Path) -> str:
+    if not path.exists():
+        return ""
+    return path.read_text(encoding="utf-8")
+
+
 def _select_chunk(chunks_dir: Path, reviews_dir: Path, chunk_id: str | None) -> dict[str, Any]:
     index_payload = _load_chunk_index(chunks_dir)
     if not index_payload.get("chunks"):
@@ -55,6 +61,7 @@ def run_copyedit_pass(
     reviews_dir: Path,
     style_guide_path: Path,
     glossary_path: Path,
+    decisions_path: Path,
     runner: Runner,
     model: str = "gpt-5-codex",
     chunk_id: str | None = None,
@@ -62,8 +69,9 @@ def run_copyedit_pass(
     chunk_payload = _select_chunk(chunks_dir, reviews_dir, chunk_id)
     prompt = build_copyedit_prompt(
         chunk_payload=chunk_payload,
-        style_guide_text=style_guide_path.read_text(encoding="utf-8"),
-        glossary_text=glossary_path.read_text(encoding="utf-8"),
+        style_guide_text=_read_optional_text(style_guide_path),
+        glossary_text=_read_optional_text(glossary_path),
+        decisions_text=_read_optional_text(decisions_path),
     )
     schema = copyedit_output_schema()
     runner_payload = runner(prompt=prompt, schema=schema, model=model)

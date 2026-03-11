@@ -13,13 +13,16 @@ from review_web.dashboard import (
     build_chapter_detail_state,
     build_chunk_detail_state,
     build_consistency_detail_state,
+    build_decisions_state,
     build_dashboard_state,
     render_chapter_detail_html,
     render_chunk_detail_html,
     render_consistency_detail_html,
+    render_decisions_html,
     render_dashboard_html,
 )
 from review_web.actions import (
+    trigger_append_decision,
     trigger_export_docx,
     trigger_consistency_report,
     trigger_copyedit,
@@ -39,6 +42,7 @@ def _build_loader(
     reviews_ptbr_dir: Path,
     reviews_es_dir: Path,
     deliverables_dir: Path,
+    decisions_path: Path,
 ) -> DashboardLoader:
     def _load() -> dict[str, object]:
         return build_dashboard_state(
@@ -49,6 +53,7 @@ def _build_loader(
             reviews_ptbr_dir=reviews_ptbr_dir,
             reviews_es_dir=reviews_es_dir,
             deliverables_dir=deliverables_dir,
+            decisions_path=decisions_path,
         )
 
     return _load
@@ -103,6 +108,16 @@ def _build_consistency_loader(
     return _load
 
 
+def _build_decisions_loader(
+    *,
+    decisions_path: Path,
+) -> Callable[[], dict[str, object]]:
+    def _load() -> dict[str, object]:
+        return build_decisions_state(decisions_path=decisions_path)
+
+    return _load
+
+
 def _codex_runner(prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
     return run_codex_with_schema(
         prompt=prompt,
@@ -119,6 +134,7 @@ def _build_copyedit_action(
     reviews_ptbr_dir: Path,
     style_guide_path: Path,
     glossary_path: Path,
+    decisions_path: Path,
     model: str,
 ) -> Callable[[str], dict[str, object]]:
     def _run(chunk_id: str) -> dict[str, object]:
@@ -128,6 +144,7 @@ def _build_copyedit_action(
             reviews_dir=reviews_ptbr_dir,
             style_guide_path=style_guide_path,
             glossary_path=glossary_path,
+            decisions_path=decisions_path,
             runner=_codex_runner,
             model=model,
         )
@@ -189,6 +206,7 @@ def _build_translation_action(
     reviews_es_dir: Path,
     style_guide_path: Path,
     glossary_path: Path,
+    decisions_path: Path,
     model: str,
 ) -> Callable[[str], dict[str, object]]:
     def _run(chunk_id: str) -> dict[str, object]:
@@ -200,6 +218,7 @@ def _build_translation_action(
             reviews_dir=reviews_es_dir,
             style_guide_path=style_guide_path,
             glossary_path=glossary_path,
+            decisions_path=decisions_path,
             runner=_translation_runner,
             model=model,
         )
@@ -228,16 +247,33 @@ def _build_export_action(
     return _run
 
 
+def _build_decision_action(
+    *,
+    decisions_path: Path,
+) -> Callable[[str, str, str], dict[str, object]]:
+    def _run(title: str, rationale: str, scope: str) -> dict[str, object]:
+        return trigger_append_decision(
+            decisions_path=decisions_path,
+            title=title,
+            rationale=rationale,
+            scope=scope,
+        )
+
+    return _run
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
     chunk_loader: Callable[[str], dict[str, object]] | None = None
     consistency_loader: Callable[[str], dict[str, object]] | None = None
+    decisions_loader: Callable[[], dict[str, object]] | None = None
     copyedit_action: Callable[[str], dict[str, object]] | None = None
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     consistency_action: Callable[[], dict[str, object]] | None = None
     translation_action: Callable[[str], dict[str, object]] | None = None
     export_action: Callable[[str], dict[str, object]] | None = None
+    decision_action: Callable[[str, str, str], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
@@ -311,6 +347,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self.send_error(HTTPStatus.NOT_FOUND, "consistency finding type not found")
                 return
             payload = render_consistency_detail_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path == "/decisions":
+            if self.decisions_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "decisions loader not configured")
+                return
+            state = self.decisions_loader()
+            payload = render_decisions_html(state).encode("utf-8")
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
@@ -425,6 +474,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path == "/decisions":
+            if self.decision_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "decision action not configured")
+                return
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            form_data = parse_qs(raw_body, keep_blank_values=False)
+            title = (form_data.get("title", [""])[0]).strip()
+            scope = (form_data.get("scope", ["global"])[0]).strip() or "global"
+            rationale = (form_data.get("rationale", [""])[0]).strip()
+            if not title or not rationale:
+                self.send_error(HTTPStatus.BAD_REQUEST, "title and rationale are required")
+                return
+            self.decision_action(title, rationale, scope)
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/decisions")
+            self.end_headers()
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A003
@@ -436,11 +504,13 @@ def build_handler(
     chapter_loader: Callable[[str], dict[str, object]],
     chunk_loader: Callable[[str], dict[str, object]],
     consistency_loader: Callable[[str], dict[str, object]],
+    decisions_loader: Callable[[], dict[str, object]],
     copyedit_action: Callable[[str], dict[str, object]],
     approval_action: Callable[[str, list[int] | None], dict[str, object]],
     consistency_action: Callable[[], dict[str, object]],
     translation_action: Callable[[str], dict[str, object]],
     export_action: Callable[[str], dict[str, object]],
+    decision_action: Callable[[str, str, str], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -449,11 +519,13 @@ def build_handler(
     ConfiguredDashboardHandler.chapter_loader = staticmethod(chapter_loader)
     ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
     ConfiguredDashboardHandler.consistency_loader = staticmethod(consistency_loader)
+    ConfiguredDashboardHandler.decisions_loader = staticmethod(decisions_loader)
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
     ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
     ConfiguredDashboardHandler.translation_action = staticmethod(translation_action)
     ConfiguredDashboardHandler.export_action = staticmethod(export_action)
+    ConfiguredDashboardHandler.decision_action = staticmethod(decision_action)
     return ConfiguredDashboardHandler
 
 
@@ -473,6 +545,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--template", type=Path, default=Path("livro.docx"))
     parser.add_argument("--style-guide", type=Path, default=Path("editorial/STYLE_GUIDE.md"))
     parser.add_argument("--glossary", type=Path, default=Path("editorial/GLOSSARY.md"))
+    parser.add_argument("--decisions", type=Path, default=Path("editorial/DECISIONS.md"))
     parser.add_argument("--model", default="gpt-5-codex")
     return parser
 
@@ -490,6 +563,7 @@ def main() -> int:
             reviews_ptbr_dir=args.reviews_ptbr_dir,
             reviews_es_dir=args.reviews_es_dir,
             deliverables_dir=args.deliverables_dir,
+            decisions_path=args.decisions,
         ),
         _build_chapter_loader(
             chunks_dir=args.chunks_dir,
@@ -505,11 +579,15 @@ def main() -> int:
             reports_dir=args.reports_dir,
             chunks_dir=args.chunks_dir,
         ),
+        _build_decisions_loader(
+            decisions_path=args.decisions,
+        ),
         _build_copyedit_action(
             chunks_dir=args.chunks_dir,
             reviews_ptbr_dir=args.reviews_ptbr_dir,
             style_guide_path=args.style_guide,
             glossary_path=args.glossary,
+            decisions_path=args.decisions,
             model=args.model,
         ),
         _build_approval_action(
@@ -530,6 +608,7 @@ def main() -> int:
             reviews_es_dir=args.reviews_es_dir,
             style_guide_path=args.style_guide,
             glossary_path=args.glossary,
+            decisions_path=args.decisions,
             model=args.model,
         ),
         _build_export_action(
@@ -538,6 +617,9 @@ def main() -> int:
             consolidated_dir=args.consolidated_dir,
             reviews_es_dir=args.reviews_es_dir,
             deliverables_dir=args.deliverables_dir,
+        ),
+        _build_decision_action(
+            decisions_path=args.decisions,
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)

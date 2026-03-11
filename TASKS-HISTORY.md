@@ -592,3 +592,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-023`
+
+---
+
+## TASK-026 — Add repository-backed editorial decisions management
+
+Status: DONE
+
+Description:
+
+Create a persisted workflow for editorial decisions that need to survive beyond a single chunk.
+
+Acceptance Criteria:
+
+- `editorial/DECISIONS.md` is surfaced and updated through explicit workflow
+- decisions are linked to chunk or section context when relevant
+- future review passes can consume these decisions
+
+Dependencies:
+
+- requires `TASK-021`

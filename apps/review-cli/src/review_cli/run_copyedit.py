@@ -47,6 +47,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to the persisted glossary.",
     )
     parser.add_argument(
+        "--decisions",
+        type=Path,
+        default=Path("editorial/DECISIONS.md"),
+        help="Path to the persisted editorial decisions log.",
+    )
+    parser.add_argument(
         "--chunk-id",
         default=None,
         help="Optional chunk identifier. Defaults to the next chunk without a persisted copyedit output.",
@@ -68,6 +74,7 @@ def main() -> int:
         reviews_dir=args.reviews_dir,
         style_guide_path=args.style_guide,
         glossary_path=args.glossary,
+        decisions_path=args.decisions,
         runner=_codex_runner,
         model=args.model,
         chunk_id=args.chunk_id,

@@ -9,14 +9,17 @@ from review_web.dashboard import (
     build_chapter_detail_state,
     build_chunk_detail_state,
     build_consistency_detail_state,
+    build_decisions_state,
     build_dashboard_state,
     compute_export_readiness,
     render_chapter_detail_html,
     render_chunk_detail_html,
     render_consistency_detail_html,
+    render_decisions_html,
     render_dashboard_html,
 )
 from review_web.actions import (
+    trigger_append_decision,
     trigger_export_docx,
     trigger_consistency_report,
     trigger_copyedit,
@@ -36,6 +39,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
             reviews_es_dir = temp_path / "reviews" / "es"
             deliverables_dir = temp_path / "deliverables"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
 
             chapters_dir.mkdir(parents=True, exist_ok=True)
             chunks_dir.mkdir(parents=True, exist_ok=True)
@@ -44,6 +48,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
             reviews_es_dir.mkdir(parents=True, exist_ok=True)
             (deliverables_dir / "ptbr").mkdir(parents=True, exist_ok=True)
+            decisions_path.parent.mkdir(parents=True, exist_ok=True)
 
             (chapters_dir / "index.json").write_text(
                 json.dumps(
@@ -187,6 +192,13 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
             (reviews_ptbr_dir / "a.copyedit.json").write_text("{}", encoding="utf-8")
             (reviews_es_dir / "a.translation-es.json").write_text("{}", encoding="utf-8")
+            decisions_path.write_text(
+                "# Editorial Decisions\n\n## Preservar tratamento solene\n"
+                "- Timestamp: 2026-03-10T10:00:00\n"
+                "- Scope: chapter-0001-conexao-dimensional\n"
+                "- Rationale: O narrador mantém registro elevado.\n",
+                encoding="utf-8",
+            )
             (deliverables_dir / "ptbr" / "exilados-da-terra.ptbr.docx").write_text(
                 "fake-docx",
                 encoding="utf-8",
@@ -200,6 +212,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 reviews_ptbr_dir=reviews_ptbr_dir,
                 reviews_es_dir=reviews_es_dir,
                 deliverables_dir=deliverables_dir,
+                decisions_path=decisions_path,
             )
 
             self.assertEqual(state["summary"]["pending_chunk_count"], 2)
@@ -207,10 +220,12 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["summary"]["copyedit_review_count"], 1)
             self.assertEqual(state["summary"]["translation_review_count"], 1)
             self.assertEqual(state["summary"]["deliverable_count"], 1)
+            self.assertEqual(state["summary"]["decision_count"], 1)
             self.assertEqual(state["chapters"][0]["id"], "chapter-0001-conexao-dimensional")
             self.assertEqual(state["chapters"][0]["chunk_count"], 2)
             self.assertEqual(state["consistency_report"]["finding_count"], 12)
             self.assertEqual(state["recent_chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(state["recent_decisions"][0]["title"], "Preservar tratamento solene")
 
     def test_compute_export_readiness_blocks_spanish_when_translations_are_incomplete(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -309,6 +324,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
             reviews_es_dir = temp_path / "reviews" / "es"
             deliverables_dir = temp_path / "deliverables"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
 
             chapters_dir.mkdir(parents=True, exist_ok=True)
             chunks_dir.mkdir(parents=True, exist_ok=True)
@@ -317,6 +333,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
             reviews_es_dir.mkdir(parents=True, exist_ok=True)
             deliverables_dir.mkdir(parents=True, exist_ok=True)
+            decisions_path.parent.mkdir(parents=True, exist_ok=True)
 
             (chapters_dir / "index.json").write_text(
                 json.dumps(
@@ -428,6 +445,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 reviews_ptbr_dir=reviews_ptbr_dir,
                 reviews_es_dir=reviews_es_dir,
                 deliverables_dir=deliverables_dir,
+                decisions_path=decisions_path,
             )
 
             chapter_ids = [chapter["id"] for chapter in state["chapters"]]
@@ -478,6 +496,14 @@ class ReviewWebDashboardTest(unittest.TestCase):
                         "name": "exilados-da-terra.ptbr.docx",
                     }
                 ],
+                "recent_decisions": [
+                    {
+                        "title": "Preservar tratamento solene",
+                        "scope": "chapter-0001-conexao-dimensional",
+                        "rationale": "O narrador mantém registro elevado.",
+                        "timestamp": "2026-03-10T10:00:00",
+                    }
+                ],
                 "export_readiness": {
                     "pt-BR": {"eligible": True, "reason": "O export em pt-BR está disponível."},
                     "es": {"eligible": False, "reason": "Faltam traduções para 3 parágrafo(s)."},
@@ -493,8 +519,58 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("/consistency/alias_usage", html)
         self.assertIn("/consistency/run", html)
         self.assertIn("/exports/pt-BR/run", html)
+        self.assertIn("/decisions", html)
+        self.assertIn("Preservar tratamento solene", html)
         self.assertIn("Gerar Export pt-BR", html)
         self.assertIn("Export espanhol indisponível", html)
+
+    def test_build_decisions_state_reads_persisted_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            decisions_path.parent.mkdir(parents=True, exist_ok=True)
+            decisions_path.write_text(
+                "# Editorial Decisions\n\n"
+                "## Preservar travessão dramático\n"
+                "- Timestamp: 2026-03-10T10:00:00\n"
+                "- Scope: chapter-0001-conexao-dimensional-chunk-0002\n"
+                "- Rationale: O travessão integra a respiração narrativa.\n\n"
+                "## Manter repetições deliberadas\n"
+                "- Timestamp: 2026-03-10T10:05:00\n"
+                "- Scope: chapter-0002-supremo-poder-anonimo\n"
+                "- Rationale: A repetição é recurso filosófico.\n",
+                encoding="utf-8",
+            )
+
+            state = build_decisions_state(decisions_path=decisions_path)
+
+            self.assertEqual(state["decision_count"], 2)
+            self.assertEqual(state["decisions"][0]["title"], "Manter repetições deliberadas")
+            self.assertEqual(
+                state["decisions"][1]["scope"],
+                "chapter-0001-conexao-dimensional-chunk-0002",
+            )
+
+            html = render_decisions_html(state)
+            self.assertIn("Decisões Editoriais", html)
+            self.assertIn("Manter repetições deliberadas", html)
+            self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0002", html)
+
+    def test_trigger_append_decision_persists_repository_backed_editorial_memory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+
+            summary = trigger_append_decision(
+                decisions_path=decisions_path,
+                title="Preservar enumeração litúrgica",
+                rationale="A enumeração reforça o tom solene do capítulo.",
+                scope="chapter-0001-conexao-dimensional-chunk-0003",
+            )
+
+            self.assertEqual(summary["decision_count"], 1)
+            self.assertEqual(summary["last_title"], "Preservar enumeração litúrgica")
+            self.assertIn("enumeração", decisions_path.read_text(encoding="utf-8"))
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -941,6 +1017,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
             style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
             glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
             style_guide_path.parent.mkdir(parents=True, exist_ok=True)
@@ -990,6 +1067,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
             style_guide_path.write_text("# Style Guide\n- Preserve voice.\n", encoding="utf-8")
             glossary_path.write_text("# Glossary\n- Sistema Terra\n", encoding="utf-8")
+            decisions_path.write_text("# Editorial Decisions\n", encoding="utf-8")
 
             summary = trigger_copyedit(
                 chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
@@ -997,6 +1075,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 reviews_dir=reviews_ptbr_dir,
                 style_guide_path=style_guide_path,
                 glossary_path=glossary_path,
+                decisions_path=decisions_path,
                 runner=lambda **_: {
                     "suggestions": [
                         {
@@ -1269,6 +1348,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             reviews_es_dir = temp_path / "reviews" / "es"
             style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
             glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             chapters_dir.mkdir(parents=True, exist_ok=True)
             consolidated_dir.mkdir(parents=True, exist_ok=True)
@@ -1373,6 +1453,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
             style_guide_path.write_text("# Style Guide\n- Preserve voice.\n", encoding="utf-8")
             glossary_path.write_text("# Glossary\n- Sistema Terra\n", encoding="utf-8")
+            decisions_path.write_text("# Editorial Decisions\n", encoding="utf-8")
 
             summary = trigger_translation_es(
                 chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
@@ -1382,6 +1463,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 reviews_dir=reviews_es_dir,
                 style_guide_path=style_guide_path,
                 glossary_path=glossary_path,
+                decisions_path=decisions_path,
                 runner=lambda **_: {
                     "translations": [
                         {

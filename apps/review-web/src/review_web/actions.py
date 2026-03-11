@@ -4,6 +4,7 @@ from pathlib import Path
 
 from editorial_core.consistency_report import generate_consistency_report
 from editorial_core.copyedit import Runner, run_copyedit_pass
+from editorial_core.decisions import append_editorial_decision
 from editorial_core.export_docx import export_manuscript_docx
 from editorial_core.review_application import apply_review_approval
 from editorial_core.translation_es import run_translation_es_pass
@@ -16,6 +17,7 @@ def trigger_copyedit(
     reviews_dir: Path,
     style_guide_path: Path,
     glossary_path: Path,
+    decisions_path: Path,
     runner: Runner,
     model: str = "gpt-5-codex",
 ) -> dict[str, object]:
@@ -24,6 +26,7 @@ def trigger_copyedit(
         reviews_dir=reviews_dir,
         style_guide_path=style_guide_path,
         glossary_path=glossary_path,
+        decisions_path=decisions_path,
         runner=runner,
         model=model,
         chunk_id=chunk_id,
@@ -70,6 +73,7 @@ def trigger_translation_es(
     reviews_dir: Path,
     style_guide_path: Path,
     glossary_path: Path,
+    decisions_path: Path,
     runner: Runner,
     model: str = "gpt-5-codex",
 ) -> dict[str, object]:
@@ -80,9 +84,25 @@ def trigger_translation_es(
         reviews_dir=reviews_dir,
         style_guide_path=style_guide_path,
         glossary_path=glossary_path,
+        decisions_path=decisions_path,
         runner=runner,
         model=model,
         chunk_id=chunk_id,
+    )
+
+
+def trigger_append_decision(
+    *,
+    decisions_path: Path,
+    title: str,
+    rationale: str,
+    scope: str,
+) -> dict[str, object]:
+    return append_editorial_decision(
+        decisions_path=decisions_path,
+        title=title,
+        rationale=rationale,
+        scope=scope,
     )
 
 

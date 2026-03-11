@@ -109,6 +109,7 @@ class CopyeditPassTest(unittest.TestCase):
             reviews_dir = temp_path / "reviews" / "ptbr"
             style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
             glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             reviews_dir.mkdir(parents=True, exist_ok=True)
             style_guide_path.parent.mkdir(parents=True, exist_ok=True)
@@ -133,6 +134,13 @@ class CopyeditPassTest(unittest.TestCase):
                 "# Glossary\n- Sistema Terra\n",
                 encoding="utf-8",
             )
+            decisions_path.write_text(
+                "# Editorial Decisions\n\n## Preservar travessão dramático\n"
+                "- Timestamp: 2026-03-10T10:00:00\n"
+                "- Scope: chapter-0001-conexao-dimensional\n"
+                "- Rationale: O uso do travessão integra a respiração narrativa.\n",
+                encoding="utf-8",
+            )
             (reviews_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json").write_text(
                 json.dumps({"status": "proposed"}, ensure_ascii=False, indent=2) + "\n",
                 encoding="utf-8",
@@ -143,6 +151,7 @@ class CopyeditPassTest(unittest.TestCase):
                 reviews_dir=reviews_dir,
                 style_guide_path=style_guide_path,
                 glossary_path=glossary_path,
+                decisions_path=decisions_path,
                 runner=fake_runner,
                 model="gpt-5-codex",
             )
@@ -158,6 +167,7 @@ class CopyeditPassTest(unittest.TestCase):
             self.assertNotIn("Primeiro parágrafo pendente.", str(captured["prompt"]))
             self.assertIn("Preserve dialogue markers.", str(captured["prompt"]))
             self.assertIn("Sistema Terra", str(captured["prompt"]))
+            self.assertIn("Preservar travessão dramático", str(captured["prompt"]))
             self.assertEqual(captured["schema"]["type"], "object")
             self.assertEqual(persisted["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0002")
             self.assertEqual(persisted["pass"], "copyedit")
@@ -171,6 +181,7 @@ class CopyeditPassTest(unittest.TestCase):
             reviews_dir = temp_path / "reviews" / "ptbr"
             style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
             glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             reviews_dir.mkdir(parents=True, exist_ok=True)
             style_guide_path.parent.mkdir(parents=True, exist_ok=True)
@@ -188,5 +199,6 @@ class CopyeditPassTest(unittest.TestCase):
                     reviews_dir=reviews_dir,
                     style_guide_path=style_guide_path,
                     glossary_path=glossary_path,
+                    decisions_path=decisions_path,
                     runner=lambda **_: {"suggestions": []},
                 )

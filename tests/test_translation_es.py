@@ -143,6 +143,7 @@ class TranslationEsPassTest(unittest.TestCase):
             reviews_dir = temp_path / "reviews" / "es"
             style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
             glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             chapters_dir.mkdir(parents=True, exist_ok=True)
             consolidated_dir.mkdir(parents=True, exist_ok=True)
@@ -171,6 +172,13 @@ class TranslationEsPassTest(unittest.TestCase):
             )
             style_guide_path.write_text("# Style Guide\n- Preserve cadence.\n", encoding="utf-8")
             glossary_path.write_text("# Glossary\n- Sistema Terra\n", encoding="utf-8")
+            decisions_path.write_text(
+                "# Editorial Decisions\n\n## Manter repetições deliberadas\n"
+                "- Timestamp: 2026-03-10T10:00:00\n"
+                "- Scope: chapter-0001-conexao-dimensional\n"
+                "- Rationale: A repetição é um recurso filosófico do manuscrito.\n",
+                encoding="utf-8",
+            )
 
             summary = run_translation_es_pass(
                 chunks_dir=chunks_dir,
@@ -179,6 +187,7 @@ class TranslationEsPassTest(unittest.TestCase):
                 reviews_dir=reviews_dir,
                 style_guide_path=style_guide_path,
                 glossary_path=glossary_path,
+                decisions_path=decisions_path,
                 runner=fake_runner,
                 model="gpt-5-codex",
             )
@@ -194,6 +203,7 @@ class TranslationEsPassTest(unittest.TestCase):
             self.assertNotIn("Texto-base antigo.", str(captured["prompt"]))
             self.assertIn("Preserve cadence.", str(captured["prompt"]))
             self.assertIn("Sistema Terra", str(captured["prompt"]))
+            self.assertIn("Manter repetições deliberadas", str(captured["prompt"]))
             self.assertEqual(captured["schema"]["type"], "object")
             self.assertEqual(persisted["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0002")
             self.assertEqual(persisted["pass"], "translation-es")
@@ -260,6 +270,7 @@ class TranslationEsPassTest(unittest.TestCase):
             reviews_dir = temp_path / "reviews" / "es"
             style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
             glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
             chunks_dir.mkdir(parents=True, exist_ok=True)
             chapters_dir.mkdir(parents=True, exist_ok=True)
             consolidated_dir.mkdir(parents=True, exist_ok=True)
@@ -289,5 +300,6 @@ class TranslationEsPassTest(unittest.TestCase):
                     reviews_dir=reviews_dir,
                     style_guide_path=style_guide_path,
                     glossary_path=glossary_path,
+                    decisions_path=decisions_path,
                     runner=lambda **_: {"translations": []},
                 )

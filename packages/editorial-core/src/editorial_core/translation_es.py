@@ -24,6 +24,12 @@ def _translation_output_path(reviews_dir: Path, chunk_id: str) -> Path:
     return reviews_dir / f"{chunk_id}.translation-es.json"
 
 
+def _read_optional_text(path: Path) -> str:
+    if not path.exists():
+        return ""
+    return path.read_text(encoding="utf-8")
+
+
 def _load_current_section(
     *,
     chapters_dir: Path,
@@ -152,6 +158,7 @@ def run_translation_es_pass(
     reviews_dir: Path,
     style_guide_path: Path,
     glossary_path: Path,
+    decisions_path: Path,
     runner: Runner,
     model: str = "gpt-5-codex",
     chunk_id: str | None = None,
@@ -166,8 +173,9 @@ def run_translation_es_pass(
     prompt = build_translation_es_prompt(
         chunk_payload=chunk_payload,
         source_paragraphs=source_paragraphs,
-        style_guide_text=style_guide_path.read_text(encoding="utf-8"),
-        glossary_text=glossary_path.read_text(encoding="utf-8"),
+        style_guide_text=_read_optional_text(style_guide_path),
+        glossary_text=_read_optional_text(glossary_path),
+        decisions_text=_read_optional_text(decisions_path),
     )
     schema = translation_es_output_schema()
     runner_payload = runner(prompt=prompt, schema=schema, model=model)

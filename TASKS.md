@@ -47,28 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-025 — Trigger `pt-BR` and Spanish export from the web interface
-
-## TASK-026 — Add repository-backed editorial decisions management
-
-Status: IN_PROGRESS
-
-Description:
-
-Create a persisted workflow for editorial decisions that need to survive beyond a single chunk.
-
-Acceptance Criteria:
-
-- `editorial/DECISIONS.md` is surfaced and updated through explicit workflow
-- decisions are linked to chunk or section context when relevant
-- future review passes can consume these decisions
-
-Dependencies:
-
-- requires `TASK-021`
-
----
-
 ## TASK-027 — Add characters registry generation and inspection
 
 Status: TODO

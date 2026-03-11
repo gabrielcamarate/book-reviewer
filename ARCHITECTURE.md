@@ -142,6 +142,7 @@ Responsibilities:
 
 - expose local-first operational visibility over persisted repository state
 - present summary metrics, recent chunks, consistency findings, and deliverables
+- expose repository-backed editorial memory such as `DECISIONS.md`
 - keep all editorial decisions delegated to existing backend commands and persisted artifacts
 
 Rules:
@@ -149,6 +150,7 @@ Rules:
 - no editorial business logic in the web layer
 - no hidden mutable state outside repository artifacts
 - future channels such as WhatsApp must reuse the same backend/core contracts
+- operator actions such as recording editorial decisions must write back to repository state
 
 Contained in:
 
@@ -165,6 +167,7 @@ Responsibilities:
 - orchestrate editorial passes
 - consolidate suggestions
 - run consistency checks
+- read persistent editorial decisions as part of review context
 - prepare Spanish translation
 
 Rules:
