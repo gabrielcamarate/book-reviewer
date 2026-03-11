@@ -2531,3 +2531,5 @@ class ReviewWebDashboardTest(unittest.TestCase):
 
             self.assertEqual(summary["language"], "pt-BR")
             self.assertTrue((deliverables_dir / "ptbr" / "exilados-da-terra.ptbr.docx").exists())
+            self.assertIn("snapshot_manifest_path", summary)
+            self.assertTrue(Path(summary["snapshot_manifest_path"]).exists())

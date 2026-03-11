@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from docx_adapter.writer import export_docx_from_template
+from editorial_core.export_snapshot import create_export_snapshot_manifest
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -76,6 +77,14 @@ def export_manuscript_docx(
 
     chapter_index = _read_json(chapters_dir / "index.json")
     translation_map = _load_translation_map(translations_dir) if language == "es" else {}
+    snapshot_manifest = create_export_snapshot_manifest(
+        template_path=template_path,
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
+        translations_dir=translations_dir,
+        output_path=output_path,
+        language=language,
+    )
 
     paragraphs: list[str] = []
     for section_entry in chapter_index.get("sections", []):
@@ -104,4 +113,6 @@ def export_manuscript_docx(
         "paragraph_count": len(paragraphs),
         "output_path": str(output_path),
         "section_count": chapter_index["section_count"],
+        "snapshot_manifest_path": snapshot_manifest["manifest_path"],
+        "snapshot_file_count": snapshot_manifest["file_count"],
     }

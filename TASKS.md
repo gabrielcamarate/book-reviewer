@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-046 — Add snapshot backups before deliverable export
-
-Status: TODO
-
-Description:
-
-Protect deliverable generation with reproducible snapshots of the current repository-backed editorial state.
-
-Acceptance Criteria:
-
-- export flow can persist a snapshot manifest before writing deliverables
-- snapshot scope is documented clearly
-- snapshot generation does not mutate editorial source state unexpectedly
-
-Dependencies:
-
-- requires `TASK-013` and `TASK-025`
-
----
-
 ## TASK-047 — Implement rollback for the last applied review approval
 
 Status: TODO

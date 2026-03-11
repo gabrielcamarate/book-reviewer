@@ -168,6 +168,18 @@ class ExportDocxTest(unittest.TestCase):
 
             self.assertEqual(summary["language"], "pt-BR")
             self.assertEqual(summary["paragraph_count"], 3)
+            self.assertIn("snapshot_manifest_path", summary)
+            snapshot_manifest_path = Path(summary["snapshot_manifest_path"])
+            self.assertTrue(snapshot_manifest_path.exists())
+            snapshot_manifest = json.loads(snapshot_manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(snapshot_manifest["language"], "pt-BR")
+            self.assertEqual(snapshot_manifest["output_path"], str(output_path))
+            self.assertGreaterEqual(snapshot_manifest["file_count"], 4)
+            snapshot_roles = {entry["role"] for entry in snapshot_manifest["files"]}
+            self.assertIn("template_docx", snapshot_roles)
+            self.assertIn("chapter_index", snapshot_roles)
+            self.assertIn("chapter_section", snapshot_roles)
+            self.assertIn("consolidated_section", snapshot_roles)
             self.assertEqual(paragraphs[0]["text"], "Página de abertura.")
             self.assertEqual(paragraphs[1]["text"], "Capítulo 1: Conexão Dimensional.")
             self.assertEqual(paragraphs[2]["text"], "Texto consolidado do capítulo.")

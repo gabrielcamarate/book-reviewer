@@ -101,6 +101,7 @@ reports/
 deliverables/
   ptbr/
   es/
+  snapshots/
 ```
 
 ---
@@ -258,6 +259,9 @@ Primary entities:
 - `ChapterProgress`
 - `ConsolidatedSection`
 - `ExportJob`
+- `ExportSnapshot`
+
+`ExportSnapshot` manifests must be generated before writing a deliverable and should describe the repository-backed files that fed the export, including checksums and file roles.
 
 Each `Chunk` should include at minimum:
 
