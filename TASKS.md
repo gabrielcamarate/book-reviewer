@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-027 — Add characters registry generation and inspection
-
-Status: TODO
-
-Description:
-
-Generate and inspect a persistent characters registry from the approved and consolidated corpus.
-
-Acceptance Criteria:
-
-- `editorial/CHARACTERS.md` is generated or updated
-- web interface can inspect the registry
-- proper names and aliases remain traceable
-
-Dependencies:
-
-- requires `TASK-026`
-
----
-
 ## TASK-028 — Add world rules registry generation and inspection
 
 Status: TODO

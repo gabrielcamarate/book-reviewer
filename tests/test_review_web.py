@@ -7,11 +7,13 @@ import unittest
 
 from review_web.dashboard import (
     build_chapter_detail_state,
+    build_characters_state,
     build_chunk_detail_state,
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
     compute_export_readiness,
+    render_characters_html,
     render_chapter_detail_html,
     render_chunk_detail_html,
     render_consistency_detail_html,
@@ -19,6 +21,7 @@ from review_web.dashboard import (
     render_dashboard_html,
 )
 from review_web.actions import (
+    trigger_generate_characters,
     trigger_append_decision,
     trigger_export_docx,
     trigger_consistency_report,
@@ -556,6 +559,37 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Manter repetições deliberadas", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0002", html)
 
+    def test_build_characters_state_reads_registry_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            characters_path = temp_path / "editorial" / "CHARACTERS.md"
+            characters_path.parent.mkdir(parents=True, exist_ok=True)
+            characters_path.write_text(
+                "# Characters Registry\n\n"
+                "## Scope\n"
+                "- Character entries: `2`\n\n"
+                "### Ana Carolina\n"
+                "- Preferred form: `Ana Carolina`\n"
+                "- Observed aliases or variants: none confirmed\n"
+                "- Evidence: `chapter-0001-p-0003`\n\n"
+                "### Joseph Harrison\n"
+                "- Preferred form: `Joseph Harrison`\n"
+                "- Observed aliases or variants: `Joseph`, `Sr. Harrison`\n"
+                "- Evidence: `chapter-0001-p-0001`, `chapter-0001-p-0002`\n",
+                encoding="utf-8",
+            )
+
+            state = build_characters_state(characters_path=characters_path)
+
+            self.assertEqual(state["character_count"], 2)
+            self.assertEqual(state["characters"][0]["title"], "Ana Carolina")
+            self.assertEqual(state["characters"][1]["aliases"], ["Joseph", "Sr. Harrison"])
+
+            html = render_characters_html(state)
+            self.assertIn("Registro de Personagens", html)
+            self.assertIn("Joseph Harrison", html)
+            self.assertIn("Sr. Harrison", html)
+
     def test_trigger_append_decision_persists_repository_backed_editorial_memory(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -571,6 +605,30 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(summary["decision_count"], 1)
             self.assertEqual(summary["last_title"], "Preservar enumeração litúrgica")
             self.assertIn("enumeração", decisions_path.read_text(encoding="utf-8"))
+
+    def test_trigger_generate_characters_creates_registry_for_web_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            characters_path = temp_path / "editorial" / "CHARACTERS.md"
+            glossary_path.parent.mkdir(parents=True, exist_ok=True)
+            glossary_path.write_text(
+                "# Glossary\n\n"
+                "## Proper Names\n\n"
+                "### Joseph Harrison\n"
+                "- Preferred form: `Joseph Harrison`\n"
+                "- Observed aliases or variants: `Joseph`\n"
+                "- Evidence: `chapter-0001-p-0001`\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_generate_characters(
+                glossary_path=glossary_path,
+                characters_path=characters_path,
+            )
+
+            self.assertEqual(summary["character_count"], 1)
+            self.assertTrue(characters_path.exists())
 
     def test_build_chapter_detail_state_groups_chunks_for_selected_chapter(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

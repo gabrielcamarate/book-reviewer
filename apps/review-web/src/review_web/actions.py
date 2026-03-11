@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from editorial_core.characters import generate_characters_registry
 from editorial_core.consistency_report import generate_consistency_report
 from editorial_core.copyedit import Runner, run_copyedit_pass
 from editorial_core.decisions import append_editorial_decision
@@ -103,6 +104,17 @@ def trigger_append_decision(
         title=title,
         rationale=rationale,
         scope=scope,
+    )
+
+
+def trigger_generate_characters(
+    *,
+    glossary_path: Path,
+    characters_path: Path,
+) -> dict[str, object]:
+    return generate_characters_registry(
+        glossary_path=glossary_path,
+        output_path=characters_path,
     )
 
 

@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+from editorial_core.characters import read_characters_registry
 from editorial_core.decisions import read_editorial_decisions
 from editorial_core.translation_es import STABLE_REVIEW_STATUSES
 
@@ -82,6 +83,10 @@ def _load_consistency_report(reports_dir: Path) -> dict[str, Any]:
 
 def _load_decisions(decisions_path: Path) -> list[dict[str, str]]:
     return list(reversed(read_editorial_decisions(decisions_path)))
+
+
+def _load_characters(characters_path: Path) -> list[dict[str, Any]]:
+    return read_characters_registry(characters_path)
 
 
 def _build_paragraph_chunk_map(chunks_dir: Path) -> dict[str, str]:
@@ -373,6 +378,14 @@ def build_decisions_state(*, decisions_path: Path) -> dict[str, Any]:
     }
 
 
+def build_characters_state(*, characters_path: Path) -> dict[str, Any]:
+    characters = _load_characters(characters_path)
+    return {
+        "character_count": len(characters),
+        "characters": characters,
+    }
+
+
 def build_chapter_detail_state(
     *,
     chapter_id: str,
@@ -640,6 +653,18 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
           </form>
         </section>
       </div>
+      <div class="layout" style="margin-top: 18px;">
+        <section>
+          <h2>Registro de Personagens</h2>
+          <p><a href="/characters">Abrir registro de personagens</a></p>
+        </section>
+        <section>
+          <h2>Atualizar Registro</h2>
+          <form method="post" action="/characters/run">
+            <button type="submit">Gerar Registro de Personagens</button>
+          </form>
+        </section>
+      </div>
     """
     return _render_page("Painel de Revisão Editorial", body)
 
@@ -672,6 +697,36 @@ def render_decisions_html(state: dict[str, Any]) -> str:
       </section>
     """
     return _render_page("Decisões Editoriais", body)
+
+
+def render_characters_html(state: dict[str, Any]) -> str:
+    character_items = "".join(
+        (
+            "<li>"
+            f"<strong>{html.escape(item['title'])}</strong><br>"
+            f"<code>{html.escape(item.get('preferred_form', item['title']))}</code><br>"
+            + (
+                f"<span class=\"muted\">Aliases: {html.escape(', '.join(item.get('aliases', [])))}</span><br>"
+                if item.get("aliases")
+                else "<span class=\"muted\">Aliases: none confirmed</span><br>"
+            )
+            + f"<span class=\"muted\">Evidence: {html.escape(', '.join(item.get('evidence', [])))}</span>"
+            "</li>"
+        )
+        for item in state["characters"]
+    ) or "<li>Nenhum personagem registrado.</li>"
+
+    body = f"""
+      <nav><a href=\"/\">← Painel</a></nav>
+      <section>
+        <h1>Registro de Personagens</h1>
+        <p class=\"muted\">Total de personagens registrados: <code>{state['character_count']}</code></p>
+      </section>
+      <section style=\"margin-top: 18px;\">
+        <ul>{character_items}</ul>
+      </section>
+    """
+    return _render_page("Registro de Personagens", body)
 
 
 def render_chapter_detail_html(state: dict[str, Any]) -> str:

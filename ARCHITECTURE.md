@@ -355,6 +355,15 @@ The system should reuse the approved section to infer:
 
 This memory must be converted into explicit artifacts under `editorial/`, not kept only inside prompts.
 
+Current persisted editorial memory includes:
+
+- `STYLE_GUIDE.md`
+- `GLOSSARY.md`
+- `DECISIONS.md`
+- `CHARACTERS.md`
+
+The web layer may inspect and regenerate these artifacts, but it must not replace the repository as the source of truth.
+
 ---
 
 # Editorial Safety Rules

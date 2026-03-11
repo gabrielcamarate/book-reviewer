@@ -11,10 +11,12 @@ from typing import Callable
 from editorial_core.codex_runner import run_codex_with_schema
 from review_web.dashboard import (
     build_chapter_detail_state,
+    build_characters_state,
     build_chunk_detail_state,
     build_consistency_detail_state,
     build_decisions_state,
     build_dashboard_state,
+    render_characters_html,
     render_chapter_detail_html,
     render_chunk_detail_html,
     render_consistency_detail_html,
@@ -22,6 +24,7 @@ from review_web.dashboard import (
     render_dashboard_html,
 )
 from review_web.actions import (
+    trigger_generate_characters,
     trigger_append_decision,
     trigger_export_docx,
     trigger_consistency_report,
@@ -114,6 +117,16 @@ def _build_decisions_loader(
 ) -> Callable[[], dict[str, object]]:
     def _load() -> dict[str, object]:
         return build_decisions_state(decisions_path=decisions_path)
+
+    return _load
+
+
+def _build_characters_loader(
+    *,
+    characters_path: Path,
+) -> Callable[[], dict[str, object]]:
+    def _load() -> dict[str, object]:
+        return build_characters_state(characters_path=characters_path)
 
     return _load
 
@@ -262,18 +275,34 @@ def _build_decision_action(
     return _run
 
 
+def _build_characters_action(
+    *,
+    glossary_path: Path,
+    characters_path: Path,
+) -> Callable[[], dict[str, object]]:
+    def _run() -> dict[str, object]:
+        return trigger_generate_characters(
+            glossary_path=glossary_path,
+            characters_path=characters_path,
+        )
+
+    return _run
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
     chunk_loader: Callable[[str], dict[str, object]] | None = None
     consistency_loader: Callable[[str], dict[str, object]] | None = None
     decisions_loader: Callable[[], dict[str, object]] | None = None
+    characters_loader: Callable[[], dict[str, object]] | None = None
     copyedit_action: Callable[[str], dict[str, object]] | None = None
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     consistency_action: Callable[[], dict[str, object]] | None = None
     translation_action: Callable[[str], dict[str, object]] | None = None
     export_action: Callable[[str], dict[str, object]] | None = None
     decision_action: Callable[[str, str, str], dict[str, object]] | None = None
+    characters_action: Callable[[], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
@@ -360,6 +389,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 return
             state = self.decisions_loader()
             payload = render_decisions_html(state).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
+        if self.path == "/characters":
+            if self.characters_loader is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "characters loader not configured")
+                return
+            state = self.characters_loader()
+            payload = render_characters_html(state).encode("utf-8")
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
@@ -493,6 +535,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path == "/characters/run":
+            if self.characters_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "characters action not configured")
+                return
+            self.characters_action()
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/characters")
+            self.end_headers()
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A003
@@ -505,12 +557,14 @@ def build_handler(
     chunk_loader: Callable[[str], dict[str, object]],
     consistency_loader: Callable[[str], dict[str, object]],
     decisions_loader: Callable[[], dict[str, object]],
+    characters_loader: Callable[[], dict[str, object]],
     copyedit_action: Callable[[str], dict[str, object]],
     approval_action: Callable[[str, list[int] | None], dict[str, object]],
     consistency_action: Callable[[], dict[str, object]],
     translation_action: Callable[[str], dict[str, object]],
     export_action: Callable[[str], dict[str, object]],
     decision_action: Callable[[str, str, str], dict[str, object]],
+    characters_action: Callable[[], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -520,12 +574,14 @@ def build_handler(
     ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
     ConfiguredDashboardHandler.consistency_loader = staticmethod(consistency_loader)
     ConfiguredDashboardHandler.decisions_loader = staticmethod(decisions_loader)
+    ConfiguredDashboardHandler.characters_loader = staticmethod(characters_loader)
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
     ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
     ConfiguredDashboardHandler.translation_action = staticmethod(translation_action)
     ConfiguredDashboardHandler.export_action = staticmethod(export_action)
     ConfiguredDashboardHandler.decision_action = staticmethod(decision_action)
+    ConfiguredDashboardHandler.characters_action = staticmethod(characters_action)
     return ConfiguredDashboardHandler
 
 
@@ -546,6 +602,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--style-guide", type=Path, default=Path("editorial/STYLE_GUIDE.md"))
     parser.add_argument("--glossary", type=Path, default=Path("editorial/GLOSSARY.md"))
     parser.add_argument("--decisions", type=Path, default=Path("editorial/DECISIONS.md"))
+    parser.add_argument("--characters", type=Path, default=Path("editorial/CHARACTERS.md"))
     parser.add_argument("--model", default="gpt-5-codex")
     return parser
 
@@ -581,6 +638,9 @@ def main() -> int:
         ),
         _build_decisions_loader(
             decisions_path=args.decisions,
+        ),
+        _build_characters_loader(
+            characters_path=args.characters,
         ),
         _build_copyedit_action(
             chunks_dir=args.chunks_dir,
@@ -620,6 +680,10 @@ def main() -> int:
         ),
         _build_decision_action(
             decisions_path=args.decisions,
+        ),
+        _build_characters_action(
+            glossary_path=args.glossary,
+            characters_path=args.characters,
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)

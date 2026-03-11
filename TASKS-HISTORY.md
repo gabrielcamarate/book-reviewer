@@ -612,3 +612,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-021`
+
+---
+
+## TASK-027 — Add characters registry generation and inspection
+
+Status: DONE
+
+Description:
+
+Generate and inspect a persistent characters registry from the approved and consolidated corpus.
+
+Acceptance Criteria:
+
+- `editorial/CHARACTERS.md` is generated or updated
+- web interface can inspect the registry
+- proper names and aliases remain traceable
+
+Dependencies:
+
+- requires `TASK-026`
