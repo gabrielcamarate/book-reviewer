@@ -387,6 +387,7 @@ Operator navigation is expected to remain local-first and deterministic:
 - long-running operator actions persist job outcomes under `reports/jobs/`
 - preview deployment must run against a checked-out repository branch, not against detached external state
 - repository validation must gate both CI and default web startup to block unsafe runtime assumptions early
+- repository diagnostics should separate blocking findings from advisory findings so operators can tell broken state apart from editorial anomalies
 
 ---
 

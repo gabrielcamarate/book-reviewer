@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-037 — Add a repository doctor command for operator diagnostics
-
-Status: TODO
-
-Description:
-
-Create a richer repository diagnostics command that goes beyond the minimum startup validation.
-
-Acceptance Criteria:
-
-- doctor output summarizes required artifacts and common failure modes
-- command distinguishes blocking versus advisory findings
-- output is usable from both CLI and future web/operator surfaces
-
-Dependencies:
-
-- requires `TASK-033`
-
----
-
 ## TASK-038 — Version prompt and model configuration explicitly
 
 Status: TODO

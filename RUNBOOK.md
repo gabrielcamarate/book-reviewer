@@ -18,6 +18,7 @@ Recommended commands:
 ```bash
 git status --short --branch
 ./scripts/workspace-python.sh -m review_cli.validate_repository_state
+./scripts/workspace-python.sh -m review_cli.repository_doctor
 ./scripts/workspace-python.sh -m review_web.server
 ```
 
