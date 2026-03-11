@@ -47,29 +47,9 @@ Goal:
 
 # Tasks
 
-## TASK-019 — Render structured `copyedit` suggestions with diff-oriented review view
-
-Status: IN_PROGRESS
-
-Description:
-
-Present copyedit suggestions in a way that supports fast literary review.
-
-Acceptance Criteria:
-
-- each suggestion shows original, suggested text, reason, and confidence
-- chunk page distinguishes untouched text from proposed changes
-- operator can inspect suggestions without leaving the chunk flow
-
-Dependencies:
-
-- requires `TASK-018`
-
----
-
 ## TASK-020 — Approve and apply selected `copyedit` suggestions from the web interface
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

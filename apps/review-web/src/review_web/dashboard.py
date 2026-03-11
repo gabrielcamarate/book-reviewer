@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
@@ -195,6 +196,27 @@ def _render_page(title: str, body: str) -> str:
       a {{
         color: var(--accent);
         text-decoration: none;
+      }}
+      .diff-grid {{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }}
+      .diff-panel {{
+        background: #f8efe3;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+      }}
+      .diff-added {{
+        background: #d7f5dc;
+        border-radius: 4px;
+        padding: 0 2px;
+      }}
+      .diff-removed {{
+        background: #fde2dc;
+        border-radius: 4px;
+        padding: 0 2px;
       }}
       pre {{
         white-space: pre-wrap;
@@ -418,6 +440,29 @@ def render_chapter_detail_html(state: dict[str, Any]) -> str:
     return _render_page(chapter["title"], body)
 
 
+def _render_inline_diff(original: str, suggested: str) -> tuple[str, str]:
+    matcher = SequenceMatcher(a=original, b=suggested)
+    original_parts: list[str] = []
+    suggested_parts: list[str] = []
+
+    for opcode, a_start, a_end, b_start, b_end in matcher.get_opcodes():
+        original_text = html.escape(original[a_start:a_end])
+        suggested_text = html.escape(suggested[b_start:b_end])
+
+        if opcode == "equal":
+            original_parts.append(original_text)
+            suggested_parts.append(suggested_text)
+        elif opcode == "delete":
+            original_parts.append(f"<span class=\"diff-removed\">{original_text}</span>")
+        elif opcode == "insert":
+            suggested_parts.append(f"<span class=\"diff-added\">{suggested_text}</span>")
+        elif opcode == "replace":
+            original_parts.append(f"<span class=\"diff-removed\">{original_text}</span>")
+            suggested_parts.append(f"<span class=\"diff-added\">{suggested_text}</span>")
+
+    return "".join(original_parts), "".join(suggested_parts)
+
+
 def render_chunk_detail_html(state: dict[str, Any]) -> str:
     chunk = state["chunk"]
     copyedit_review = state.get("copyedit_review")
@@ -434,13 +479,37 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
     copyedit_items = "".join(
         (
             "<li>"
-            f"<strong>{html.escape(suggestion.get('change_type', 'change'))}</strong><br>"
-            f"<span>{html.escape(suggestion.get('original', ''))}</span><br>"
-            f"→ <span>{html.escape(suggestion.get('suggested', ''))}</span><br>"
-            f"<span class=\"muted\">{html.escape(suggestion.get('reason', ''))}</span>"
+            f"<strong>{item['change_type']}</strong>"
+            "<div class=\"diff-grid\" style=\"margin-top: 8px;\">"
+            "<div class=\"diff-panel\">"
+            "<strong>Original</strong><br>"
+            f"{item['original_html']}"
+            "</div>"
+            "<div class=\"diff-panel\">"
+            "<strong>Suggested</strong><br>"
+            f"{item['suggested_html']}"
+            "</div>"
+            "</div>"
+            f"<div class=\"muted\" style=\"margin-top: 8px;\">{item['reason']}</div>"
+            f"<div class=\"muted\">Confidence: <code>{item['confidence']}</code></div>"
             "</li>"
         )
-        for suggestion in (copyedit_review or {}).get("suggestions", [])
+        for item in [
+            {
+                "change_type": html.escape(suggestion.get("change_type", "change")),
+                "reason": html.escape(suggestion.get("reason", "")),
+                "confidence": html.escape(str(suggestion.get("confidence", "unknown"))),
+                "original_html": _render_inline_diff(
+                    suggestion.get("original", ""),
+                    suggestion.get("suggested", ""),
+                )[0],
+                "suggested_html": _render_inline_diff(
+                    suggestion.get("original", ""),
+                    suggestion.get("suggested", ""),
+                )[1],
+            }
+            for suggestion in (copyedit_review or {}).get("suggestions", [])
+        ]
     ) or "<li>No persisted copyedit review.</li>"
     approval_summary = (
         f"<p class=\"muted\">Approved changes: <code>{approval.get('applied_change_count', 0)}</code></p>"
@@ -489,7 +558,7 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
       </div>
       <div class=\"two-col\" style=\"margin-top: 18px;\">
         <section>
-          <h3>Persisted Copyedit Review</h3>
+          <h3>Suggestion Review</h3>
           <ul>{copyedit_items}</ul>
           {approval_summary}
         </section>

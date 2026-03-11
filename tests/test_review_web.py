@@ -419,9 +419,17 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("Chunk Detail", html)
             self.assertIn("Trecho principal.", html)
             self.assertIn("Contexto seguinte.", html)
-            self.assertIn("Trecho principal revisado.", html)
+            self.assertIn("Trecho principal", html)
+            self.assertIn("revisado", html)
             self.assertIn("Fragmento principal.", html)
             self.assertIn("Run Copyedit", html)
+            self.assertIn("Suggestion Review", html)
+            self.assertIn("Original", html)
+            self.assertIn("Suggested", html)
+            self.assertIn("Confidence", html)
+            self.assertIn("0.88", html)
+            self.assertIn("diff-added", html)
+            self.assertIn("diff-removed", html)
 
     def test_trigger_copyedit_persists_review_for_selected_chunk(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
