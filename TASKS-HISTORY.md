@@ -1109,3 +1109,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-011`, `TASK-027`, `TASK-028`, and `TASK-029`
+
+---
+
+## TASK-051 — Add Spanish consistency validation
+
+Status: DONE
+
+Description:
+
+Validate that the Spanish output remains coherent with the established literary register and glossary.
+
+Acceptance Criteria:
+
+- Spanish consistency report is generated separately from `pt-BR`
+- glossary-sensitive terms are checked in Spanish outputs
+- findings remain auditable and non-destructive
+
+Dependencies:
+
+- requires `TASK-012` and `TASK-050`

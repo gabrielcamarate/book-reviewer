@@ -383,6 +383,12 @@ Cross-chapter consistency analysis must be registry-aware:
 
 Translate from the consolidated `pt-BR` text using a literary Spanish register compatible with the intended style.
 
+Spanish validation remains a separate report path:
+
+- Spanish consistency must not overwrite or merge into the `pt-BR` consistency report
+- translated artifacts are validated against glossary-sensitive terms and curated registries
+- Spanish findings remain auditable and non-destructive under their own report file
+
 Persisted LLM review artifacts must also include explicit provenance.
 
 Required provenance fields:

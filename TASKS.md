@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-051 — Add Spanish consistency validation
-
-Status: TODO
-
-Description:
-
-Validate that the Spanish output remains coherent with the established literary register and glossary.
-
-Acceptance Criteria:
-
-- Spanish consistency report is generated separately from `pt-BR`
-- glossary-sensitive terms are checked in Spanish outputs
-- findings remain auditable and non-destructive
-
-Dependencies:
-
-- requires `TASK-012` and `TASK-050`
-
----
-
 ## TASK-052 — Generate deliverable manifests and checksums
 
 Status: TODO

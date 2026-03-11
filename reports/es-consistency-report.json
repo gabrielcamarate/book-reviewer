@@ -1,0 +1,63 @@
+{
+  "scope": {
+    "translated_chunk_count": 1,
+    "translated_paragraph_count": 3,
+    "tracked_entry_count": 100
+  },
+  "finding_count": 4,
+  "findings_by_type": {
+    "missing_term_preservation": [
+      {
+        "entry_title": "Governador Espiritual",
+        "preferred_form": "Governador Espiritual",
+        "registry_sources": [
+          "glossary"
+        ],
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0276",
+        "chapter_id": "chapter-0001-conexao-dimensional",
+        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+        "source_term": "Governador Espiritual",
+        "translated_excerpt": "▬ Recuerdo mi encuentro con Jesús Cristo en la Isla de Gravatás, en la piel y en la existencia de Joseph Harrison ― Tom Harrison se refiere a su propio espíritu despojado del velo "
+      },
+      {
+        "entry_title": "Ilha de Gravatás",
+        "preferred_form": "Ilha de Gravatás",
+        "registry_sources": [
+          "glossary"
+        ],
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0276",
+        "chapter_id": "chapter-0001-conexao-dimensional",
+        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+        "source_term": "Ilha de Gravatás",
+        "translated_excerpt": "▬ Recuerdo mi encuentro con Jesús Cristo en la Isla de Gravatás, en la piel y en la existencia de Joseph Harrison ― Tom Harrison se refiere a su propio espíritu despojado del velo "
+      },
+      {
+        "entry_title": "Jesus Cristo",
+        "preferred_form": "Jesus Cristo",
+        "registry_sources": [
+          "characters",
+          "glossary"
+        ],
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0276",
+        "chapter_id": "chapter-0001-conexao-dimensional",
+        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+        "source_term": "Jesus Cristo",
+        "translated_excerpt": "▬ Recuerdo mi encuentro con Jesús Cristo en la Isla de Gravatás, en la piel y en la existencia de Joseph Harrison ― Tom Harrison se refiere a su propio espíritu despojado del velo "
+      },
+      {
+        "entry_title": "Sistema Terra",
+        "preferred_form": "Sistema Terra",
+        "registry_sources": [
+          "glossary",
+          "world_rules"
+        ],
+        "paragraph_id": "chapter-0001-conexao-dimensional-p-0274",
+        "chapter_id": "chapter-0001-conexao-dimensional",
+        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+        "source_term": "Sistema Terra",
+        "translated_excerpt": "▬ Toda precaución es poca cuando se trata del Sistema Tierra establecido ― advierte ― Por lo que entiendo, o el humano despierta o irá a habitar otros mundos compatibles con su evo"
+      }
+    ],
+    "spanish_term_variants": []
+  }
+}
