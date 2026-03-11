@@ -1728,6 +1728,7 @@
       "review_status": "pending_review"
     }
   ],
+  "declared_chapter_number": 1,
   "source_start_index": 148,
   "source_end_index": 618,
   "paragraph_count": 287,

@@ -49,6 +49,14 @@ The main workflow is:
 9. translate to Spanish
 10. export `.docx`
 
+When segmentation rules change for a manuscript already under operation, rebuild must happen through an explicit normalization step:
+
+1. regenerate canonical chapter structure
+2. reapply review-boundary state
+3. regenerate pending-review chunks
+4. sync repository-backed indexes that depend on chapter identifiers
+5. emit a rebuild report before resuming editorial work
+
 ---
 
 # Target Directory Structure

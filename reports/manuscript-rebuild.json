@@ -1,0 +1,68 @@
+{
+  "old": {
+    "chapter_count": 3,
+    "chunk_count": 432,
+    "chapter_ids": [
+      "chapter-0001-conexao-dimensional",
+      "chapter-0002-supremo-poder-anonimo",
+      "chapter-0003-guerra-dimensional"
+    ]
+  },
+  "new": {
+    "chapter_count": 5,
+    "chunk_count": 431,
+    "chapter_ids": [
+      "chapter-0001-conexao-dimensional",
+      "chapter-0002-supremo-poder-anonimo",
+      "chapter-0003-reset",
+      "chapter-0004-guerra-dimensional",
+      "chapter-0005-exilados-da-terra"
+    ],
+    "chapter_number_sequence": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "missing_chapter_numbers": []
+  },
+  "migration": {
+    "chapter_ids_added": [
+      "chapter-0003-reset",
+      "chapter-0004-guerra-dimensional",
+      "chapter-0005-exilados-da-terra"
+    ],
+    "chapter_ids_removed": [
+      "chapter-0003-guerra-dimensional"
+    ],
+    "chapter_ids_persisted": [
+      "chapter-0001-conexao-dimensional",
+      "chapter-0002-supremo-poder-anonimo"
+    ],
+    "chunk_count_delta": -1,
+    "consolidated_section_ids_added": [
+      "chapter-0003-reset",
+      "chapter-0004-guerra-dimensional",
+      "chapter-0005-exilados-da-terra"
+    ],
+    "consolidated_section_ids_removed": [
+      "chapter-0003-guerra-dimensional"
+    ]
+  },
+  "reviews": {
+    "ptbr_orphaned_review_files": [],
+    "es_orphaned_review_files": []
+  },
+  "integrity": {
+    "chapter_numbers_contiguous": true,
+    "missing_chapter_numbers": [],
+    "chapter_number_sequence": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}

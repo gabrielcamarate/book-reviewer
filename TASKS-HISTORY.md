@@ -972,3 +972,40 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-012`, `TASK-030`, and `TASK-031`
+
+---
+
+## TASK-045 — Generate a bilingual deliverable readiness report
+
+Status: DONE
+
+Description:
+
+Create a consolidated report that explains whether `pt-BR` and Spanish exports are currently safe to generate.
+
+Execution Notes:
+
+- task expanded to absorb segmentation normalization required to make readiness trustworthy
+- Word-export split headings such as `C` + `Apítulo` were normalized in the canonical parser
+- manuscript state was rebuilt from `paragraphs.json`, not from ad-hoc edits to `document.txt`
+- chapter navigation was revalidated by the user after the rebuild
+
+Subtasks Completed:
+
+- `TASK-045A` — Consolidated split-heading parser support, readiness report generation, and web visibility
+- `TASK-045B` — Captured the previous section/chunk baseline and measured migration impact
+- `TASK-045C` — Regenerated canonical chapter artifacts from extracted paragraphs
+- `TASK-045D` — Reapplied review-boundary marking and regenerated pending-review chunks
+- `TASK-045E` — Produced integrity and migration reporting in `reports/manuscript-rebuild.json`
+- `TASK-045F` — Refreshed repository-backed web/report state to reflect the rebuilt manuscript
+- `TASK-045G` — Completed human validation of rebuilt chapter navigation and manuscript coverage
+
+Acceptance Criteria:
+
+- readiness report covers both languages
+- blocking gaps are explicit by chunk or chapter
+- report is visible in the web workflow
+
+Dependencies:
+
+- requires `TASK-011`, `TASK-012`, and `TASK-025`
