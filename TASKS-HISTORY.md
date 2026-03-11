@@ -472,3 +472,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-018`
+
+---
+
+## TASK-020 — Approve and apply selected `copyedit` suggestions from the web interface
+
+Status: DONE
+
+Description:
+
+Allow the operator to approve all or part of a review and apply it to consolidated state.
+
+Acceptance Criteria:
+
+- selected suggestions can be approved from the web layer
+- approval file is persisted
+- consolidated manuscript state is updated only through existing backend logic
+
+Dependencies:
+
+- requires `TASK-019`

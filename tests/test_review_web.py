@@ -13,7 +13,7 @@ from review_web.dashboard import (
     render_chunk_detail_html,
     render_dashboard_html,
 )
-from review_web.actions import trigger_copyedit
+from review_web.actions import trigger_copyedit, trigger_review_approval
 
 
 class ReviewWebDashboardTest(unittest.TestCase):
@@ -430,6 +430,10 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("0.88", html)
             self.assertIn("diff-added", html)
             self.assertIn("diff-removed", html)
+            self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001/approve-copyedit", html)
+            self.assertIn("name=\"approve_index\"", html)
+            self.assertIn("value=\"0\"", html)
+            self.assertIn("Approve Selected Changes", html)
 
     def test_trigger_copyedit_persists_review_for_selected_chunk(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -514,3 +518,174 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 )
             )
             self.assertEqual(persisted["suggestions"][0]["suggested"], "Trecho principal revisado.")
+
+    def test_trigger_review_approval_persists_partial_selection_and_updates_consolidated_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": [
+                            "chapter-0001-conexao-dimensional-p-0001",
+                            "chapter-0001-conexao-dimensional-p-0002",
+                        ],
+                        "base_text": "Primeiro parágrafo pendente.\n\nSegundo parágrafo pendente.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "type": "chapter",
+                                "order": 1,
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                                "review_status": "mixed",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "type": "chapter",
+                        "order": 1,
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "review_status": "mixed",
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_index": 1,
+                                "text": "Primeiro parágrafo pendente.",
+                                "review_status": "pending_review",
+                            },
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0002",
+                                "source_index": 2,
+                                "text": "Segundo parágrafo pendente.",
+                                "review_status": "pending_review",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "pass": "copyedit",
+                        "language": "pt-BR",
+                        "source": {
+                            "section_id": "chapter-0001-conexao-dimensional",
+                            "section_title": "Capítulo 1: Conexão Dimensional.",
+                            "paragraph_ids": [
+                                "chapter-0001-conexao-dimensional-p-0001",
+                                "chapter-0001-conexao-dimensional-p-0002",
+                            ],
+                        },
+                        "suggestions": [
+                            {
+                                "original": "Primeiro parágrafo pendente.",
+                                "suggested": "Primeiro parágrafo revisado.",
+                                "change_type": "grammar",
+                                "reason": "Ajuste gramatical.",
+                                "confidence": 0.9,
+                            },
+                            {
+                                "original": "Segundo parágrafo pendente.",
+                                "suggested": "Segundo parágrafo revisado.",
+                                "change_type": "punctuation",
+                                "reason": "Ajuste de pontuação.",
+                                "confidence": 0.8,
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_review_approval(
+                chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
+                chunks_dir=chunks_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_dir=reviews_ptbr_dir,
+                approved_suggestion_indexes=[1],
+            )
+
+            approval_payload = json.loads(
+                (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.approval.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            consolidated_payload = json.loads(
+                (consolidated_dir / "chapter-0001-conexao-dimensional.json").read_text(encoding="utf-8")
+            )
+
+            self.assertEqual(summary["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(summary["approved_suggestion_count"], 1)
+            self.assertEqual(approval_payload["approved_suggestion_indexes"], [1])
+            self.assertEqual(approval_payload["applied_change_count"], 1)
+            self.assertEqual(
+                consolidated_payload["paragraphs"][0]["text"],
+                "Primeiro parágrafo pendente.",
+            )
+            self.assertEqual(
+                consolidated_payload["paragraphs"][1]["text"],
+                "Segundo parágrafo revisado.",
+            )

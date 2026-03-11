@@ -479,7 +479,9 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
     copyedit_items = "".join(
         (
             "<li>"
+            f"<label><input type=\"checkbox\" name=\"approve_index\" value=\"{item['index']}\" checked> "
             f"<strong>{item['change_type']}</strong>"
+            "</label>"
             "<div class=\"diff-grid\" style=\"margin-top: 8px;\">"
             "<div class=\"diff-panel\">"
             "<strong>Original</strong><br>"
@@ -496,6 +498,7 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
         )
         for item in [
             {
+                "index": index,
                 "change_type": html.escape(suggestion.get("change_type", "change")),
                 "reason": html.escape(suggestion.get("reason", "")),
                 "confidence": html.escape(str(suggestion.get("confidence", "unknown"))),
@@ -508,7 +511,7 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
                     suggestion.get("suggested", ""),
                 )[1],
             }
-            for suggestion in (copyedit_review or {}).get("suggestions", [])
+            for index, suggestion in enumerate((copyedit_review or {}).get("suggestions", []))
         ]
     ) or "<li>No persisted copyedit review.</li>"
     approval_summary = (
@@ -559,7 +562,10 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
       <div class=\"two-col\" style=\"margin-top: 18px;\">
         <section>
           <h3>Suggestion Review</h3>
-          <ul>{copyedit_items}</ul>
+          <form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/approve-copyedit\">
+            <ul>{copyedit_items}</ul>
+            <button type=\"submit\">Approve Selected Changes</button>
+          </form>
           {approval_summary}
         </section>
         <section>

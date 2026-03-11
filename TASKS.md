@@ -49,27 +49,9 @@ Goal:
 
 ## TASK-020 — Approve and apply selected `copyedit` suggestions from the web interface
 
-Status: IN_PROGRESS
-
-Description:
-
-Allow the operator to approve all or part of a review and apply it to consolidated state.
-
-Acceptance Criteria:
-
-- selected suggestions can be approved from the web layer
-- approval file is persisted
-- consolidated manuscript state is updated only through existing backend logic
-
-Dependencies:
-
-- requires `TASK-019`
-
----
-
 ## TASK-021 — Surface consolidated paragraph state and audit trail in the web interface
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 

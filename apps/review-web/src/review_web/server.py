@@ -5,7 +5,7 @@ import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import parse_qs, unquote
 from typing import Callable
 
 from editorial_core.codex_runner import run_codex_with_schema
@@ -17,7 +17,7 @@ from review_web.dashboard import (
     render_chunk_detail_html,
     render_dashboard_html,
 )
-from review_web.actions import trigger_copyedit
+from review_web.actions import trigger_copyedit, trigger_review_approval
 
 DashboardLoader = Callable[[], dict[str, object]]
 
@@ -108,11 +108,32 @@ def _build_copyedit_action(
     return _run
 
 
+def _build_approval_action(
+    *,
+    chunks_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    reviews_ptbr_dir: Path,
+) -> Callable[[str, list[int] | None], dict[str, object]]:
+    def _run(chunk_id: str, approved_suggestion_indexes: list[int] | None) -> dict[str, object]:
+        return trigger_review_approval(
+            chunk_id=chunk_id,
+            chunks_dir=chunks_dir,
+            chapters_dir=chapters_dir,
+            consolidated_dir=consolidated_dir,
+            reviews_dir=reviews_ptbr_dir,
+            approved_suggestion_indexes=approved_suggestion_indexes,
+        )
+
+    return _run
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     dashboard_loader: DashboardLoader | None = None
     chapter_loader: Callable[[str], dict[str, object]] | None = None
     chunk_loader: Callable[[str], dict[str, object]] | None = None
     copyedit_action: Callable[[str], dict[str, object]] | None = None
+    approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
 
     def do_GET(self) -> None:  # noqa: N802
         if self.dashboard_loader is None:
@@ -197,6 +218,35 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path.startswith("/chunks/") and self.path.endswith("/approve-copyedit"):
+            if self.approval_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "approval action not configured")
+                return
+            chunk_id = unquote(self.path.removeprefix("/chunks/").removesuffix("/approve-copyedit"))
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            form_data = parse_qs(raw_body, keep_blank_values=False)
+            approved_indexes = [
+                int(value)
+                for value in form_data.get("approve_index", [])
+            ]
+            try:
+                self.approval_action(
+                    chunk_id,
+                    approved_indexes or None,
+                )
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except FileNotFoundError:
+                self.send_error(HTTPStatus.NOT_FOUND, "copyedit review not found")
+                return
+
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", f"/chunks/{chunk_id}")
+            self.end_headers()
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND, "not found")
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A003
@@ -208,6 +258,7 @@ def build_handler(
     chapter_loader: Callable[[str], dict[str, object]],
     chunk_loader: Callable[[str], dict[str, object]],
     copyedit_action: Callable[[str], dict[str, object]],
+    approval_action: Callable[[str, list[int] | None], dict[str, object]],
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -216,6 +267,7 @@ def build_handler(
     ConfiguredDashboardHandler.chapter_loader = staticmethod(chapter_loader)
     ConfiguredDashboardHandler.chunk_loader = staticmethod(chunk_loader)
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
+    ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
     return ConfiguredDashboardHandler
 
 
@@ -226,6 +278,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind.")
     parser.add_argument("--port", type=int, default=8765, help="Port to bind.")
     parser.add_argument("--chunks-dir", type=Path, default=Path("manuscript/chunks"))
+    parser.add_argument("--chapters-dir", type=Path, default=Path("manuscript/chapters"))
     parser.add_argument("--consolidated-dir", type=Path, default=Path("manuscript/consolidated"))
     parser.add_argument("--reports-dir", type=Path, default=Path("reports"))
     parser.add_argument("--reviews-ptbr-dir", type=Path, default=Path("reviews/ptbr"))
@@ -265,6 +318,12 @@ def main() -> int:
             style_guide_path=args.style_guide,
             glossary_path=args.glossary,
             model=args.model,
+        ),
+        _build_approval_action(
+            chunks_dir=args.chunks_dir,
+            chapters_dir=args.chapters_dir,
+            consolidated_dir=args.consolidated_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
         ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)
