@@ -124,24 +124,34 @@ def _build_chapter_summary(
     chunks_by_section: dict[str, list[dict[str, Any]]],
 ) -> list[dict[str, Any]]:
     consolidated_index = _load_consolidated_index(consolidated_dir)
-    chapters: list[dict[str, Any]] = []
+    chapters_by_id: dict[str, dict[str, Any]] = {}
     for section in consolidated_index.get("sections", []):
         if not str(section.get("id", "")).startswith("chapter-"):
             continue
-        chapters.append(
-            {
-                "id": section["id"],
-                "title": section.get("title", "Untitled Chapter"),
-                "review_status": section.get("review_status", "unknown"),
-                "chunk_count": len(chunks_by_section.get(section["id"], [])),
-            }
-        )
-    return chapters
+        chapters_by_id[section["id"]] = {
+            "id": section["id"],
+            "title": section.get("title", "Capítulo sem título"),
+            "review_status": section.get("review_status", "unknown"),
+            "chunk_count": len(chunks_by_section.get(section["id"], [])),
+        }
+
+    for section_id, chunks in chunks_by_section.items():
+        if not section_id.startswith("chapter-") or section_id in chapters_by_id:
+            continue
+        first_chunk = chunks[0]
+        chapters_by_id[section_id] = {
+            "id": section_id,
+            "title": first_chunk.get("section_title", "Capítulo sem título"),
+            "review_status": "unknown",
+            "chunk_count": len(chunks),
+        }
+
+    return [chapters_by_id[chapter_id] for chapter_id in sorted(chapters_by_id)]
 
 
 def _render_page(title: str, body: str) -> str:
     return f"""<!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -306,7 +316,14 @@ def build_chapter_detail_state(
         None,
     )
     if chapter is None:
-        raise ValueError(f"chapter not found: {chapter_id}")
+        fallback_chunks = chunks_by_section.get(chapter_id)
+        if not fallback_chunks:
+            raise ValueError(f"chapter not found: {chapter_id}")
+        chapter = {
+            "id": chapter_id,
+            "title": fallback_chunks[0].get("section_title", "Capítulo sem título"),
+            "review_status": "unknown",
+        }
 
     return {
         "chapter": {
@@ -373,7 +390,7 @@ def build_chunk_detail_state(
     consolidated_paragraphs: list[dict[str, Any]] = []
     translation_eligibility = {
         "eligible": False,
-        "reason": "Chunk is not ready for Spanish translation.",
+        "reason": "O chunk ainda não está pronto para tradução ao espanhol.",
     }
     if consolidated_payload is not None:
         target_paragraph_ids = set(chunk_payload.get("paragraph_ids", []))
@@ -385,7 +402,7 @@ def build_chunk_detail_state(
         if translation_path.exists():
             translation_eligibility = {
                 "eligible": False,
-                "reason": "Spanish translation already exists for this chunk.",
+                "reason": "Já existe tradução em espanhol para este chunk.",
             }
         elif consolidated_paragraphs and all(
             paragraph.get("review_status") in STABLE_REVIEW_STATUSES
@@ -393,12 +410,12 @@ def build_chunk_detail_state(
         ):
             translation_eligibility = {
                 "eligible": True,
-                "reason": "Chunk is stable and ready for Spanish translation.",
+                "reason": "O chunk está estável e pronto para tradução ao espanhol.",
             }
         else:
             translation_eligibility = {
                 "eligible": False,
-                "reason": "Chunk requires stable pt-BR approval before Spanish translation.",
+                "reason": "O chunk precisa de aprovação estável em pt-BR antes da tradução ao espanhol.",
             }
     translation_comparison: list[dict[str, Any]] = []
     translation_map = {
@@ -446,7 +463,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
             "</li>"
         )
         for chapter in chapters
-    ) or "<li>No chapters available.</li>"
+    ) or "<li>Nenhum capítulo disponível.</li>"
 
     chunk_items = "".join(
         (
@@ -457,7 +474,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
             "</li>"
         )
         for chunk in recent_chunks
-    ) or "<li>No chunks available.</li>"
+    ) or "<li>Nenhum chunk disponível.</li>"
 
     finding_items = "".join(
         (
@@ -466,7 +483,7 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
             "</li>"
         )
         for item in consistency_report["finding_types"]
-    ) or "<li>No consistency report available.</li>"
+    ) or "<li>Nenhum relatório de consistência disponível.</li>"
 
     deliverable_items = "".join(
         (
@@ -476,46 +493,46 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
             "</li>"
         )
         for item in deliverables
-    ) or "<li>No deliverables generated yet.</li>"
+    ) or "<li>Nenhum entregável gerado ainda.</li>"
 
     body = f"""
       <header>
-        <h1>Editorial Review Dashboard</h1>
-        <p>Local-first web interface over the persisted editorial review backend.</p>
+        <h1>Painel de Revisão Editorial</h1>
+        <p>Interface web local sobre o backend persistido de revisão editorial.</p>
       </header>
       <div class="grid">
-        <div class="card"><span>Pending Review Chunks</span><strong>{summary['pending_chunk_count']}</strong></div>
-        <div class="card"><span>Sections in Consolidated State</span><strong>{summary['section_count']}</strong></div>
-        <div class="card"><span>pt-BR Review Files</span><strong>{summary['copyedit_review_count']}</strong></div>
-        <div class="card"><span>Spanish Translation Files</span><strong>{summary['translation_review_count']}</strong></div>
-        <div class="card"><span>Generated Deliverables</span><strong>{summary['deliverable_count']}</strong></div>
-        <div class="card"><span>Consistency Findings</span><strong>{consistency_report['finding_count']}</strong></div>
+        <div class="card"><span>Chunks Pendentes de Revisão</span><strong>{summary['pending_chunk_count']}</strong></div>
+        <div class="card"><span>Seções no Estado Consolidado</span><strong>{summary['section_count']}</strong></div>
+        <div class="card"><span>Arquivos de Revisão pt-BR</span><strong>{summary['copyedit_review_count']}</strong></div>
+        <div class="card"><span>Arquivos de Tradução Espanhola</span><strong>{summary['translation_review_count']}</strong></div>
+        <div class="card"><span>Entregáveis Gerados</span><strong>{summary['deliverable_count']}</strong></div>
+        <div class="card"><span>Achados de Consistência</span><strong>{consistency_report['finding_count']}</strong></div>
       </div>
       <div class="layout">
         <section>
-          <h2>Chapter Navigation</h2>
+          <h2>Navegação por Capítulo</h2>
           <ul>{chapter_items}</ul>
         </section>
         <section>
-          <h2>Consistency Report</h2>
+          <h2>Relatório de Consistência</h2>
           <form method=\"post\" action=\"/consistency/run\" style=\"margin: 0 0 12px;\">
-            <button type=\"submit\">Regenerate Consistency Report</button>
+            <button type=\"submit\">Regenerar Relatório de Consistência</button>
           </form>
           <ul>{finding_items}</ul>
         </section>
       </div>
       <div class="layout" style="margin-top: 18px;">
         <section>
-          <h2>Recent Chunks</h2>
+          <h2>Chunks Recentes</h2>
           <ul>{chunk_items}</ul>
         </section>
         <section>
-          <h2>Deliverables</h2>
+          <h2>Entregáveis</h2>
           <ul>{deliverable_items}</ul>
         </section>
       </div>
     """
-    return _render_page("Editorial Review Dashboard", body)
+    return _render_page("Painel de Revisão Editorial", body)
 
 
 def render_chapter_detail_html(state: dict[str, Any]) -> str:
@@ -529,14 +546,14 @@ def render_chapter_detail_html(state: dict[str, Any]) -> str:
             "</li>"
         )
         for chunk in chunks
-    ) or "<li>No chunks available for this chapter.</li>"
+    ) or "<li>Nenhum chunk disponível para este capítulo.</li>"
 
     body = f"""
-      <nav><a href=\"/\">← Dashboard</a></nav>
+      <nav><a href=\"/\">← Painel</a></nav>
       <section>
         <h1>{html.escape(chapter['title'])}</h1>
-        <p><strong>Chapter Navigation</strong> for <code>{html.escape(chapter['id'])}</code></p>
-        <p class=\"muted\">Review status: <code>{html.escape(chapter['review_status'])}</code></p>
+        <p><strong>Navegação por Capítulo</strong> para <code>{html.escape(chapter['id'])}</code></p>
+        <p class=\"muted\">Status de revisão: <code>{html.escape(chapter['review_status'])}</code></p>
       </section>
       <section style=\"margin-top: 18px;\">
         <h2>Chunks</h2>
@@ -552,27 +569,27 @@ def render_consistency_detail_html(state: dict[str, Any]) -> str:
             "<li>"
             f"<pre>{html.escape(json.dumps(finding, ensure_ascii=False, indent=2))}</pre>"
             + (
-                f"<p><a class=\"chunk-link\" href=\"/chunks/{html.escape(finding['resolved_chunk_id'])}\">Open related chunk</a></p>"
+                f"<p><a class=\"chunk-link\" href=\"/chunks/{html.escape(finding['resolved_chunk_id'])}\">Abrir chunk relacionado</a></p>"
                 if finding.get("resolved_chunk_id")
                 else ""
             )
             + "</li>"
         )
         for finding in state["findings"]
-    ) or "<li>No findings for this type.</li>"
+    ) or "<li>Nenhum achado para este tipo.</li>"
 
     body = f"""
-      <nav><a href=\"/\">← Dashboard</a></nav>
+      <nav><a href=\"/\">← Painel</a></nav>
       <section>
-        <h1>Consistency Findings</h1>
+        <h1>Achados de Consistência</h1>
         <p><strong>{html.escape(state['finding_type'])}</strong></p>
-        <p class=\"muted\">Findings: <code>{state['finding_count']}</code></p>
+        <p class=\"muted\">Achados: <code>{state['finding_count']}</code></p>
       </section>
       <section style=\"margin-top: 18px;\">
         <ul>{finding_items}</ul>
       </section>
     """
-    return _render_page(f"Consistency · {state['finding_type']}", body)
+    return _render_page(f"Consistência · {state['finding_type']}", body)
 
 
 def _render_inline_diff(original: str, suggested: str) -> tuple[str, str]:
@@ -607,16 +624,16 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
     translation_comparison = state.get("translation_comparison", [])
     translation_eligibility = state.get(
         "translation_eligibility",
-        {"eligible": False, "reason": "Chunk is not ready for Spanish translation."},
+        {"eligible": False, "reason": "O chunk ainda não está pronto para tradução ao espanhol."},
     )
     previous_context = "".join(
         f"<li><pre>{html.escape(item.get('text', ''))}</pre></li>"
         for item in chunk.get("previous_context", [])
-    ) or "<li>No previous context.</li>"
+    ) or "<li>Nenhum contexto anterior.</li>"
     next_context = "".join(
         f"<li><pre>{html.escape(item.get('text', ''))}</pre></li>"
         for item in chunk.get("next_context", [])
-    ) or "<li>No next context.</li>"
+    ) or "<li>Nenhum contexto seguinte.</li>"
     copyedit_items = "".join(
         (
             "<li>"
@@ -629,12 +646,12 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
             f"{item['original_html']}"
             "</div>"
             "<div class=\"diff-panel\">"
-            "<strong>Suggested</strong><br>"
+            "<strong>Sugerido</strong><br>"
             f"{item['suggested_html']}"
             "</div>"
             "</div>"
             f"<div class=\"muted\" style=\"margin-top: 8px;\">{item['reason']}</div>"
-            f"<div class=\"muted\">Confidence: <code>{item['confidence']}</code></div>"
+            f"<div class=\"muted\">Confiança: <code>{item['confidence']}</code></div>"
             "</li>"
         )
         for item in [
@@ -654,11 +671,11 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
             }
             for index, suggestion in enumerate((copyedit_review or {}).get("suggestions", []))
         ]
-    ) or "<li>No persisted copyedit review.</li>"
+    ) or "<li>Nenhuma revisão de copyedit persistida.</li>"
     approval_summary = (
-        f"<p class=\"muted\">Approved changes: <code>{approval.get('applied_change_count', 0)}</code></p>"
+        f"<p class=\"muted\">Alterações aprovadas: <code>{approval.get('applied_change_count', 0)}</code></p>"
         if approval is not None
-        else "<p class=\"muted\">No persisted approval record.</p>"
+        else "<p class=\"muted\">Nenhum registro persistido de aprovação.</p>"
     )
     translation_items = "".join(
         (
@@ -669,35 +686,35 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
             "</li>"
         )
         for item in (translation_review or {}).get("translations", [])
-    ) or "<li>No persisted Spanish translation.</li>"
+    ) or "<li>Nenhuma tradução espanhola persistida.</li>"
     if translation_eligibility["eligible"]:
         translation_controls = (
             f"<form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/translation-es\" style=\"margin: 0 0 12px;\">"
-            "<button type=\"submit\">Run Spanish Translation</button>"
+            "<button type=\"submit\">Executar Tradução para Espanhol</button>"
             "</form>"
         )
     else:
         translation_controls = (
-            f"<p class=\"muted\">Translation unavailable: {html.escape(translation_eligibility['reason'])}</p>"
+            f"<p class=\"muted\">Tradução indisponível: {html.escape(translation_eligibility['reason'])}</p>"
         )
     consolidated_items = "".join(
         (
             "<li>"
             f"<strong>{html.escape(paragraph.get('id', ''))}</strong>"
             f"<div class=\"muted\">Status: <code>{html.escape(paragraph.get('review_status', 'unknown'))}</code></div>"
-            "<div style=\"margin-top: 8px;\"><strong>Current Text</strong><pre>"
+            "<div style=\"margin-top: 8px;\"><strong>Texto Atual</strong><pre>"
             f"{html.escape(paragraph.get('text', ''))}"
             "</pre></div>"
-            "<div style=\"margin-top: 8px;\"><strong>Source Text</strong><pre>"
+            "<div style=\"margin-top: 8px;\"><strong>Texto-Fonte</strong><pre>"
             f"{html.escape(paragraph.get('source_text', ''))}"
             "</pre></div>"
-            "<div style=\"margin-top: 8px;\"><strong>Applied Review Metadata</strong>"
+            "<div style=\"margin-top: 8px;\"><strong>Metadados da Revisão Aplicada</strong>"
             f"{_render_applied_review_metadata(paragraph.get('applied_reviews', []))}"
             "</div>"
             "</li>"
         )
         for paragraph in consolidated_paragraphs
-    ) or "<li>No consolidated paragraph state for this chunk yet.</li>"
+    ) or "<li>Ainda não há estado consolidado para este chunk.</li>"
     translation_comparison_items = "".join(
         (
             "<li>"
@@ -713,62 +730,62 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
             "</div>"
             "</div>"
             f"<div class=\"muted\" style=\"margin-top: 8px;\">{html.escape(str(item.get('rationale', '')))}</div>"
-            f"<div class=\"muted\">Confidence: <code>{html.escape(str(item.get('confidence', '')))}</code></div>"
+            f"<div class=\"muted\">Confiança: <code>{html.escape(str(item.get('confidence', '')))}</code></div>"
             "</li>"
         )
         for item in translation_comparison
-    ) or "<li>No aligned pt-BR/Spanish comparison available for this chunk yet.</li>"
+    ) or "<li>Ainda não há comparação alinhada entre pt-BR e espanhol para este chunk.</li>"
 
     body = f"""
       <nav>
-        <a href=\"/\">← Dashboard</a>
+        <a href=\"/\">← Painel</a>
         &nbsp;·&nbsp;
-        <a href=\"/chapters/{html.escape(chunk['section_id'])}\">Back to chapter</a>
+        <a href=\"/chapters/{html.escape(chunk['section_id'])}\">Voltar ao capítulo</a>
       </nav>
       <section>
-        <h1>Chunk Detail</h1>
+        <h1>Detalhe do Chunk</h1>
         <p><strong>{html.escape(chunk['id'])}</strong></p>
-        <p class=\"muted\">{html.escape(chunk.get('section_title', 'Untitled Section'))}</p>
+        <p class=\"muted\">{html.escape(chunk.get('section_title', 'Seção sem título'))}</p>
         <p class=\"muted\">Status: <code>{html.escape(chunk.get('review_status', 'unknown'))}</code></p>
       </section>
       <article style=\"margin-top: 18px;\">
-        <h2>Chunk Text</h2>
+        <h2>Texto do Chunk</h2>
         <form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/copyedit\" style=\"margin: 0 0 12px;\">
-          <button type=\"submit\">Run Copyedit</button>
+          <button type=\"submit\">Executar Copyedit</button>
         </form>
         <pre>{html.escape(chunk.get('base_text', ''))}</pre>
       </article>
       <div class=\"two-col\" style=\"margin-top: 18px;\">
         <section>
-          <h3>Previous Context</h3>
+          <h3>Contexto Anterior</h3>
           <ul>{previous_context}</ul>
         </section>
         <section>
-          <h3>Next Context</h3>
+          <h3>Contexto Seguinte</h3>
           <ul>{next_context}</ul>
         </section>
       </div>
       <div class=\"two-col\" style=\"margin-top: 18px;\">
         <section>
-          <h3>Suggestion Review</h3>
+          <h3>Revisão de Sugestões</h3>
           <form method=\"post\" action=\"/chunks/{html.escape(chunk['id'])}/approve-copyedit\">
             <ul>{copyedit_items}</ul>
-            <button type=\"submit\">Approve Selected Changes</button>
+            <button type=\"submit\">Aprovar Alterações Selecionadas</button>
           </form>
           {approval_summary}
         </section>
         <section>
-          <h3>Persisted Spanish Translation</h3>
+          <h3>Tradução Espanhola Persistida</h3>
           {translation_controls}
           <ul>{translation_items}</ul>
         </section>
       </div>
       <section style=\"margin-top: 18px;\">
-        <h3>Consolidated Paragraph State</h3>
+        <h3>Estado Consolidado dos Parágrafos</h3>
         <ul>{consolidated_items}</ul>
       </section>
       <section style=\"margin-top: 18px;\">
-        <h3>pt-BR and Spanish Comparison</h3>
+        <h3>Comparação pt-BR e Espanhol</h3>
         <ul>{translation_comparison_items}</ul>
       </section>
     """
@@ -777,7 +794,7 @@ def render_chunk_detail_html(state: dict[str, Any]) -> str:
 
 def _render_applied_review_metadata(applied_reviews: list[dict[str, Any]]) -> str:
     if not applied_reviews:
-        return "<p class=\"muted\">No applied reviews recorded.</p>"
+        return "<p class=\"muted\">Nenhuma revisão aplicada registrada.</p>"
 
     items = "".join(
         (

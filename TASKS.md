@@ -47,8 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-020 — Approve and apply selected `copyedit` suggestions from the web interface
-
 ## TASK-025 — Trigger `pt-BR` and Spanish export from the web interface
 
 Status: IN_PROGRESS

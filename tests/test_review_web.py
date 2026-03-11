@@ -164,6 +164,90 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["consistency_report"]["finding_count"], 12)
             self.assertEqual(state["recent_chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
 
+    def test_build_dashboard_state_includes_chunk_only_chapters_when_consolidated_index_is_incomplete(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reports_dir = temp_path / "reports"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            deliverables_dir = temp_path / "deliverables"
+
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+            deliverables_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 2,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            },
+                            {
+                                "id": "chapter-0002-supremo-poder-anonimo-chunk-0001",
+                                "section_id": "chapter-0002-supremo-poder-anonimo",
+                                "section_title": "Capítulo 2: Supremo Poder Anônimo.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0002-supremo-poder-anonimo-chunk-0001.json",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "review_status": "mixed",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_dashboard_state(
+                chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
+                reports_dir=reports_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
+                deliverables_dir=deliverables_dir,
+            )
+
+            chapter_ids = [chapter["id"] for chapter in state["chapters"]]
+            self.assertEqual(
+                chapter_ids,
+                [
+                    "chapter-0001-conexao-dimensional",
+                    "chapter-0002-supremo-poder-anonimo",
+                ],
+            )
+            self.assertEqual(state["chapters"][1]["title"], "Capítulo 2: Supremo Poder Anônimo.")
+
     def test_render_dashboard_html_includes_web_operational_sections(self) -> None:
         html = render_dashboard_html(
             {
@@ -205,9 +289,9 @@ class ReviewWebDashboardTest(unittest.TestCase):
             }
         )
 
-        self.assertIn("Editorial Review Dashboard", html)
-        self.assertIn("Pending Review Chunks", html)
-        self.assertIn("Consistency Report", html)
+        self.assertIn("Painel de Revisão Editorial", html)
+        self.assertIn("Chunks Pendentes de Revisão", html)
+        self.assertIn("Relatório de Consistência", html)
         self.assertIn("Capítulo 1: Conexão Dimensional.", html)
         self.assertIn("exilados-da-terra.ptbr.docx", html)
         self.assertIn("/consistency/alias_usage", html)
@@ -293,8 +377,60 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["chunks"][0]["id"], "chapter-0001-conexao-dimensional-chunk-0001")
 
             html = render_chapter_detail_html(state)
-            self.assertIn("Chapter Navigation", html)
+            self.assertIn("Navegação por Capítulo", html)
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001", html)
+
+    def test_build_chapter_detail_state_falls_back_to_chunk_navigation_when_consolidated_entry_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0002-supremo-poder-anonimo-chunk-0001",
+                                "section_id": "chapter-0002-supremo-poder-anonimo",
+                                "section_title": "Capítulo 2: Supremo Poder Anônimo.",
+                                "review_status": "pending_review",
+                                "file": "chapter-0002-supremo-poder-anonimo-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 0,
+                        "chapter_count": 0,
+                        "sections": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_chapter_detail_state(
+                chapter_id="chapter-0002-supremo-poder-anonimo",
+                chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
+            )
+
+            self.assertEqual(state["chapter"]["title"], "Capítulo 2: Supremo Poder Anônimo.")
+            self.assertEqual(state["chapter"]["review_status"], "unknown")
+            self.assertEqual(state["chunks"][0]["id"], "chapter-0002-supremo-poder-anonimo-chunk-0001")
 
     def test_build_consistency_detail_state_groups_findings_and_links_back_to_chunks(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -384,7 +520,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["findings"][0]["resolved_chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
 
             html = render_consistency_detail_html(state)
-            self.assertIn("Consistency Findings", html)
+            self.assertIn("Achados de Consistência", html)
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001", html)
             self.assertIn("Soberania Energia Universal", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001", html)
@@ -559,7 +695,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertEqual(state["consolidated_paragraphs"][0]["text"], "Trecho principal revisado.")
             self.assertEqual(state["consolidated_paragraphs"][0]["source_text"], "Trecho principal.")
             self.assertFalse(state["translation_eligibility"]["eligible"])
-            self.assertIn("already exists", state["translation_eligibility"]["reason"])
+            self.assertIn("Já existe tradução", state["translation_eligibility"]["reason"])
             self.assertEqual(state["translation_comparison"][0]["paragraph_id"], "chapter-0001-conexao-dimensional-p-0001")
             self.assertEqual(state["translation_comparison"][0]["ptbr_text"], "Trecho principal revisado.")
             self.assertEqual(state["translation_comparison"][0]["translated_text"], "Fragmento principal.")
@@ -569,31 +705,31 @@ class ReviewWebDashboardTest(unittest.TestCase):
             )
 
             html = render_chunk_detail_html(state)
-            self.assertIn("Chunk Detail", html)
+            self.assertIn("Detalhe do Chunk", html)
             self.assertIn("Trecho principal.", html)
             self.assertIn("Contexto seguinte.", html)
             self.assertIn("Trecho principal", html)
             self.assertIn("revisado", html)
             self.assertIn("Fragmento principal.", html)
-            self.assertIn("Run Copyedit", html)
-            self.assertIn("Suggestion Review", html)
+            self.assertIn("Executar Copyedit", html)
+            self.assertIn("Revisão de Sugestões", html)
             self.assertIn("Original", html)
-            self.assertIn("Suggested", html)
-            self.assertIn("Confidence", html)
+            self.assertIn("Sugerido", html)
+            self.assertIn("Confiança", html)
             self.assertIn("0.88", html)
             self.assertIn("diff-added", html)
             self.assertIn("diff-removed", html)
             self.assertIn("/chunks/chapter-0001-conexao-dimensional-chunk-0001/approve-copyedit", html)
             self.assertIn("name=\"approve_index\"", html)
             self.assertIn("value=\"0\"", html)
-            self.assertIn("Approve Selected Changes", html)
-            self.assertIn("Consolidated Paragraph State", html)
-            self.assertIn("Current Text", html)
-            self.assertIn("Source Text", html)
-            self.assertIn("Applied Review Metadata", html)
+            self.assertIn("Aprovar Alterações Selecionadas", html)
+            self.assertIn("Estado Consolidado dos Parágrafos", html)
+            self.assertIn("Texto Atual", html)
+            self.assertIn("Texto-Fonte", html)
+            self.assertIn("Metadados da Revisão Aplicada", html)
             self.assertIn("chapter-0001-conexao-dimensional-chunk-0001.approval.json", html)
-            self.assertIn("Translation unavailable", html)
-            self.assertIn("pt-BR and Spanish Comparison", html)
+            self.assertIn("Tradução indisponível", html)
+            self.assertIn("Comparação pt-BR e Espanhol", html)
             self.assertIn("Trecho principal revisado.", html)
             self.assertIn("Fragmento principal.", html)
             self.assertIn("Mantém o tom.", html)
