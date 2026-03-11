@@ -1029,3 +1029,23 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-013` and `TASK-025`
+
+---
+
+## TASK-047 — Implement rollback for the last applied review approval
+
+Status: DONE
+
+Description:
+
+Allow recovery from the most recent mistaken approval without manually editing consolidated artifacts.
+
+Acceptance Criteria:
+
+- rollback targets the last applied approval deterministically
+- consolidated state and audit metadata remain consistent after rollback
+- operator workflow documents when rollback is safe
+
+Dependencies:
+
+- requires `TASK-010` and `TASK-031`

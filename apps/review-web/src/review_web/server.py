@@ -40,6 +40,7 @@ from review_web.actions import (
     trigger_copyedit,
     trigger_deliverable_readiness_report,
     trigger_review_approval,
+    trigger_rollback_last_approval,
     trigger_style,
     trigger_style_approval,
     trigger_translation_es,
@@ -458,6 +459,28 @@ def _build_export_action(
     return _run
 
 
+def _build_rollback_action(
+    *,
+    reviews_ptbr_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+    jobs_dir: Path,
+) -> Callable[[], dict[str, object]]:
+    def _run() -> dict[str, object]:
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="rollback",
+            target_id="last-approval",
+            action=lambda: trigger_rollback_last_approval(
+                reviews_dir=reviews_ptbr_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+            ),
+        )
+
+    return _run
+
+
 def _build_decision_action(
     *,
     decisions_path: Path,
@@ -519,6 +542,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
     deliverable_readiness_action: Callable[[], dict[str, object]] | None = None
     translation_action: Callable[[str], dict[str, object]] | None = None
     export_action: Callable[[str], dict[str, object]] | None = None
+    rollback_action: Callable[[], dict[str, object]] | None = None
     decision_action: Callable[[str, str, str], dict[str, object]] | None = None
     characters_action: Callable[[], dict[str, object]] | None = None
     world_rules_action: Callable[[], dict[str, object]] | None = None
@@ -834,6 +858,24 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        if self.path == "/approvals/rollback-last":
+            if self.rollback_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "rollback action not configured")
+                return
+            try:
+                self.rollback_action()
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except FileNotFoundError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+
+            self.send_response(HTTPStatus.SEE_OTHER)
+            self.send_header("Location", "/")
+            self.end_headers()
+            return
+
         if self.path == "/decisions":
             if self.decision_action is None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "decision action not configured")
@@ -897,6 +939,7 @@ def build_handler(
     deliverable_readiness_action: Callable[[], dict[str, object]],
     translation_action: Callable[[str], dict[str, object]],
     export_action: Callable[[str], dict[str, object]],
+    rollback_action: Callable[[], dict[str, object]],
     decision_action: Callable[[str, str, str], dict[str, object]],
     characters_action: Callable[[], dict[str, object]],
     world_rules_action: Callable[[], dict[str, object]],
@@ -921,6 +964,7 @@ def build_handler(
     ConfiguredDashboardHandler.deliverable_readiness_action = staticmethod(deliverable_readiness_action)
     ConfiguredDashboardHandler.translation_action = staticmethod(translation_action)
     ConfiguredDashboardHandler.export_action = staticmethod(export_action)
+    ConfiguredDashboardHandler.rollback_action = staticmethod(rollback_action)
     ConfiguredDashboardHandler.decision_action = staticmethod(decision_action)
     ConfiguredDashboardHandler.characters_action = staticmethod(characters_action)
     ConfiguredDashboardHandler.world_rules_action = staticmethod(world_rules_action)
@@ -1073,6 +1117,12 @@ def main() -> int:
             consolidated_dir=args.consolidated_dir,
             reviews_es_dir=args.reviews_es_dir,
             deliverables_dir=args.deliverables_dir,
+            jobs_dir=args.jobs_dir,
+        ),
+        _build_rollback_action(
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            chapters_dir=args.chapters_dir,
+            consolidated_dir=args.consolidated_dir,
             jobs_dir=args.jobs_dir,
         ),
         _build_decision_action(

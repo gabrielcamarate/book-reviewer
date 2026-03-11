@@ -47,26 +47,6 @@ Goal:
 
 # Tasks
 
-## TASK-047 — Implement rollback for the last applied review approval
-
-Status: TODO
-
-Description:
-
-Allow recovery from the most recent mistaken approval without manually editing consolidated artifacts.
-
-Acceptance Criteria:
-
-- rollback targets the last applied approval deterministically
-- consolidated state and audit metadata remain consistent after rollback
-- operator workflow documents when rollback is safe
-
-Dependencies:
-
-- requires `TASK-010` and `TASK-031`
-
----
-
 ## TASK-048 — Add glossary curation and alias editing through the web interface
 
 Status: TODO

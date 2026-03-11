@@ -8,6 +8,7 @@ from editorial_core.copyedit import Runner, run_copyedit_pass
 from editorial_core.decisions import append_editorial_decision
 from editorial_core.deliverable_readiness import generate_deliverable_readiness_report
 from editorial_core.export_docx import export_manuscript_docx
+from editorial_core.review_rollback import rollback_last_review_approval
 from editorial_core.review_application import apply_review_approval
 from editorial_core.style import run_style_pass
 from editorial_core.translation_es import run_translation_es_pass
@@ -214,4 +215,17 @@ def trigger_export_docx(
         translations_dir=translations_dir,
         output_path=output_path,
         language=language,
+    )
+
+
+def trigger_rollback_last_approval(
+    *,
+    reviews_dir: Path,
+    chapters_dir: Path,
+    consolidated_dir: Path,
+) -> dict[str, object]:
+    return rollback_last_review_approval(
+        reviews_dir=reviews_dir,
+        chapters_dir=chapters_dir,
+        consolidated_dir=consolidated_dir,
     )

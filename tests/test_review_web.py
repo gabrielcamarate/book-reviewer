@@ -35,6 +35,7 @@ from review_web.actions import (
     trigger_copyedit,
     trigger_deliverable_readiness_report,
     trigger_review_approval,
+    trigger_rollback_last_approval,
     trigger_style,
     trigger_style_approval,
     trigger_translation_es,
@@ -760,6 +761,7 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("copyedit", html)
         self.assertIn("Gerar Export pt-BR", html)
         self.assertIn("Export espanhol indisponível", html)
+        self.assertIn("/approvals/rollback-last", html)
         self.assertIn("Capítulos Concluídos", html)
         self.assertIn("Capítulos Acionáveis", html)
         self.assertIn("Prontidão Bilíngue", html)
@@ -2533,3 +2535,136 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertTrue((deliverables_dir / "ptbr" / "exilados-da-terra.ptbr.docx").exists())
             self.assertIn("snapshot_manifest_path", summary)
             self.assertTrue(Path(summary["snapshot_manifest_path"]).exists())
+
+    def test_trigger_rollback_last_approval_restores_latest_approval_for_web_workflow(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chapters_dir = temp_path / "manuscript" / "chapters"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_dir = temp_path / "reviews" / "ptbr"
+            chapters_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_dir.mkdir(parents=True, exist_ok=True)
+
+            (chapters_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_index": 1,
+                                "text": "Texto original.",
+                                "review_status": "pending_review",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "section_count": 1,
+                        "chapter_count": 1,
+                        "sections": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional",
+                                "title": "Capítulo 1: Conexão Dimensional.",
+                                "file": "chapter-0001-conexao-dimensional.json",
+                                "review_status": "approved",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (consolidated_dir / "chapter-0001-conexao-dimensional.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional",
+                        "title": "Capítulo 1: Conexão Dimensional.",
+                        "review_status": "approved",
+                        "paragraphs": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-p-0001",
+                                "source_index": 1,
+                                "source_text": "Texto original.",
+                                "text": "Texto revisado.",
+                                "review_status": "approved",
+                                "applied_reviews": [
+                                    {
+                                        "approval_file": "chapter-0001-conexao-dimensional-chunk-0001.approval.json",
+                                        "review_file": "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json",
+                                        "pass": "copyedit",
+                                        "suggestion_index": 0,
+                                        "change_type": "grammar",
+                                        "reason": "Ajuste.",
+                                        "confidence": 0.9,
+                                        "applied_at": "2026-03-10T22:00:00",
+                                        "original": "Texto original.",
+                                        "suggested": "Texto revisado.",
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_dir / "chapter-0001-conexao-dimensional-chunk-0001.approval.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "review_file": "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json",
+                        "approval_file": "chapter-0001-conexao-dimensional-chunk-0001.approval.json",
+                        "pass": "copyedit",
+                        "language": "pt-BR",
+                        "status": "approved",
+                        "approved_suggestion_indexes": [0],
+                        "applied_change_count": 1,
+                        "skipped_change_count": 0,
+                        "applied_changes": [
+                            {
+                                "suggestion_index": 0,
+                                "paragraph_id": "chapter-0001-conexao-dimensional-p-0001",
+                                "original": "Texto original.",
+                                "suggested": "Texto revisado.",
+                                "change_type": "grammar",
+                                "reason": "Ajuste.",
+                                "confidence": 0.9,
+                            }
+                        ],
+                        "skipped_suggestions": [],
+                        "consolidated_section_file": "chapter-0001-conexao-dimensional.json",
+                        "approved_at": "2026-03-10T22:00:00",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            summary = trigger_rollback_last_approval(
+                reviews_dir=reviews_dir,
+                chapters_dir=chapters_dir,
+                consolidated_dir=consolidated_dir,
+            )
+
+            consolidated_section = json.loads(
+                (consolidated_dir / "chapter-0001-conexao-dimensional.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(summary["reverted_change_count"], 1)
+            self.assertTrue(Path(summary["rollback_path"]).exists())
+            self.assertEqual(consolidated_section["paragraphs"][0]["text"], "Texto original.")

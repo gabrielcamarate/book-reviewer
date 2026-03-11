@@ -901,12 +901,16 @@ def render_dashboard_html(state: dict[str, Any]) -> str:
           <form method="post" action="/exports/pt-BR/run" style="margin: 0;">
             <button type="submit">Gerar Export pt-BR</button>
           </form>
+          <form method="post" action="/approvals/rollback-last" style="margin: 0;">
+            <button type="submit">Desfazer Última Aprovação</button>
+          </form>
           {
             f'<form method="post" action="/exports/es/run" style="margin: 0;"><button type="submit">Gerar Export Espanhol</button></form>'
             if export_readiness["es"]["eligible"]
             else f'<p class="muted" style="margin: 0;">Export espanhol indisponível: {html.escape(export_readiness["es"]["reason"])}</p>'
           }
         </div>
+        <p class="muted" style="margin-top: 12px;">Rollback só é seguro quando a última aprovação ainda está no topo da trilha de auditoria do consolidado.</p>
       </header>
       <div class="grid">
         <div class="card"><span>Chunks Pendentes de Revisão</span><strong>{summary['pending_chunk_count']}</strong></div>

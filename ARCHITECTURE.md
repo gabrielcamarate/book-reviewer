@@ -263,6 +263,12 @@ Primary entities:
 
 `ExportSnapshot` manifests must be generated before writing a deliverable and should describe the repository-backed files that fed the export, including checksums and file roles.
 
+Rollback of applied reviews is intentionally narrow:
+
+- only the latest active approval may be reverted automatically
+- rollback is safe only when that approval is still the topmost audit entry for every affected paragraph
+- if consolidated text or audit ordering diverges, rollback must stop with an explicit error instead of guessing
+
 Each `Chunk` should include at minimum:
 
 - stable identifier
