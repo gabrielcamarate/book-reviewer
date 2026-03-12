@@ -107,7 +107,8 @@ Acceptance Criteria:
 Implementation note:
 
 - a minimal `/api/simple-home` contract is now in progress together with `./scripts/dev.sh` for one-terminal local development
-- current real write path scope is limited to `review` and `accept`; `reject` persistence remains part of `TASK-056D`
+- current real write path scope now includes `review`, `accept`, and repository-backed `reject`
+- the simple-home `review` action now hydrates both `pt-BR` review preview and Spanish preview, with Spanish sourced from the revised `pt-BR` preview rather than the original chunk
 
 Dependencies:
 
@@ -117,7 +118,7 @@ Dependencies:
 
 ## TASK-061E — Normalize repository structure to the target backend/frontend layout
 
-Status: TODO
+Status: IN_PROGRESS
 
 Description:
 
@@ -179,6 +180,11 @@ Acceptance Criteria:
 Dependencies:
 
 - requires `TASK-056A` and `TASK-056C`
+
+Implementation note:
+
+- backend and frontend wiring for repository-backed rejection is now locally verified
+- remaining step is human validation in the simple operator flow before moving this task to history
 
 ---
 

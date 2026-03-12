@@ -170,6 +170,11 @@ class CopyeditPassTest(unittest.TestCase):
             self.assertIn("Preservar travessão dramático", str(captured["prompt"]))
             self.assertIn("Only emit a suggestion if ALL four answers are yes.", str(captured["prompt"]))
             self.assertIn("Agreement and syntax ambiguity rule:", str(captured["prompt"]))
+            self.assertIn("Treat the symbols “▬” and “―” as invalid literary dialogue or sentence dash markers", str(captured["prompt"]))
+            self.assertIn("When “▬” or “―” is functioning as a dialogue marker", str(captured["prompt"]))
+            self.assertIn("Do not preserve “▬” or “―” as a stylistic choice in these punctuation contexts", str(captured["prompt"]))
+            self.assertIn('Original: "▬ Verdade — Carol esbraveja ternura."', str(captured["prompt"]))
+            self.assertIn('Original: "Verdade ― Carol esbraveja ternura."', str(captured["prompt"]))
             self.assertIn("would require choosing one plausible structural reading over another", str(captured["prompt"]))
             self.assertIn("apparently singular subject is followed by extended post-nominal modifiers", str(captured["prompt"]))
             self.assertIn("either nucleus-based agreement or distributed semantic agreement", str(captured["prompt"]))
@@ -392,6 +397,98 @@ class CopyeditPassTest(unittest.TestCase):
 
             self.assertEqual(summary["suggestion_count"], 0)
             self.assertEqual(persisted["suggestions"], [])
+
+    def test_run_copyedit_pass_includes_latest_rejection_feedback_in_prompt(self) -> None:
+        captured: dict[str, object] = {}
+
+        def fake_runner(*, prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
+            captured["prompt"] = prompt
+            return {"suggestions": []}
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "chunks"
+            reviews_dir = temp_path / "reviews" / "ptbr"
+            style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            reviews_dir.mkdir(parents=True, exist_ok=True)
+            style_guide_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "chunk_order": 1,
+                                "review_status": "pending_review",
+                                "paragraph_count": 1,
+                                "source_start_index": 100,
+                                "source_end_index": 100,
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "chunk_order": 1,
+                        "review_status": "pending_review",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "source_start_index": 100,
+                        "source_end_index": 100,
+                        "paragraph_count": 1,
+                        "base_text": "Trecho principal.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            style_guide_path.write_text("# Style Guide\n", encoding="utf-8")
+            glossary_path.write_text("# Glossary\n", encoding="utf-8")
+            decisions_path.write_text("# Editorial Decisions\n", encoding="utf-8")
+            (reviews_dir / "chapter-0001-conexao-dimensional-chunk-0001.rejection.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "status": "rejected",
+                        "reason": "Mudou demais a voz do autor.",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            run_copyedit_pass(
+                chunks_dir=chunks_dir,
+                reviews_dir=reviews_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=fake_runner,
+            )
+
+            self.assertIn('"latest_rejection_feedback": "Mudou demais a voz do autor."', str(captured["prompt"]))
 
     def test_run_copyedit_pass_raises_when_no_pending_chunk_is_available(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -33,6 +33,10 @@ def _translation_output_path(reviews_dir: Path, chunk_id: str) -> Path:
     return reviews_dir / f"{chunk_id}.translation-es.json"
 
 
+def _translation_preview_output_path(reviews_dir: Path, chunk_id: str) -> Path:
+    return reviews_dir / f"{chunk_id}.translation-es.preview.json"
+
+
 def _read_optional_text(path: Path) -> str:
     if not path.exists():
         return ""
@@ -199,6 +203,66 @@ def _validate_response(
     return translations
 
 
+def _build_review_preview_text(base_text: str, suggestions: list[dict[str, Any]]) -> str:
+    preview_text = base_text
+    grouped_suggestions: dict[str, list[dict[str, Any]]] = {}
+    for suggestion in suggestions:
+        original = str(suggestion.get("original", ""))
+        if not original:
+            continue
+        grouped_suggestions.setdefault(original, []).append(suggestion)
+
+    for original, grouped in grouped_suggestions.items():
+        if original not in preview_text:
+            continue
+
+        if len(grouped) == 1:
+            merged = str(grouped[0].get("suggested", original))
+            preview_text = preview_text.replace(original, merged, 1)
+            continue
+
+        merged = original
+        for suggestion in grouped:
+            suggested = str(suggestion.get("suggested", ""))
+            if not suggested or suggested == merged:
+                continue
+            if original == suggested:
+                continue
+            merged = suggested
+
+        preview_text = preview_text.replace(original, merged, 1)
+    return preview_text
+
+
+def _build_preview_source_paragraphs(
+    *,
+    chunk_payload: dict[str, Any],
+    copyedit_review: dict[str, Any],
+) -> list[dict[str, Any]]:
+    revised_text = _build_review_preview_text(
+        str(chunk_payload.get("base_text", "")),
+        list(copyedit_review.get("suggestions", [])),
+    )
+    paragraph_texts = [
+        paragraph.strip()
+        for paragraph in revised_text.split("\n\n")
+        if paragraph.strip()
+    ]
+    paragraph_ids = list(chunk_payload.get("paragraph_ids", []))
+    if len(paragraph_texts) != len(paragraph_ids):
+        raise ValueError("copyedit preview paragraph mapping does not match chunk paragraph_ids")
+
+    return [
+        {
+            "paragraph_id": paragraph_id,
+            "source_index": None,
+            "review_status": "proposed",
+            "text": paragraph_text,
+        }
+        for paragraph_id, paragraph_text in zip(paragraph_ids, paragraph_texts, strict=True)
+    ]
+
+
 def run_translation_es_pass(
     *,
     chunks_dir: Path,
@@ -266,6 +330,96 @@ def run_translation_es_pass(
     }
 
     output_path = _translation_output_path(reviews_dir, chunk_payload["id"])
+    write_json(output_path, review_payload)
+
+    return {
+        "chunk_id": chunk_payload["id"],
+        "translated_paragraph_count": len(translations),
+        "output_path": str(output_path),
+        "model": model,
+    }
+
+
+def run_translation_es_preview_pass(
+    *,
+    chunks_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    decisions_path: Path,
+    runner: Runner,
+    model: str = "gpt-5-codex",
+    chunk_id: str,
+) -> dict[str, Any]:
+    index_payload = _load_chunk_index(chunks_dir)
+    chunk_entry = next(
+        (chunk for chunk in index_payload.get("chunks", []) if chunk.get("id") == chunk_id),
+        None,
+    )
+    if chunk_entry is None:
+        raise ValueError(f"requested chunk not found for Spanish preview: {chunk_id}")
+
+    chunk_payload = _read_json(chunks_dir / chunk_entry["file"])
+    copyedit_path = reviews_ptbr_dir / f"{chunk_id}.copyedit.json"
+    if not copyedit_path.exists():
+        raise ValueError(f"copyedit review not found for Spanish preview: {chunk_id}")
+
+    copyedit_review = _read_json(copyedit_path)
+    source_paragraphs = _build_preview_source_paragraphs(
+        chunk_payload=chunk_payload,
+        copyedit_review=copyedit_review,
+    )
+
+    style_guide_text = _read_optional_text(style_guide_path)
+    glossary_text = _read_optional_text(glossary_path)
+    decisions_text = _read_optional_text(decisions_path)
+    prompt = build_translation_es_prompt(
+        chunk_payload=chunk_payload,
+        source_paragraphs=source_paragraphs,
+        style_guide_text=style_guide_text,
+        glossary_text=glossary_text,
+        decisions_text=decisions_text,
+    )
+    schema = translation_es_output_schema()
+    runner_payload = runner(prompt=prompt, schema=schema, model=model)
+    translations = _validate_response(runner_payload, chunk_payload["paragraph_ids"])
+    provenance = build_llm_provenance(
+        model=model,
+        prompt_template_id=TRANSLATION_ES_PROMPT_TEMPLATE_ID,
+        prompt_version=TRANSLATION_ES_PROMPT_VERSION,
+        prompt_text=prompt,
+        schema_name=TRANSLATION_ES_SCHEMA_NAME,
+        schema_version=TRANSLATION_ES_SCHEMA_VERSION,
+        schema=schema,
+        context_inputs={
+            "style_guide": style_guide_text,
+            "glossary": glossary_text,
+            "decisions": decisions_text,
+            "source_mode": "copyedit-preview",
+        },
+    )
+
+    review_payload = {
+        "chunk_id": chunk_payload["id"],
+        "pass": "translation-es-preview",
+        "preview": True,
+        "source_language": "pt-BR",
+        "target_language": "es",
+        "status": "proposed",
+        "model": model,
+        "source": {
+            "section_id": chunk_payload["section_id"],
+            "section_title": chunk_payload["section_title"],
+            "paragraph_ids": chunk_payload["paragraph_ids"],
+            "source_start_index": chunk_payload["source_start_index"],
+            "source_end_index": chunk_payload["source_end_index"],
+        },
+        "provenance": provenance,
+        "translations": translations,
+    }
+
+    output_path = _translation_preview_output_path(reviews_dir, chunk_payload["id"])
     write_json(output_path, review_payload)
 
     return {

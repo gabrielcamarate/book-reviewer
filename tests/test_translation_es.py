@@ -5,10 +5,150 @@ import tempfile
 from pathlib import Path
 import unittest
 
-from editorial_core.translation_es import run_translation_es_pass
+from editorial_core.translation_es import (
+    run_translation_es_pass,
+    run_translation_es_preview_pass,
+)
 
 
 class TranslationEsPassTest(unittest.TestCase):
+    def test_run_translation_es_preview_pass_persists_translation_based_on_revised_ptbr_preview(self) -> None:
+        chunk_index = {
+            "chunk_count": 1,
+            "chunks": [
+                {
+                    "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                    "section_id": "chapter-0001-conexao-dimensional",
+                    "section_title": "Capítulo 1: Conexão Dimensional.",
+                    "chunk_order": 1,
+                    "review_status": "pending_review",
+                    "paragraph_count": 2,
+                    "source_start_index": 100,
+                    "source_end_index": 101,
+                    "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                }
+            ],
+        }
+
+        chunk_payload = {
+            "id": "chapter-0001-conexao-dimensional-chunk-0001",
+            "section_id": "chapter-0001-conexao-dimensional",
+            "section_title": "Capítulo 1: Conexão Dimensional.",
+            "chunk_order": 1,
+            "review_status": "pending_review",
+            "paragraph_ids": [
+                "chapter-0001-conexao-dimensional-p-0001",
+                "chapter-0001-conexao-dimensional-p-0002",
+            ],
+            "source_start_index": 100,
+            "source_end_index": 101,
+            "paragraph_count": 2,
+            "base_text": "Texto-base antigo.\n\nOutro texto-base antigo.",
+            "previous_context": [],
+            "next_context": [],
+        }
+
+        copyedit_review = {
+            "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+            "suggestions": [
+                {
+                    "original": "Texto-base antigo.",
+                    "suggested": "Primeiro parágrafo revisado em pt-BR.",
+                    "change_type": "pontuação",
+                    "reason": "Ajuste objetivo.",
+                    "confidence": 0.92,
+                },
+                {
+                    "original": "Outro texto-base antigo.",
+                    "suggested": "Segundo parágrafo revisado em pt-BR.",
+                    "change_type": "pontuação",
+                    "reason": "Ajuste objetivo.",
+                    "confidence": 0.88,
+                },
+            ],
+        }
+
+        captured: dict[str, object] = {}
+
+        def fake_runner(*, prompt: str, schema: dict[str, object], model: str) -> dict[str, object]:
+            captured["prompt"] = prompt
+            captured["schema"] = schema
+            captured["model"] = model
+            return {
+                "translations": [
+                    {
+                        "paragraph_id": "chapter-0001-conexao-dimensional-p-0001",
+                        "translated_text": "Primer párrafo revisado en español.",
+                        "rationale": "Preserva o sentido do revisado em pt-BR.",
+                        "confidence": 0.89,
+                    },
+                    {
+                        "paragraph_id": "chapter-0001-conexao-dimensional-p-0002",
+                        "translated_text": "Segundo párrafo revisado en español.",
+                        "rationale": "Mantém a cadência do revisado em pt-BR.",
+                        "confidence": 0.84,
+                    },
+                ]
+            }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "chunks"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            style_guide_path = temp_path / "editorial" / "STYLE_GUIDE.md"
+            glossary_path = temp_path / "editorial" / "GLOSSARY.md"
+            decisions_path = temp_path / "editorial" / "DECISIONS.md"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+            style_guide_path.parent.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(chunk_index, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(chunk_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json").write_text(
+                json.dumps(copyedit_review, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            style_guide_path.write_text("# Style Guide\n- Preserve cadence.\n", encoding="utf-8")
+            glossary_path.write_text("# Glossary\n- Sistema Terra\n", encoding="utf-8")
+            decisions_path.write_text("# Editorial Decisions\n", encoding="utf-8")
+
+            summary = run_translation_es_preview_pass(
+                chunks_dir=chunks_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_dir=reviews_es_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=fake_runner,
+                model="gpt-5-codex",
+                chunk_id="chapter-0001-conexao-dimensional-chunk-0001",
+            )
+
+            output_path = reviews_es_dir / "chapter-0001-conexao-dimensional-chunk-0001.translation-es.preview.json"
+            persisted = json.loads(output_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(summary["chunk_id"], "chapter-0001-conexao-dimensional-chunk-0001")
+            self.assertEqual(summary["translated_paragraph_count"], 2)
+            self.assertEqual(summary["output_path"], str(output_path))
+            self.assertIn("Primeiro parágrafo revisado em pt-BR.", str(captured["prompt"]))
+            self.assertIn("Segundo parágrafo revisado em pt-BR.", str(captured["prompt"]))
+            self.assertNotIn("Texto-base antigo.", str(captured["prompt"]))
+            self.assertEqual(captured["schema"]["type"], "object")
+            self.assertEqual(persisted["pass"], "translation-es-preview")
+            self.assertTrue(persisted["preview"])
+            self.assertEqual(
+                persisted["translations"][0]["paragraph_id"],
+                "chapter-0001-conexao-dimensional-p-0001",
+            )
+
     def test_run_translation_es_pass_persists_structured_translation_for_next_stable_chunk(self) -> None:
         chunk_index = {
             "chunk_count": 2,

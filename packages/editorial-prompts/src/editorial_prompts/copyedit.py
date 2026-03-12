@@ -4,7 +4,7 @@ import json
 from typing import Any
 
 COPYEDIT_PROMPT_TEMPLATE_ID = "copyedit-ptbr"
-COPYEDIT_PROMPT_VERSION = "2026-03-11.8"
+COPYEDIT_PROMPT_VERSION = "2026-03-12.3"
 
 COPYEDIT_PROMPT_TEMPLATE = """You are performing a conservative literary copyedit pass for a Brazilian Portuguese manuscript.
 
@@ -64,6 +64,9 @@ Typography and Unicode rule:
 - Do not propose Unicode or typographic substitutions that are merely cosmetic or visually preferable.
 - Only propose such substitutions when they are objectively wrong in context, such as mismatched opening/closing quotation marks, corrupted characters, or typographic forms that create a real editorial error.
 - If the difference is visually subtle, be especially strict and emit the suggestion only if the editorial error is real and objective.
+- Treat the symbols “▬” and “―” as invalid literary dialogue or sentence dash markers whenever they are being used as punctuation in the manuscript.
+- When “▬” or “―” is functioning as a dialogue marker, sentence dash, or literary punctuation mark, you MUST replace it with the proper literary em dash “—”.
+- Do not preserve “▬” or “―” as a stylistic choice in these punctuation contexts; this is an objective punctuation correction, not optional normalization.
 
 Issue type rule:
 - Use the most specific valid issue_type available.
@@ -138,6 +141,22 @@ Suggestion:
 - issue_type: "punctuation"
 Reason: the quotation opens with a closing mark, which is an objective punctuation error
 
+Example 5:
+Original: "▬ Verdade — Carol esbraveja ternura."
+Suggestion:
+- span_text: "▬"
+- suggested_text: "—"
+- issue_type: "punctuation"
+Reason: “▬” is not a valid literary dialogue or sentence dash marker in Brazilian literary prose; it must be replaced by the proper em dash
+
+Example 6:
+Original: "Verdade ― Carol esbraveja ternura."
+Suggestion:
+- span_text: "―"
+- suggested_text: "—"
+- issue_type: "punctuation"
+Reason: “―” is not the proper literary dialogue or sentence dash marker here; it must be normalized to the em dash
+
 Output requirements:
 - Return STRICT JSON only
 - No markdown
@@ -182,6 +201,7 @@ def build_copyedit_prompt(
     style_guide_text: str,
     glossary_text: str,
     decisions_text: str,
+    rejection_feedback_text: str = "",
 ) -> str:
     prompt_payload = {
         "task": COPYEDIT_PROMPT_TEMPLATE_ID,
@@ -208,6 +228,8 @@ def build_copyedit_prompt(
         "glossary": glossary_text,
         "editorial_decisions": decisions_text,
     }
+    if rejection_feedback_text.strip():
+        prompt_payload["latest_rejection_feedback"] = rejection_feedback_text.strip()
 
     return (
         COPYEDIT_PROMPT_TEMPLATE

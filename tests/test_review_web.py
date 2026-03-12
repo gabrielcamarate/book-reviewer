@@ -898,6 +898,27 @@ class ReviewWebDashboardTest(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            (reviews_es_dir / "chapter-0001-conexao-dimensional-chunk-0001.translation-es.preview.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "pass": "translation-es-preview",
+                        "preview": True,
+                        "translations": [
+                            {
+                                "paragraph_id": "chapter-0001-conexao-dimensional-p-0001",
+                                "translated_text": "Trecho principal revisado em espanhol.",
+                                "rationale": "Mantém o sentido do revisado em pt-BR.",
+                                "confidence": 0.87,
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
 
             state = build_simple_home_state(
                 chunks_dir=chunks_dir,
@@ -918,6 +939,8 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertIn("diff-added", state["revised_diff_html"])
             self.assertEqual(state["original_diff_html"], "Trecho principal.")
             self.assertTrue(state["review_available"])
+            self.assertTrue(state["spanish_available"])
+            self.assertEqual(state["spanish_text"], "Trecho principal revisado em espanhol.")
             self.assertEqual(len(state["changes"]), 1)
             self.assertEqual(state["changes"][0]["change_type"], "pontuação")
             self.assertEqual(state["changes"][0]["reason"], "Ajuste de clareza.")
@@ -988,8 +1011,85 @@ class ReviewWebDashboardTest(unittest.TestCase):
 
             self.assertTrue(state["has_actionable_chunk"])
             self.assertFalse(state["review_available"])
+            self.assertFalse(state["spanish_available"])
+            self.assertEqual(state["spanish_text"], "")
             self.assertEqual(state["revised_text"], "Trecho principal.")
             self.assertEqual(state["changes"], [])
+
+    def test_build_simple_home_state_exposes_rejection_reason_when_present(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "chunk_order": 1,
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "base_text": "Trecho principal.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.rejection.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "status": "rejected",
+                        "reason": "Mudou demais a voz do autor.",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_simple_home_state(
+                chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
+            )
+
+            self.assertTrue(state["has_actionable_chunk"])
+            self.assertFalse(state["review_available"])
+            self.assertEqual(state["rejection_reason"], "Mudou demais a voz do autor.")
 
     def test_render_simple_home_html_reserves_home_for_simple_operator_navigation(self) -> None:
         html = render_simple_home_html(

@@ -55,10 +55,12 @@ from review_web.actions import (
     trigger_copyedit,
     trigger_deliverable_readiness_report,
     trigger_review_approval,
+    trigger_review_rejection,
     trigger_rollback_last_approval,
     trigger_style,
     trigger_style_approval,
     trigger_translation_es,
+    trigger_translation_es_preview,
 )
 
 DashboardLoader = Callable[[], dict[str, object]]
@@ -361,6 +363,22 @@ def _build_approval_action(
     return _run
 
 
+def _build_rejection_action(
+    *,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+) -> Callable[[str, str], dict[str, object]]:
+    def _run(chunk_id: str, reason: str) -> dict[str, object]:
+        return trigger_review_rejection(
+            chunk_id=chunk_id,
+            reviews_ptbr_dir=reviews_ptbr_dir,
+            reviews_es_dir=reviews_es_dir,
+            reason=reason,
+        )
+
+    return _run
+
+
 def _build_style_approval_action(
     *,
     chunks_dir: Path,
@@ -467,6 +485,38 @@ def _build_translation_action(
                 chunks_dir=chunks_dir,
                 chapters_dir=chapters_dir,
                 consolidated_dir=consolidated_dir,
+                reviews_dir=reviews_es_dir,
+                style_guide_path=style_guide_path,
+                glossary_path=glossary_path,
+                decisions_path=decisions_path,
+                runner=_translation_runner,
+                model=model,
+            ),
+        )
+
+    return _run
+
+
+def _build_translation_preview_action(
+    *,
+    chunks_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    decisions_path: Path,
+    jobs_dir: Path,
+    model: str,
+) -> Callable[[str], dict[str, object]]:
+    def _run(chunk_id: str) -> dict[str, object]:
+        return _run_logged_job(
+            jobs_dir=jobs_dir,
+            job_type="translation-es-preview",
+            target_id=chunk_id,
+            action=lambda: trigger_translation_es_preview(
+                chunk_id=chunk_id,
+                chunks_dir=chunks_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
                 reviews_dir=reviews_es_dir,
                 style_guide_path=style_guide_path,
                 glossary_path=glossary_path,
@@ -657,10 +707,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
     copyedit_action: Callable[[str], dict[str, object]] | None = None
     style_action: Callable[[str], dict[str, object]] | None = None
     approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
+    rejection_action: Callable[[str, str], dict[str, object]] | None = None
     style_approval_action: Callable[[str, list[int] | None], dict[str, object]] | None = None
     consistency_action: Callable[[], dict[str, object]] | None = None
     deliverable_readiness_action: Callable[[], dict[str, object]] | None = None
     translation_action: Callable[[str], dict[str, object]] | None = None
+    translation_preview_action: Callable[[str], dict[str, object]] | None = None
     export_action: Callable[[str], dict[str, object]] | None = None
     rollback_action: Callable[[], dict[str, object]] | None = None
     decision_action: Callable[[str, str, str], dict[str, object]] | None = None
@@ -937,6 +989,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             try:
                 chunk_id = self._resolve_simple_home_chunk_id()
                 result = self.copyedit_action(chunk_id)
+                translation_preview_result = (
+                    self.translation_preview_action(chunk_id)
+                    if self.translation_preview_action is not None
+                    else None
+                )
             except ValueError as error:
                 self.send_error(HTTPStatus.BAD_REQUEST, str(error))
                 return
@@ -951,6 +1008,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     "action": "copyedit",
                     "chunk_id": chunk_id,
                     "result": result,
+                    "translation_preview_result": translation_preview_result,
                 },
             )
             return
@@ -974,6 +1032,42 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "action": "accept",
+                    "chunk_id": chunk_id,
+                    "result": result,
+                },
+            )
+            return
+
+        if self.path == "/api/simple-home/reject":
+            if self.rejection_action is None:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, "rejection action not configured")
+                return
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            try:
+                payload = json.loads(raw_body or "{}")
+            except json.JSONDecodeError:
+                self.send_error(HTTPStatus.BAD_REQUEST, "invalid rejection payload")
+                return
+            reason = str(payload.get("reason", "")).strip()
+            if not reason:
+                self.send_error(HTTPStatus.BAD_REQUEST, "rejection reason is required")
+                return
+            try:
+                chunk_id = self._resolve_simple_home_chunk_id()
+                result = self.rejection_action(chunk_id, reason)
+            except ValueError as error:
+                self.send_error(HTTPStatus.BAD_REQUEST, str(error))
+                return
+            except FileNotFoundError:
+                self.send_error(HTTPStatus.NOT_FOUND, "copyedit review not found")
+                return
+
+            self._write_json(
+                HTTPStatus.OK,
+                {
+                    "ok": True,
+                    "action": "reject",
                     "chunk_id": chunk_id,
                     "result": result,
                 },
@@ -1310,6 +1404,9 @@ def build_handler(
     preview_health_loader: Callable[[], dict[str, object]],
     preview_diagnostics_loader: Callable[[], dict[str, object]],
     preview_token: str | None,
+    *,
+    translation_preview_action: Callable[[str], dict[str, object]] | None = None,
+    rejection_action: Callable[[str, str], dict[str, object]] | None = None,
 ) -> type[DashboardHandler]:
     class ConfiguredDashboardHandler(DashboardHandler):
         pass
@@ -1328,6 +1425,8 @@ def build_handler(
     ConfiguredDashboardHandler.copyedit_action = staticmethod(copyedit_action)
     ConfiguredDashboardHandler.style_action = staticmethod(style_action)
     ConfiguredDashboardHandler.approval_action = staticmethod(approval_action)
+    if rejection_action is not None:
+        ConfiguredDashboardHandler.rejection_action = staticmethod(rejection_action)
     ConfiguredDashboardHandler.style_approval_action = staticmethod(style_approval_action)
     ConfiguredDashboardHandler.consistency_action = staticmethod(consistency_action)
     ConfiguredDashboardHandler.deliverable_readiness_action = staticmethod(deliverable_readiness_action)
@@ -1342,6 +1441,8 @@ def build_handler(
     ConfiguredDashboardHandler.world_rule_curation_action = staticmethod(world_rule_curation_action)
     ConfiguredDashboardHandler.preview_health_loader = staticmethod(preview_health_loader)
     ConfiguredDashboardHandler.preview_diagnostics_loader = staticmethod(preview_diagnostics_loader)
+    if translation_preview_action is not None:
+        ConfiguredDashboardHandler.translation_preview_action = staticmethod(translation_preview_action)
     ConfiguredDashboardHandler.preview_token = preview_token
     return ConfiguredDashboardHandler
 
@@ -1540,6 +1641,20 @@ def main() -> int:
             root_dir=Path.cwd(),
         ),
         args.preview_token,
+        translation_preview_action=_build_translation_preview_action(
+            chunks_dir=args.chunks_dir,
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            reviews_es_dir=args.reviews_es_dir,
+            style_guide_path=args.style_guide,
+            glossary_path=args.glossary,
+            decisions_path=args.decisions,
+            jobs_dir=args.jobs_dir,
+            model=args.model,
+        ),
+        rejection_action=_build_rejection_action(
+            reviews_ptbr_dir=args.reviews_ptbr_dir,
+            reviews_es_dir=args.reviews_es_dir,
+        ),
     )
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(

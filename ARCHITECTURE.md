@@ -213,6 +213,8 @@ Frontend transition decision:
 - local frontend development now runs through `./scripts/dev.sh`, which starts Vite and a Python backend watcher in one terminal
 - the backend watcher restarts `review_web.server` automatically when Python source files change, while Vite handles frontend hot reload
 - `shadcn/ui` adoption remains planned, but its initialization may be deferred temporarily if local `npx` cache errors block setup
+- in the simple operator flow, generating a `pt-BR` review must also generate an immediate Spanish preview based on the revised `pt-BR` preview text, not on the original chunk text
+- this Spanish preview is a repository-backed preview artifact and must remain distinct from the official post-approval Spanish translation flow
 
 Contained in:
 
@@ -259,6 +261,14 @@ The web application must support two interface levels:
 - `/review/es` → simple Spanish review mode
 - `/advanced` → current technical workstation
 
+### Simple Review Flow
+
+- operator opens one actionable chunk at a time
+- `Revisar este trecho` generates a conservative `pt-BR` review proposal
+- the same action also generates an immediate Spanish preview based on the revised `pt-BR` proposal
+- the Spanish preview is informative only and does not replace the official stable translation flow
+- `Aceitar` continues to operate only on the `pt-BR` review approval path
+
 ### Simple Navigation
 
 The simple navigation must expose only:
@@ -281,13 +291,19 @@ It must show:
 
 Primary comparison area:
 
-- left column: current `Original`
-- right column: current `Revisado`
+- first column: current `Original`
+- second column: current `Revisado`
+- third column: current Spanish preview based on the revised `pt-BR` text
 
 Primary actions:
 
 - `Aceitar`
 - `Recusar`
+
+Secondary review explanation area:
+
+- a lower row shows the `pt-BR` change cards only
+- change cards remain tied to the `pt-BR` review proposal, not to the Spanish preview
 
 The simple `pt-BR` screen must not include:
 
@@ -320,6 +336,7 @@ Eligibility rule:
 `Recusar` means:
 
 - do not apply the proposed change
+- remove the current `pt-BR` proposal and the derived Spanish preview for that chunk
 - persist a rejection record with a short human reason
 - make that rejection feedback available for a future rerun of the same chunk
 

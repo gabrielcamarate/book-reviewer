@@ -48,6 +48,10 @@ def _review_output_path(reviews_dir: Path, chunk_id: str) -> Path:
     return reviews_dir / f"{chunk_id}.copyedit.json"
 
 
+def _rejection_output_path(reviews_dir: Path, chunk_id: str) -> Path:
+    return reviews_dir / f"{chunk_id}.rejection.json"
+
+
 def _read_optional_text(path: Path) -> str:
     if not path.exists():
         return ""
@@ -128,11 +132,18 @@ def run_copyedit_pass(
     style_guide_text = _read_optional_text(style_guide_path)
     glossary_text = _read_optional_text(glossary_path)
     decisions_text = _read_optional_text(decisions_path)
+    rejection_feedback_text = ""
+    rejection_path = _rejection_output_path(reviews_dir, chunk_payload["id"])
+    if rejection_path.exists():
+        rejection_feedback_text = str(
+            json.loads(rejection_path.read_text(encoding="utf-8")).get("reason", "")
+        ).strip()
     prompt = build_copyedit_prompt(
         chunk_payload=chunk_payload,
         style_guide_text=style_guide_text,
         glossary_text=glossary_text,
         decisions_text=decisions_text,
+        rejection_feedback_text=rejection_feedback_text,
     )
     schema = copyedit_output_schema()
     runner_payload = runner(prompt=prompt, schema=schema, model=model)
@@ -175,6 +186,8 @@ def run_copyedit_pass(
 
     output_path = _review_output_path(reviews_dir, chunk_payload["id"])
     write_json(output_path, review_payload)
+    if rejection_path.exists():
+        rejection_path.unlink()
 
     return {
         "chunk_id": chunk_payload["id"],

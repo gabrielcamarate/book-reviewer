@@ -11,9 +11,11 @@ from editorial_core.export_docx import export_manuscript_docx
 from editorial_core.glossary_curation import curate_glossary_entry
 from editorial_core.registry_curation import curate_character_entry, curate_world_rule_entry
 from editorial_core.review_rollback import rollback_last_review_approval
+from editorial_core.review_rejection import reject_review_proposal
 from editorial_core.review_application import apply_review_approval
 from editorial_core.style import run_style_pass
 from editorial_core.translation_es import run_translation_es_pass
+from editorial_core.translation_es import run_translation_es_preview_pass
 from editorial_core.world_rules import generate_world_rules_registry
 
 
@@ -55,6 +57,21 @@ def trigger_review_approval(
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
         approved_suggestion_indexes=approved_suggestion_indexes,
+    )
+
+
+def trigger_review_rejection(
+    *,
+    chunk_id: str,
+    reviews_ptbr_dir: Path,
+    reviews_es_dir: Path,
+    reason: str,
+) -> dict[str, object]:
+    return reject_review_proposal(
+        chunk_id=chunk_id,
+        reviews_ptbr_dir=reviews_ptbr_dir,
+        reviews_es_dir=reviews_es_dir,
+        reason=reason,
     )
 
 
@@ -156,6 +173,31 @@ def trigger_translation_es(
         chunks_dir=chunks_dir,
         chapters_dir=chapters_dir,
         consolidated_dir=consolidated_dir,
+        reviews_dir=reviews_dir,
+        style_guide_path=style_guide_path,
+        glossary_path=glossary_path,
+        decisions_path=decisions_path,
+        runner=runner,
+        model=model,
+        chunk_id=chunk_id,
+    )
+
+
+def trigger_translation_es_preview(
+    *,
+    chunk_id: str,
+    chunks_dir: Path,
+    reviews_ptbr_dir: Path,
+    reviews_dir: Path,
+    style_guide_path: Path,
+    glossary_path: Path,
+    decisions_path: Path,
+    runner: Runner,
+    model: str = "gpt-5-codex",
+) -> dict[str, object]:
+    return run_translation_es_preview_pass(
+        chunks_dir=chunks_dir,
+        reviews_ptbr_dir=reviews_ptbr_dir,
         reviews_dir=reviews_dir,
         style_guide_path=style_guide_path,
         glossary_path=glossary_path,

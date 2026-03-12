@@ -1,16 +1,13 @@
 import { startTransition, useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import {
-  BookOpenTextIcon,
   CheckIcon,
-  FilePenLineIcon,
-  LanguagesIcon,
+  CopyIcon,
   MessageSquareWarningIcon,
   SparklesIcon,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { ButtonGroup } from "@/components/ui/button-group"
 import {
   Card,
   CardContent,
@@ -41,17 +38,12 @@ import {
 } from "@/components/ui/hover-card"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 
 type ReviewStatus = "pending" | "reviewing" | "ready" | "accepted" | "rejected"
-type BusyAction = "loading" | "review" | "accept" | null
+type BusyAction = "loading" | "review" | "accept" | "reject" | null
 
 type SimpleHomeChange = {
   index: number
@@ -84,6 +76,9 @@ type SimpleHomeState = {
   original_diff_html?: string
   revised_diff_html?: string
   review_available?: boolean
+  rejection_reason?: string
+  spanish_available?: boolean
+  spanish_text?: string
   changes?: SimpleHomeChange[]
   summary?: {
     pending_copyedit_count?: number
@@ -94,6 +89,8 @@ type SimpleHomeState = {
     translated_count?: number
   }
 }
+
+type CopyTarget = "review" | "spanish" | null
 
 function formatConfidence(value: string) {
   const normalized = Number.parseFloat(value)
@@ -205,10 +202,10 @@ function renderDiffHtml(
   htmlText: string,
   tone: "before" | "after",
   changes: SimpleHomeChange[] = [],
-  counter: { value: number } = { value: 0 },
 ) {
   const wrapper = document.createElement("div")
   wrapper.innerHTML = htmlText
+  const usedChangeIndexes = new Set<number>()
 
   const highlightClass =
     tone === "before"
@@ -229,8 +226,16 @@ function renderDiffHtml(
     )
 
     if (element.classList.contains("diff-added") || element.classList.contains("diff-removed")) {
-      const change = changes[counter.value] ?? null
-      counter.value += 1
+      const fragment = element.textContent?.trim() ?? ""
+      const change = changes.find((candidate, index) => {
+        if (usedChangeIndexes.has(index)) {
+          return false
+        }
+
+        const candidateFragment =
+          tone === "before" ? candidate.original_fragment : candidate.suggested_fragment
+        return Boolean(candidateFragment) && candidateFragment === fragment
+      }) ?? null
 
       const content = (
         <mark key={keyPrefix} className={highlightClass}>
@@ -240,6 +245,11 @@ function renderDiffHtml(
 
       if (!change) {
         return content
+      }
+
+      const resolvedIndex = changes.indexOf(change)
+      if (resolvedIndex >= 0) {
+        usedChangeIndexes.add(resolvedIndex)
       }
 
       return (
@@ -271,14 +281,13 @@ function renderDiffParagraphs(
   tone: "before" | "after",
   changes: SimpleHomeChange[] = [],
 ) {
-  const counter = { value: 0 }
   const paragraphs = htmlText
     .split(/\n{2,}|\r\n\r\n/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean)
 
   if (paragraphs.length === 0) {
-    return renderDiffHtml(htmlText, tone, changes, counter)
+    return renderDiffHtml(htmlText, tone, changes)
   }
 
   return paragraphs.map((paragraph, index) => (
@@ -286,7 +295,7 @@ function renderDiffParagraphs(
       key={`diff-paragraph-${tone}-${index}`}
       className="text-justify indent-6 leading-8 [&:not(:last-child)]:mb-5"
     >
-      {renderDiffHtml(paragraph, tone, changes, counter)}
+      {renderDiffHtml(paragraph, tone, changes)}
     </p>
   ))
 }
@@ -337,7 +346,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState("")
   const [rejectOpen, setRejectOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
-  const [lastRejectedReason, setLastRejectedReason] = useState("")
+  const [copiedTarget, setCopiedTarget] = useState<CopyTarget>(null)
 
   async function loadSimpleHome() {
     setBusyAction("loading")
@@ -371,9 +380,12 @@ function App() {
   const revisedText = state?.revised_text ?? originalText
   const originalDiffHtml = state?.original_diff_html ?? originalText
   const revisedDiffHtml = state?.revised_diff_html ?? revisedText
+  const spanishText = state?.spanish_text ?? ""
+  const spanishAvailable = Boolean(state?.spanish_available)
+  const rejectionReason = state?.rejection_reason ?? ""
 
   const status = useMemo<ReviewStatus>(() => {
-    if (lastRejectedReason) {
+    if (rejectionReason && !reviewAvailable) {
       return "rejected"
     }
     if (busyAction === "review") {
@@ -386,10 +398,10 @@ function App() {
       return "ready"
     }
     return "pending"
-  }, [busyAction, lastRejectedReason, reviewAvailable])
+  }, [busyAction, rejectionReason, reviewAvailable])
 
   const activeStatusLabel = useMemo(() => {
-    if (lastRejectedReason) {
+    if (rejectionReason && !reviewAvailable) {
       return "Revisão recusada"
     }
     if (busyAction === "review") {
@@ -407,7 +419,7 @@ function App() {
       default:
         return reviewAvailable ? "Aguardando decisão" : "Aguardando revisão"
     }
-  }, [busyAction, lastRejectedReason, orientation?.queue_status, reviewAvailable])
+  }, [busyAction, rejectionReason, orientation?.queue_status, reviewAvailable])
 
   const progressValue = useMemo(() => {
     const summary = state?.summary
@@ -434,7 +446,6 @@ function App() {
   async function handleReview() {
     setBusyAction("review")
     setErrorMessage("")
-    setLastRejectedReason("")
 
     try {
       await requestJson("/api/simple-home/review", { method: "POST" })
@@ -452,7 +463,6 @@ function App() {
   async function handleAccept() {
     setBusyAction("accept")
     setErrorMessage("")
-    setLastRejectedReason("")
 
     try {
       await requestJson("/api/simple-home/accept", { method: "POST" })
@@ -467,12 +477,34 @@ function App() {
     }
   }
 
-  function handleReject() {
+  async function handleReject() {
     const trimmed = rejectReason.trim()
-    setLastRejectedReason(trimmed)
-    setRejectOpen(false)
-    setRejectReason("")
-    setBusyAction(null)
+    if (!trimmed) {
+      return
+    }
+
+    setBusyAction("reject")
+    setErrorMessage("")
+
+    try {
+      await requestJson("/api/simple-home/reject", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason: trimmed }),
+      })
+      setRejectOpen(false)
+      setRejectReason("")
+      await loadSimpleHome()
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Falha ao recusar a revisão."
+      startTransition(() => {
+        setErrorMessage(message)
+        setBusyAction(null)
+      })
+    }
   }
 
   const originalPaneContent = reviewAvailable
@@ -483,55 +515,34 @@ function App() {
     ? renderDiffParagraphs(revisedDiffHtml, "after", changes)
     : "Clique em “Revisar este trecho” para gerar a proposta do Codex com base no texto original, no guia de estilo e nas decisões editoriais."
 
+  const spanishContent = spanishAvailable
+    ? spanishText
+    : reviewAvailable
+      ? "Gerando ou aguardando a sugestão em espanhol baseada no trecho revisado em pt-BR."
+      : "A sugestão em espanhol aparece aqui logo depois que este trecho for revisado em pt-BR."
+
+  async function handleCopy(target: Exclude<CopyTarget, null>, text: string) {
+    if (!text.trim()) {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedTarget(target)
+      window.setTimeout(() => {
+        setCopiedTarget((current) => (current === target ? null : current))
+      }, 1800)
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Falha ao copiar o texto."
+      setErrorMessage(message)
+    }
+  }
+
   return (
     <main className="min-h-screen overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(166,122,60,0.16),_transparent_35%),linear-gradient(180deg,_var(--color-background),_var(--color-ink-980))] text-foreground lg:h-[100dvh] lg:overflow-hidden">
       <div className="mx-auto flex min-h-screen w-full max-w-[1680px] flex-col px-4 py-3 sm:px-6 sm:py-4 lg:h-full lg:min-h-0 lg:px-8">
-        <Card className="border-border/70 bg-card/95 shadow-[0_30px_90px_rgba(4,8,14,0.34)]">
-          <CardHeader className="gap-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[color:var(--color-accent-300)]">
-                  Modo simples
-                </p>
-                <div className="space-y-1">
-                  <CardTitle className="font-serif-display text-3xl font-semibold tracking-[0.01em] text-[color:var(--color-paper-50)] sm:text-4xl">
-                    eXilados da Terra
-                  </CardTitle>
-                  <CardDescription className="max-w-3xl text-sm leading-6 text-[color:var(--color-paper-300)]">
-                    Um trecho por vez. Ler, comparar e decidir sem excesso de
-                    informação.
-                  </CardDescription>
-                </div>
-              </div>
-
-              <nav
-                aria-label="Navegação principal"
-                className="flex flex-wrap items-center gap-2"
-              >
-                <Button variant="default" className="min-w-36 justify-center">
-                  <BookOpenTextIcon data-icon="inline-start" />
-                  Revisar PT-BR
-                </Button>
-                <Button
-                  variant="outline"
-                  className="min-w-36 justify-center border-border/70 bg-transparent"
-                >
-                  <LanguagesIcon data-icon="inline-start" />
-                  Revisar Espanhol
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="min-w-40 justify-center text-muted-foreground"
-                >
-                  <FilePenLineIcon data-icon="inline-start" />
-                  Revisão Avançada
-                </Button>
-              </nav>
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card className="mt-4 flex min-h-0 flex-1 overflow-hidden border-border/70 bg-card/98 shadow-[0_28px_80px_rgba(4,8,14,0.24)] lg:flex-1">
+        <Card className="flex min-h-0 flex-1 overflow-hidden border-border/70 bg-card/98 shadow-[0_28px_80px_rgba(4,8,14,0.24)] lg:flex-1">
           <CardHeader className="gap-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
@@ -540,7 +551,7 @@ function App() {
                 </CardTitle>
                 <CardDescription className="text-sm leading-6 text-[color:var(--color-paper-300)]">
                   {hasActionableChunk && orientation
-                    ? `Trecho ${orientation.current_chunk_position} de ${orientation.chapter_chunk_count} neste capítulo. A revisão em espanhol só aparece depois da aprovação em português.`
+                    ? `Trecho ${orientation.current_chunk_position} de ${orientation.chapter_chunk_count} neste capítulo. A sugestão em espanhol é baseada no pt-BR revisado deste mesmo trecho.`
                     : "Quando houver um trecho disponível, ele aparecerá aqui automaticamente."}
                 </CardDescription>
               </div>
@@ -595,69 +606,18 @@ function App() {
               </Empty>
             ) : (
               <div className="min-h-0 flex-1 overflow-hidden">
-                <div className="hidden h-full min-h-0 lg:block">
-                  <ResizablePanelGroup
-                    orientation="horizontal"
-                    className="h-full min-h-0 rounded-[24px] border border-border/70 bg-[color:var(--color-panel)]/55"
-                  >
-                    <ResizablePanel
-                      defaultSize={39}
-                      minSize={25}
-                      className="min-h-0 overflow-hidden"
-                    >
-                      <ReviewPane
-                        eyebrow="Original"
-                        title="Trecho do manuscrito"
-                        content={originalPaneContent || "Carregando texto original..."}
-                      />
-                    </ResizablePanel>
-
-                    <ResizableHandle withHandle className="bg-border/70" />
-
-                    <ResizablePanel
-                      defaultSize={39}
-                      minSize={25}
-                      className="min-h-0 overflow-hidden"
-                    >
-                      <ReviewPane
-                        eyebrow="Revisado"
-                        title={
-                          reviewAvailable
-                            ? "Sugestão de revisão"
-                            : "Aguardando geração da revisão"
-                        }
-                        content={reviewContent}
-                        muted={!reviewAvailable}
-                      />
-                    </ResizablePanel>
-
-                    <ResizableHandle withHandle className="bg-border/70" />
-
-                    <ResizablePanel
-                      defaultSize={22}
-                      minSize={18}
-                      className="min-h-0 overflow-hidden"
-                    >
-                      <ChangesPane
-                        status={status}
-                        changes={changes}
-                        lastRejectedReason={lastRejectedReason}
-                      />
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
-                </div>
-
-                <div className="grid gap-3 lg:hidden">
-                  <MobilePanel>
+                <div className="hidden h-full min-h-0 lg:grid lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)_minmax(250px,0.72fr)] lg:gap-3">
+                  <DesktopPanel>
                     <ReviewPane
-                      eyebrow="Original"
-                      title="Trecho do manuscrito"
+                      eyebrow="Trecho Original"
+                      title="Trecho original"
                       content={originalPaneContent || "Carregando texto original..."}
                     />
-                  </MobilePanel>
-                  <MobilePanel>
+                  </DesktopPanel>
+
+                  <DesktopPanel>
                     <ReviewPane
-                      eyebrow="Revisado"
+                      eyebrow="Trecho Revisado"
                       title={
                         reviewAvailable
                           ? "Sugestão de revisão"
@@ -665,15 +625,98 @@ function App() {
                       }
                       content={reviewContent}
                       muted={!reviewAvailable}
+                      action={
+                        <CopyActionButton
+                          label={copiedTarget === "review" ? "Copiado" : "Copiar"}
+                          disabled={!reviewAvailable}
+                          onClick={() => void handleCopy("review", revisedText)}
+                        />
+                      }
                     />
-                  </MobilePanel>
-                  <MobilePanel>
+                  </DesktopPanel>
+
+                  <DesktopPanel>
+                    <ReviewPane
+                      eyebrow="Trecho Espanhol"
+                      title={
+                        spanishAvailable
+                          ? "Sugestão em espanhol"
+                          : "Aguardando tradução"
+                      }
+                      content={spanishContent}
+                      muted={!spanishAvailable}
+                      action={
+                        <CopyActionButton
+                          label={copiedTarget === "spanish" ? "Copiado" : "Copiar"}
+                          disabled={!spanishAvailable}
+                          onClick={() => void handleCopy("spanish", spanishText)}
+                        />
+                      }
+                    />
+                  </DesktopPanel>
+
+                  <DesktopPanel className="col-span-3">
                     <ChangesPane
                       status={status}
                       changes={changes}
-                      lastRejectedReason={lastRejectedReason}
+                      rejectionReason={rejectionReason}
                     />
-                  </MobilePanel>
+                  </DesktopPanel>
+                </div>
+
+                <div className="grid gap-3 lg:hidden">
+                  <DesktopPanel>
+                    <ReviewPane
+                      eyebrow="Trecho Original"
+                      title="Trecho original"
+                      content={originalPaneContent || "Carregando texto original..."}
+                    />
+                  </DesktopPanel>
+                  <DesktopPanel>
+                    <ReviewPane
+                      eyebrow="Trecho Revisado"
+                      title={
+                        reviewAvailable
+                          ? "Sugestão de revisão"
+                          : "Aguardando geração da revisão"
+                      }
+                      content={reviewContent}
+                      muted={!reviewAvailable}
+                      action={
+                        <CopyActionButton
+                          label={copiedTarget === "review" ? "Copiado" : "Copiar"}
+                          disabled={!reviewAvailable}
+                          onClick={() => void handleCopy("review", revisedText)}
+                        />
+                      }
+                    />
+                  </DesktopPanel>
+                  <DesktopPanel>
+                    <ReviewPane
+                      eyebrow="Trecho Espanhol"
+                      title={
+                        spanishAvailable
+                          ? "Sugestão em espanhol"
+                          : "Aguardando tradução"
+                      }
+                      content={spanishContent}
+                      muted={!spanishAvailable}
+                      action={
+                        <CopyActionButton
+                          label={copiedTarget === "spanish" ? "Copiado" : "Copiar"}
+                          disabled={!spanishAvailable}
+                          onClick={() => void handleCopy("spanish", spanishText)}
+                        />
+                      }
+                    />
+                  </DesktopPanel>
+                  <DesktopPanel>
+                    <ChangesPane
+                      status={status}
+                      changes={changes}
+                      rejectionReason={rejectionReason}
+                    />
+                  </DesktopPanel>
                 </div>
               </div>
             )}
@@ -704,7 +747,7 @@ function App() {
             )}
 
             {status === "ready" && (
-              <ButtonGroup className="w-full flex-wrap gap-3 sm:w-auto">
+              <div className="flex w-full flex-wrap gap-3 sm:w-auto">
                 <Button
                   size="lg"
                   className="h-11 min-w-40"
@@ -732,7 +775,7 @@ function App() {
                   <MessageSquareWarningIcon data-icon="inline-start" />
                   Recusar
                 </Button>
-              </ButtonGroup>
+              </div>
             )}
 
             {status === "accepted" && (
@@ -758,9 +801,23 @@ function App() {
                   A revisão foi recusada. O próximo passo será gerar uma nova
                   proposta usando o motivo informado.
                 </p>
-                <Button size="lg" className="h-11 sm:w-auto" onClick={handleReview}>
-                  <SparklesIcon data-icon="inline-start" />
-                  Gerar nova revisão
+                <Button
+                  size="lg"
+                  className="h-11 sm:w-auto"
+                  onClick={handleReview}
+                  disabled={busyAction === "loading" || busyAction === "review" || !hasActionableChunk}
+                >
+                  {busyAction === "review" ? (
+                    <>
+                      <Spinner className="size-4" data-icon="inline-start" />
+                      Gerando nova revisão...
+                    </>
+                  ) : (
+                    <>
+                      <SparklesIcon data-icon="inline-start" />
+                      Gerar nova revisão
+                    </>
+                  )}
                 </Button>
               </div>
             )}
@@ -805,8 +862,8 @@ function App() {
             >
               Cancelar
             </Button>
-            <Button onClick={handleReject} disabled={!rejectReason.trim()}>
-              Confirmar recusa
+            <Button onClick={() => void handleReject()} disabled={!rejectReason.trim() || busyAction === "reject"}>
+              {busyAction === "reject" ? "Recusando..." : "Confirmar recusa"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -820,11 +877,13 @@ function ReviewPane({
   title,
   content,
   muted = false,
+  action,
 }: {
   eyebrow: string
   title: string
   content: ReactNode
   muted?: boolean
+  action?: ReactNode
 }) {
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
@@ -832,9 +891,12 @@ function ReviewPane({
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[color:var(--color-accent-300)]">
           {eyebrow}
         </p>
-        <h2 className="mt-2 font-serif-display text-xl font-semibold text-[color:var(--color-paper-50)]">
-          {title}
-        </h2>
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <h2 className="font-serif-display text-xl font-semibold text-[color:var(--color-paper-50)]">
+            {title}
+          </h2>
+          {action}
+        </div>
       </div>
       <Separator className="bg-border/60" />
       <div className="relative min-h-0 flex-1">
@@ -859,11 +921,11 @@ function ReviewPane({
 function ChangesPane({
   status,
   changes,
-  lastRejectedReason,
+  rejectionReason,
 }: {
   status: ReviewStatus
   changes: SimpleHomeChange[]
-  lastRejectedReason: string
+  rejectionReason: string
 }) {
   const hasChanges = changes.length > 0 && (status === "ready" || status === "accepted")
 
@@ -874,14 +936,14 @@ function ChangesPane({
           Alterações
         </p>
         <h2 className="mt-2 font-serif-display text-xl font-semibold text-[color:var(--color-paper-50)]">
-          O que mudou
+          Alterações da revisão em pt-BR
         </h2>
       </div>
       <Separator className="bg-border/60" />
       <div className="relative min-h-0 flex-1">
         <ScrollArea className="absolute inset-0">
           <div className="px-4 py-4 pb-10">
-            {!hasChanges && status !== "rejected" && (
+            {!hasChanges && !rejectionReason && (
               <Empty className="border-border/70 bg-background/35">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
@@ -897,16 +959,16 @@ function ChangesPane({
             )}
 
             {hasChanges && (
-              <div className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {changes.map((change) => (
                   <article
                     key={`${change.index}-${change.change_type}`}
-                    className="rounded-2xl border border-border/70 bg-background/40 p-4"
+                    className="flex h-full min-h-[220px] flex-col rounded-2xl border border-border/70 bg-background/40 p-4"
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--color-accent-300)]">
                       {change.change_type}
                     </p>
-                    <div className="mt-3 space-y-2 text-sm leading-6">
+                    <div className="mt-3 flex-1 space-y-2 text-sm leading-6">
                       <p className="text-muted-foreground">
                         <strong className="text-[color:var(--color-paper-200)]">
                           Antes:
@@ -929,7 +991,7 @@ function ChangesPane({
               </div>
             )}
 
-            {status === "rejected" && (
+            {rejectionReason && (
               <Empty className="border-border/70 bg-background/35">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
@@ -945,7 +1007,7 @@ function ChangesPane({
                     Motivo salvo
                   </p>
                   <p className="text-sm leading-6 text-[color:var(--color-paper-100)]">
-                    {lastRejectedReason || "Sem motivo registrado."}
+                    {rejectionReason || "Sem motivo registrado."}
                   </p>
                 </EmptyContent>
               </Empty>
@@ -970,11 +1032,43 @@ function StatusPill({ label, value }: { label: string; value: string }) {
   )
 }
 
-function MobilePanel({ children }: { children: ReactNode }) {
+function DesktopPanel({
+  children,
+  className = "",
+}: {
+  children: ReactNode
+  className?: string
+}) {
   return (
-    <div className="overflow-hidden rounded-[24px] border border-border/70 bg-[color:var(--color-panel)]/55">
+    <div
+      className={`overflow-hidden rounded-[24px] border border-border/70 bg-[color:var(--color-panel)]/55 ${className}`.trim()}
+    >
       {children}
     </div>
+  )
+}
+
+function CopyActionButton({
+  label,
+  disabled,
+  onClick,
+}: {
+  label: string
+  disabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="ghost"
+      className="h-9 shrink-0 rounded-full border border-border/70 bg-background/45 px-3 text-[color:var(--color-paper-200)] hover:bg-background/65"
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <CopyIcon data-icon="inline-start" className="size-4" />
+      {label}
+    </Button>
   )
 }
 

@@ -795,19 +795,59 @@ def build_queue_state(
 
 def _build_review_preview_text(base_text: str, suggestions: list[dict[str, Any]]) -> str:
     preview_text = base_text
+    grouped_suggestions: dict[str, list[dict[str, Any]]] = {}
     for suggestion in suggestions:
-        original = suggestion.get("original", "")
-        suggested = suggestion.get("suggested", "")
+        original = str(suggestion.get("original", ""))
         if not original:
             continue
+        grouped_suggestions.setdefault(original, []).append(suggestion)
+
+    for original, grouped in grouped_suggestions.items():
         if original not in preview_text:
             continue
-        preview_text = preview_text.replace(original, suggested, 1)
+
+        if len(grouped) == 1:
+            merged = str(grouped[0].get("suggested", original))
+            preview_text = preview_text.replace(original, merged, 1)
+            continue
+
+        merged = original
+        for suggestion in grouped:
+            suggested = str(suggestion.get("suggested", ""))
+            if not suggested or suggested == merged:
+                continue
+            if original == suggested:
+                continue
+
+            matcher = SequenceMatcher(a=original, b=suggested)
+            for opcode, a_start, a_end, b_start, b_end in matcher.get_opcodes():
+                if opcode == "equal":
+                    continue
+
+                source_fragment = original[a_start:a_end]
+                target_fragment = suggested[b_start:b_end]
+
+                if source_fragment:
+                    if source_fragment in merged:
+                        merged = merged.replace(source_fragment, target_fragment, 1)
+                elif target_fragment:
+                    merged = target_fragment + merged
+
+        preview_text = preview_text.replace(original, merged, 1)
     return preview_text
 
 
 def _build_simple_change_cards(suggestions: list[dict[str, Any]]) -> list[dict[str, str | int]]:
     change_cards: list[dict[str, str | int]] = []
+    change_type_labels = {
+        "punctuation": "pontuação",
+        "grammar": "gramática",
+        "agreement": "concordância",
+        "syntax": "sintaxe",
+        "capitalization": "capitalização",
+        "diacritics": "acentuação",
+        "spelling": "ortografia",
+    }
     for index, suggestion in enumerate(suggestions):
         original = str(suggestion.get("original", ""))
         suggested = str(suggestion.get("suggested", ""))
@@ -816,7 +856,10 @@ def _build_simple_change_cards(suggestions: list[dict[str, Any]]) -> list[dict[s
         change_cards.append(
             {
                 "index": index,
-                "change_type": str(suggestion.get("change_type", "change")),
+                "change_type": change_type_labels.get(
+                    str(suggestion.get("change_type", "change")),
+                    str(suggestion.get("change_type", "change")),
+                ),
                 "reason": str(suggestion.get("reason", "")),
                 "confidence": str(suggestion.get("confidence", "unknown")),
                 "original_text": original,
@@ -913,6 +956,22 @@ def build_simple_home_state(
     base_text = str(chunk_state["chunk"].get("base_text", ""))
     revised_text = _build_review_preview_text(base_text, suggestions)
     original_diff_html, revised_diff_html = _render_inline_diff(base_text, revised_text)
+    rejection_path = reviews_ptbr_dir / f"{chunk_state['chunk']['id']}.rejection.json"
+    rejection_reason = ""
+    if rejection_path.exists():
+        rejection_reason = str(_read_json(rejection_path).get("reason", "")).strip()
+    spanish_preview_path = reviews_es_dir / f"{chunk_state['chunk']['id']}.translation-es.preview.json"
+    spanish_review_path = reviews_es_dir / f"{chunk_state['chunk']['id']}.translation-es.json"
+    translation_payload: dict[str, Any] | None = None
+    if spanish_review_path.exists():
+        translation_payload = _read_json(spanish_review_path)
+    elif spanish_preview_path.exists():
+        translation_payload = _read_json(spanish_preview_path)
+    spanish_text = "\n\n".join(
+        str(item.get("translated_text", "")).strip()
+        for item in (translation_payload or {}).get("translations", [])
+        if str(item.get("translated_text", "")).strip()
+    )
 
     return {
         "has_actionable_chunk": True,
@@ -930,6 +989,9 @@ def build_simple_home_state(
         "original_diff_html": original_diff_html,
         "revised_diff_html": revised_diff_html,
         "review_available": bool(suggestions),
+        "rejection_reason": rejection_reason,
+        "spanish_available": bool(spanish_text),
+        "spanish_text": spanish_text,
         "changes": _build_simple_change_cards(suggestions),
     }
 

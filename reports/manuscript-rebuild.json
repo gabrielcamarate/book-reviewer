@@ -1,11 +1,13 @@
 {
   "old": {
-    "chapter_count": 3,
-    "chunk_count": 432,
+    "chapter_count": 5,
+    "chunk_count": 431,
     "chapter_ids": [
       "chapter-0001-conexao-dimensional",
       "chapter-0002-supremo-poder-anonimo",
-      "chapter-0003-guerra-dimensional"
+      "chapter-0003-reset",
+      "chapter-0004-guerra-dimensional",
+      "chapter-0005-exilados-da-terra"
     ]
   },
   "new": {
@@ -28,27 +30,32 @@
     "missing_chapter_numbers": []
   },
   "migration": {
-    "chapter_ids_added": [
-      "chapter-0003-reset",
-      "chapter-0004-guerra-dimensional",
-      "chapter-0005-exilados-da-terra"
-    ],
-    "chapter_ids_removed": [
-      "chapter-0003-guerra-dimensional"
-    ],
+    "chapter_ids_added": [],
+    "chapter_ids_removed": [],
     "chapter_ids_persisted": [
       "chapter-0001-conexao-dimensional",
-      "chapter-0002-supremo-poder-anonimo"
-    ],
-    "chunk_count_delta": -1,
-    "consolidated_section_ids_added": [
+      "chapter-0002-supremo-poder-anonimo",
       "chapter-0003-reset",
       "chapter-0004-guerra-dimensional",
       "chapter-0005-exilados-da-terra"
     ],
-    "consolidated_section_ids_removed": [
-      "chapter-0003-guerra-dimensional"
-    ]
+    "chunk_count_delta": 0,
+    "consolidated_section_ids_added": [
+      "backmatter-0001-epilogo",
+      "chapter-0001-conexao-dimensional",
+      "chapter-0002-supremo-poder-anonimo",
+      "chapter-0003-reset",
+      "chapter-0004-guerra-dimensional",
+      "chapter-0005-exilados-da-terra",
+      "frontmatter-0001-opening",
+      "frontmatter-0002-o-escritor",
+      "frontmatter-0003-sumario",
+      "frontmatter-0004-opening",
+      "frontmatter-0005-prefacio",
+      "frontmatter-0006-introducao",
+      "frontmatter-0007-prologo"
+    ],
+    "consolidated_section_ids_removed": []
   },
   "reviews": {
     "ptbr_orphaned_review_files": [],
