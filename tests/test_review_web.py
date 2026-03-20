@@ -1091,6 +1091,82 @@ class ReviewWebDashboardTest(unittest.TestCase):
             self.assertFalse(state["review_available"])
             self.assertEqual(state["rejection_reason"], "Mudou demais a voz do autor.")
 
+    def test_build_simple_home_state_keeps_review_available_when_copyedit_has_no_suggestions(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            chunks_dir = temp_path / "manuscript" / "chunks"
+            consolidated_dir = temp_path / "manuscript" / "consolidated"
+            reviews_ptbr_dir = temp_path / "reviews" / "ptbr"
+            reviews_es_dir = temp_path / "reviews" / "es"
+            chunks_dir.mkdir(parents=True, exist_ok=True)
+            consolidated_dir.mkdir(parents=True, exist_ok=True)
+            reviews_ptbr_dir.mkdir(parents=True, exist_ok=True)
+            reviews_es_dir.mkdir(parents=True, exist_ok=True)
+
+            (chunks_dir / "index.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_count": 1,
+                        "chunks": [
+                            {
+                                "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                                "section_id": "chapter-0001-conexao-dimensional",
+                                "section_title": "Capítulo 1: Conexão Dimensional.",
+                                "chunk_order": 1,
+                                "review_status": "pending_review",
+                                "file": "chapter-0001-conexao-dimensional-chunk-0001.json",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (chunks_dir / "chapter-0001-conexao-dimensional-chunk-0001.json").write_text(
+                json.dumps(
+                    {
+                        "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "section_id": "chapter-0001-conexao-dimensional",
+                        "section_title": "Capítulo 1: Conexão Dimensional.",
+                        "paragraph_ids": ["chapter-0001-conexao-dimensional-p-0001"],
+                        "base_text": "Trecho principal.",
+                        "previous_context": [],
+                        "next_context": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reviews_ptbr_dir / "chapter-0001-conexao-dimensional-chunk-0001.copyedit.json").write_text(
+                json.dumps(
+                    {
+                        "chunk_id": "chapter-0001-conexao-dimensional-chunk-0001",
+                        "suggestions": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            state = build_simple_home_state(
+                chunks_dir=chunks_dir,
+                consolidated_dir=consolidated_dir,
+                reviews_ptbr_dir=reviews_ptbr_dir,
+                reviews_es_dir=reviews_es_dir,
+            )
+
+            self.assertTrue(state["has_actionable_chunk"])
+            self.assertTrue(state["review_available"])
+            self.assertEqual(state["revised_text"], "Trecho principal.")
+            self.assertEqual(state["changes"], [])
+
+
     def test_render_simple_home_html_reserves_home_for_simple_operator_navigation(self) -> None:
         html = render_simple_home_html(
             {
@@ -1174,6 +1250,35 @@ class ReviewWebDashboardTest(unittest.TestCase):
         self.assertIn("Revisando este trecho...", html)
         self.assertIn("Isso pode levar alguns instantes.", html)
         self.assertIn("js-loading-form", html)
+
+    def test_render_simple_home_html_allows_accept_when_review_has_no_suggestions(self) -> None:
+        html = render_simple_home_html(
+            {
+                "has_actionable_chunk": True,
+                "chunk": {
+                    "id": "chapter-0001-conexao-dimensional-chunk-0001",
+                },
+                "orientation": {
+                    "current_chapter_title": "Capítulo 1: Conexão Dimensional.",
+                    "remaining_chapter_count": 2,
+                    "current_chunk_position": 1,
+                    "chapter_chunk_count": 5,
+                    "remaining_actionable_chunk_count": 7,
+                    "queue_status": "awaiting_approval",
+                },
+                "original_text": "Trecho principal.",
+                "revised_text": "Trecho principal.",
+                "original_diff_html": "Trecho principal.",
+                "revised_diff_html": "Trecho principal.",
+                "review_available": True,
+                "changes": [],
+            }
+        )
+
+        self.assertIn("Aceitar", html)
+        self.assertNotIn("Revisar este trecho", html)
+        self.assertIn("Nenhuma alteração proposta para este trecho.", html)
+        self.assertIn("A revisão não propôs alterações; você pode aceitar para avançar.", html)
 
     def test_build_decisions_state_reads_persisted_entries(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

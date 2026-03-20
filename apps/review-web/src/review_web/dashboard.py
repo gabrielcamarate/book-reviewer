@@ -951,8 +951,8 @@ def build_simple_home_state(
         sum(1 for chapter in actionable_chapters if chapter.get("id") != next_recommended["section_id"]),
         0,
     )
-    copyedit_review = chunk_state.get("copyedit_review") or {}
-    suggestions = copyedit_review.get("suggestions", [])
+    copyedit_review = chunk_state.get("copyedit_review")
+    suggestions = (copyedit_review or {}).get("suggestions", [])
     base_text = str(chunk_state["chunk"].get("base_text", ""))
     revised_text = _build_review_preview_text(base_text, suggestions)
     original_diff_html, revised_diff_html = _render_inline_diff(base_text, revised_text)
@@ -988,7 +988,7 @@ def build_simple_home_state(
         "revised_text": revised_text,
         "original_diff_html": original_diff_html,
         "revised_diff_html": revised_diff_html,
-        "review_available": bool(suggestions),
+        "review_available": copyedit_review is not None,
         "rejection_reason": rejection_reason,
         "spanish_available": bool(spanish_text),
         "spanish_text": spanish_text,
@@ -1442,6 +1442,8 @@ def render_simple_home_html(state: dict[str, Any]) -> str:
     )
     helper_text = (
         "<p class=\"muted\">A recusa com feedback entra na próxima etapa.</p>"
+        if review_available and changes
+        else "<p class=\"muted\">A revisão não propôs alterações; você pode aceitar para avançar.</p>"
         if review_available
         else "<p class=\"muted\">Este trecho ainda não foi revisado.</p>"
     )
@@ -1464,7 +1466,11 @@ def render_simple_home_html(state: dict[str, Any]) -> str:
             "</li>"
         )
         for item in changes
-    ) or "<li class=\"change-card\"><p class=\"muted\">Nenhuma alteração disponível para este trecho.</p></li>"
+    ) or (
+        "<li class=\"change-card\"><p class=\"muted\">Nenhuma alteração proposta para este trecho.</p></li>"
+        if review_available
+        else "<li class=\"change-card\"><p class=\"muted\">Nenhuma alteração disponível para este trecho.</p></li>"
+    )
 
     body = f"""
       <div class="simple-home">
