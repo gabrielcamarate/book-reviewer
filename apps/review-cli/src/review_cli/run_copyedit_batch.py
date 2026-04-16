@@ -28,7 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--style-guide", type=Path, default=Path("editorial/STYLE_GUIDE.md"))
     parser.add_argument("--glossary", type=Path, default=Path("editorial/GLOSSARY.md"))
     parser.add_argument("--decisions", type=Path, default=Path("editorial/DECISIONS.md"))
-    parser.add_argument("--model", default="gpt-5-codex")
+    parser.add_argument("--model", default="gpt-5.4")
     parser.add_argument("--max-chunks", type=int, default=None)
     parser.add_argument("--continue-on-error", action="store_true")
     return parser

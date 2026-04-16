@@ -151,7 +151,7 @@ def run_style_pass(
     glossary_path: Path,
     decisions_path: Path,
     runner: Runner,
-    model: str = "gpt-5-codex",
+    model: str = "gpt-5.4",
     chunk_id: str | None = None,
 ) -> dict[str, Any]:
     chunk_payload, source_paragraphs = _select_chunk(

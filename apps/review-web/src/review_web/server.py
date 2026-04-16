@@ -1469,7 +1469,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--world-rules", type=Path, default=Path("editorial/WORLD_RULES.md"))
     parser.add_argument("--skip-state-validation", action="store_true")
     parser.add_argument("--preview-token", default=None)
-    parser.add_argument("--model", default="gpt-5-codex")
+    parser.add_argument("--model", default="gpt-5.4")
     return parser
 
 

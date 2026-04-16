@@ -125,7 +125,7 @@ def run_copyedit_pass(
     glossary_path: Path,
     decisions_path: Path,
     runner: Runner,
-    model: str = "gpt-5-codex",
+    model: str = "gpt-5.4",
     chunk_id: str | None = None,
 ) -> dict[str, Any]:
     chunk_payload = _select_chunk(chunks_dir, reviews_dir, chunk_id)

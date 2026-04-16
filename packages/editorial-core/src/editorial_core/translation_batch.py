@@ -18,7 +18,7 @@ def run_translation_es_batch(
     glossary_path: Path,
     decisions_path: Path,
     runner: Runner,
-    model: str = "gpt-5-codex",
+    model: str = "gpt-5.4",
     max_chunks: int | None = None,
     stop_on_error: bool = True,
 ) -> dict[str, Any]:

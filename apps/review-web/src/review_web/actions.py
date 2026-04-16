@@ -28,7 +28,7 @@ def trigger_copyedit(
     glossary_path: Path,
     decisions_path: Path,
     runner: Runner,
-    model: str = "gpt-5-codex",
+    model: str = "gpt-5.4",
 ) -> dict[str, object]:
     return run_copyedit_pass(
         chunks_dir=chunks_dir,
@@ -86,7 +86,7 @@ def trigger_style(
     glossary_path: Path,
     decisions_path: Path,
     runner: Runner,
-    model: str = "gpt-5-codex",
+    model: str = "gpt-5.4",
 ) -> dict[str, object]:
     return run_style_pass(
         chunks_dir=chunks_dir,
@@ -167,7 +167,7 @@ def trigger_translation_es(
     glossary_path: Path,
     decisions_path: Path,
     runner: Runner,
-    model: str = "gpt-5-codex",
+    model: str = "gpt-5.4",
 ) -> dict[str, object]:
     return run_translation_es_pass(
         chunks_dir=chunks_dir,
@@ -193,7 +193,7 @@ def trigger_translation_es_preview(
     glossary_path: Path,
     decisions_path: Path,
     runner: Runner,
-    model: str = "gpt-5-codex",
+    model: str = "gpt-5.4",
 ) -> dict[str, object]:
     return run_translation_es_preview_pass(
         chunks_dir=chunks_dir,

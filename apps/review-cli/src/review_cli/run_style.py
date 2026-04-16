@@ -71,7 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--model",
-        default="gpt-5-codex",
+        default="gpt-5.4",
         help="Codex model identifier used for the style pass.",
     )
     return parser
