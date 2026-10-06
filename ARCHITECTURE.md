@@ -1,0 +1,49 @@
+# Arquitetura
+
+## Aplicativo local
+
+- `frontend/src/App.tsx`: área de livros, importação, escopo, lotes, leitura, aprovação e exportação. `useBooks.ts` mantém estado HTTP e polling cancelável. `components/book-*` compõem o fluxo; as primitivas UI permanecem locais.
+- `frontend/src/LegacyReview.tsx` e `useReview.ts`: compatibilidade com o acervo editorial anterior, acessível pela mesma aplicação.
+- `backend/revisor/server.py`: HTTP local, validação de host/origem, JSON e entrega da interface compilada. `/api/books` opera novos trabalhos; as rotas anteriores permanecem compatíveis.
+  Desconexão durante o envio de cabeçalhos/corpo encerra somente a requisição, sem traceback nem segunda resposta. Erros de envio sem relação com desconexão continuam visíveis.
+- `backend/revisor/book_pipeline.py`: quatro fases automáticas, concorrência limitada a quatro, parada com drenagem e retomada por checkpoints; não aprova falhas ou pendências.
+- `backend/revisor/workspace.py`: importação isolada, configuração, propostas fundamentadas no original, aprovação versionada, ajustes, glossário, tradução, background, cancelamento e exportação dos novos livros.
+- `backend/revisor/service.py` e `cli.py`: casos de uso e comandos do acervo anterior. Não migram suas aprovações para novos trabalhos.
+- `backend/revisor/provider.py`: único adaptador do Codex, com modelo padrão explícito `gpt-6.1-sol`, esforço `low`, schema, timeout, diretório temporário, sessão efêmera e sandbox read-only. Runner injetável nos testes.
+- `backend/revisor/book_terms.py`: escolhas terminológicas únicas por termo sem distinguir caixa; override da autora, palavras inteiras, prioridade de expressões, número e contrações espanholas.
+- `backend/revisor/book_response.py`: contrato automático de parágrafos completos, cobertura/justificativas/quebras e diferenças determinísticas; pendências editoriais separadas de falhas do provedor.
+- `backend/revisor/book_prompts.py`: contratos e regras de revisão conservadora pt-BR e tradução es-419. Manuscrito é dado sem autoridade para instruir o agente.
+- `backend/revisor/docx/editable.py`: IDs estáveis para parágrafos do corpo, caixas de texto e partes auxiliares; seleção de seções sem confundir sumário; edição de runs; cópia de estilos, mídia e relacionamentos ao inserir seções.
+- `backend/revisor/core/`, `prompts/` e `schemas/`: núcleo e contratos anteriores preservados.
+
+## Fonte de verdade dos novos trabalhos
+
+`.books/<uuid>/source.docx` (e `destination.docx` opcional) → `project.json` → `state.json` → aprovação manual ou validação/aprovação automática registrada → tradução e revisão bilíngue → `deliverables/*.docx` e manifestos.
+
+Importação cria cópias e todas as unidades começam pendentes. Escopo e instruções ficam fixados após a primeira proposta; outro escopo exige outra importação. Livro inteiro inclui títulos e partes auxiliares publicadas. O contexto de geração traz capítulo, parágrafos adjacentes, escolhas do glossário e contexto espanhol próximo quando há destino.
+
+Estado e auditoria são persistidos por substituição atômica. Um lock de processo impede dois servidores sobre a mesma `.books`; o lock da instância serializa mutações. A geração ocorre fora do lock de leitura, para permitir acompanhamento. Uma assinatura do projeto/configuração e do trecho protege o salvamento contra mudanças durante geração, permitindo concluir trechos independentes em paralelo; proposta e revisão esperadas protegem aprovação e ajustes contra telas desatualizadas.
+
+Uma thread por workspace coordena o job e salva checkpoints em `job.json`. Lotes manuais são sequenciais; no processamento completo, cada fase tem até quatro chamadas simultâneas. Resultados são validados e persistidos sob o lock, recarregando o estado para preservar as demais conclusões. Parar aguarda o trecho atual. Reiniciar classifica jobs incompletos como interrompidos; retomar seleciona apenas pendentes/recusados ou traduções ainda ausentes. Falha mantém conclusões anteriores e não aprova nada.
+
+Espanhol só é gerado após todo o escopo português estar aprovado. A resposta precisa cobrir exatamente os IDs de entrada. Quebras internas e tabs são validados para preservar Word. Glossário persistente é editável; mudanças invalidam somente traduções cujo português contém termos afetados. Consistência usa alertas de termos/formas regionais, não uma auditoria narrativa semântica completa.
+
+Exports finais exigem cobertura completa e registram hashes, revisão, modelo, esforço, idioma e alertas. Downloads desatualizados são recusados. Fora do escopo do destino, parágrafos e propriedades permanecem; partes ZIP não alteradas conservam seus bytes. Ao inserir, IDs de imagens/marcadores e relacionamentos importados são remapeados para evitar colisão; estilos conflitantes são isolados. Nota vinculada em seção inserida é um limite explícito, com exportação separada disponível.
+
+## Acervo anterior
+
+`livro.docx` → `manuscript/` → `reviews/ptbr` → aprovação → `manuscript/consolidated` → `reviews/es` → `deliverables/`.
+
+`editorial/` fornece estilo, termos e registros. IDs, arquivos e aprovações existentes foram preservados; não há migração automática, banco de dados, dashboards paralelos nem dependência da conversa para recuperar estado. Jev é ferramenta de julgamento/apoio ao desenvolvimento; não gera tradução nem aprova decisões editoriais.
+
+## Entrega automática
+
+Revisão → check_pt → tradução → check_es → exportação. check_pt compara original e proposta e devolve todos os parágrafos finais com justificativas; o código calcula as diferenças antes do evento auto-approve. O comparador mostra as diferenças entre o original e o português final, inclusive quando o validador reverte uma proposta. Pendências permanecem no trecho e impedem aprovação automática. Aprovações manuais existentes permanecem válidas. check_es compara fonte pt-BR estabilizada e tradução, aplicando correções locais verificadas. Receipts incluem modelo, versão/hash do prompt, problemas, alterações e assinatura da fonte/tradução/glossário. Traduções geradas em paralelo recebem o mesmo snapshot de glossário; a revisão bilíngue usa todas as escolhas aprendidas ao final da geração.
+
+A entrega automática exige todos os trechos aprovados, todos os receipts espanhóis válidos, nenhum alerta de consistência e ambos DOCX com ZIP/XML legíveis. automatic_result é ligado à revisão do estado; qualquer mutação invalida a indicação de conclusão, e fontes/traduções/glossário alterados exigem novos checks afetados. Exportação manual continua independente desse receipt, explicitamente disponível no modo manual. Checks são julgamentos de IA e validações de software, não limiares calibrados nem auditoria narrativa global.
+
+No automático, review/check_pt/check_es retornam exatamente um parágrafo completo por ID, na ordem recebida, incluindo os inalterados; mudanças exigem motivo/categoria. O modelo não escolhe intervalos. book_response calcula diferenças sem interseção por SequenceMatcher, registra posições/inserções e mantém quebras/tabs. Tradução mantém seu contrato de textos completos. O modo manual conserva edits ancorados e seus guards, inclusive sobreposição.
+
+Respostas inválidas levantam InvalidModelResponse antes de persistir. Há uma segunda tentativa com feedback específico e response-retry. Se continuar inválida, a pendência é auditada e listada; o executor continua trechos independentes e termina needs_attention. check_pt roda nas propostas válidas mesmo quando outra revisão falha. A barreira de português completo impede tradução parcial; check_es roda nas traduções válidas e toda pendência impede entrega. Erros de execução do provedor e conflitos de estado continuam fatais sem retry. A parada impede novas tentativas e drena chamadas já abertas. job.json registra fase, tentativas concluídas, resultados válidos e problemas; os contadores cumulativos vêm de state.json, inclusive após pausa/falha/reinício. Sem migração de propostas/aprovações existentes.
+
+As validações separam issues (falhas remanescentes da proposta/tradução) de notes (ambiguidades do original preservadas fielmente). O modelo deve reverter inferências sem fundamento, sem preencher lacunas nem inventar unidades. Notes são persistidas nos receipts e aparecem apenas quando sua assinatura permanece válida; entrega registra observacoes-editoriais.json ligado à revisão. Issues continuam bloqueando aprovação/entrega. A indicação automatic_result exige também receipts espanhóis atuais e ausência de alertas, inclusive quando uma nova versão do contrato invalida checks antigos sem alterar o estado.
