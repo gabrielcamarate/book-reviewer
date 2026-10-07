@@ -20,6 +20,7 @@ Cada passo deixa o app funcionando e passa em `scripts/ci.sh`.
 
 Andamento: passo 1 concluído em 0.4.0 (tokens importados de `design/tokens.css`, tema por `data-theme` em `frontend/src/lib/theme.ts`, Newsreader e favicon).
 Passo 2 concluído em 0.5.0: `frontend/src/components/ui/` tem um componente React por arquivo de `design/components/`, todos sobre as classes `rv-` de `design/components.css`, importado sem cópia. `lib/viewport.ts` decide celular ou computador.
+Passo 3 concluído em 0.6.0: `App.tsx` monta `AppHeader` ou `TabBar` e escolhe a tela por `lib/screens.ts` (testado com `node --test`). Carregando e erro já seguem o design; as demais telas ainda mostram a área de trabalho anterior (`screens/legacy-workspace.tsx`) até o passo 4. Layout das páginas em `design/components.css` (`rv-page`, `rv-columns`, `rv-message`).
 
 ## Do que existe hoje para o que deve existir
 

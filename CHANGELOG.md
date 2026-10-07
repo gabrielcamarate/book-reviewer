@@ -5,6 +5,19 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-07
+
+### Adicionado
+
+- Estrutura do novo design: cabeçalho com "Meus livros", "Mais opções" e o tema no computador; barra inferior "Livro", "Meus livros" e "Opções" no celular; link para pular ao conteúdo.
+- Escolha da tela pelo estado do livro (carregando, erro, início, outro livro, pronto para começar, acompanhar, pausado, parou no meio, precisa de atenção, livro pronto, aprovar à mão), com testes em `node --test` no CI.
+- Telas de carregando e de erro do servidor no novo design.
+- Classes de layout das páginas em `design/components.css`.
+
+### Alterado
+
+- A lista de livros sai da barra lateral e vai para "Meus livros". Até o passo 4, o livro aberto ainda mostra a área de trabalho anterior dentro da estrutura nova.
+
 ## [0.5.0] - 2026-10-07
 
 ### Adicionado

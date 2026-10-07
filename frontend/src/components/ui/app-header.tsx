@@ -28,7 +28,7 @@ function AppHeader({ current, onNavigate }: NavProps) {
 
 /** Phone header: the brand only; navigation lives in the TabBar. */
 function MobileHeader() {
-  return <header className="rv-header"><Brand /></header>
+  return <header className="rv-header rv-header--mobile"><Brand /></header>
 }
 
 export { AppHeader, MobileHeader }

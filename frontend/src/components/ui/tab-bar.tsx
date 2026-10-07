@@ -11,7 +11,7 @@ const TABS = [
 /** Phone bottom bar with the three areas spelled out (design/components/TabBar.md). */
 function TabBar({ current, onNavigate }: { current: Area | null; onNavigate: (area: Area) => void }) {
   return (
-    <nav className="rv-tabbar" aria-label="Principal">
+    <nav className="rv-tabbar rv-tabbar--fixed" aria-label="Principal">
       {TABS.map(({ area, label, Icon }) => (
         <button key={area} type="button" className="rv-tabbar__item" aria-current={current === area ? "page" : undefined} onClick={() => onNavigate(area)}>
           <Icon size={22} aria-hidden="true" />{label}

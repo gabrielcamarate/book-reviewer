@@ -11,8 +11,26 @@ ul, ol { padding: 0; list-style: none; }
 .rv-stage { box-sizing: border-box; padding: var(--space-6); display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
 .rv-stage--stack { flex-direction: column; align-items: stretch; }
 
+/* Layout das telas */
+.rv-app { min-height: 100vh; display: flex; flex-direction: column; }
+.rv-page { flex: 1; width: 100%; max-width: var(--content-max); box-sizing: border-box; margin: 0 auto; padding: var(--space-10) var(--space-10) var(--space-16); display: flex; flex-direction: column; gap: var(--space-8); }
+.rv-page--mobile { padding: var(--space-6) var(--space-5) var(--space-8); gap: var(--space-6); }
+.rv-page-title { display: flex; flex-direction: column; gap: var(--space-1); }
+.rv-page-title--row { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4) var(--space-6); }
+.rv-columns { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-6); }
+.rv-columns__main { flex: 3 1 520px; min-width: 0; }
+.rv-columns__side { flex: 2 1 340px; min-width: 0; }
+.rv-page--center { justify-content: center; align-items: center; }
+.rv-message { width: 100%; max-width: var(--reading-max); margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-6); }
+.rv-header--mobile { padding: 14px var(--space-5); }
+.rv-header--mobile .rv-brand { font-size: 24px; }
+.rv-tabbar--fixed { position: sticky; bottom: 0; z-index: 10; }
+
+.rv-skip { position: fixed; top: var(--space-3); left: var(--space-4); z-index: 50; padding: var(--space-3) var(--space-4); background: var(--primary); color: var(--primary-foreground); border-radius: var(--radius-md); font-weight: 700; transform: translateY(-200%); }
+.rv-skip:focus { transform: none; }
+
 /* Foco */
-.rv-btn:focus-visible, .rv-link:focus-visible, .rv-input:focus-visible, .rv-textarea:focus-visible, .rv-filepicker:focus-visible, .rv-segmented__item:focus-visible, .rv-nav__link:focus-visible, .rv-tabbar__item:focus-visible, .rv-item:focus-visible, .rv-disclosure:focus-visible, .rv-check input:focus-visible, .rv-choice input:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.rv-btn:focus-visible, .rv-link:focus-visible, .rv-skip:focus-visible, .rv-input:focus-visible, .rv-textarea:focus-visible, .rv-filepicker:focus-visible, .rv-segmented__item:focus-visible, .rv-nav__link:focus-visible, .rv-tabbar__item:focus-visible, .rv-item:focus-visible, .rv-disclosure:focus-visible, .rv-check input:focus-visible, .rv-choice input:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
 
 /* Button */
 .rv-btn { box-sizing: border-box; min-height: var(--control); padding: 0 var(--space-6); display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: transparent; color: var(--foreground); border: 1.5px solid var(--border-control); border-radius: var(--radius-md); font: inherit; font-weight: 600; line-height: 1.2; text-align: center; text-decoration: none; cursor: pointer; }
