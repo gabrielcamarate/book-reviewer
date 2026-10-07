@@ -18,6 +18,8 @@ Roteiro para aplicar o design desta pasta no frontend. Vale enquanto a migraçã
 
 Cada passo deixa o app funcionando e passa em `scripts/ci.sh`.
 
+Andamento: passo 1 concluído em 0.4.0 (tokens importados de `design/tokens.css`, tema por `data-theme` em `frontend/src/lib/theme.ts`, Newsreader e favicon).
+
 ## Do que existe hoje para o que deve existir
 
 | Hoje | Passa a ser |
@@ -74,9 +76,7 @@ A etapa em andamento é a primeira que ainda não chegou a 100%. As seguintes, s
 
 ## Lacunas
 
-O design mostra uma coisa que a API não entrega hoje:
-
-- **Correções por trecho na lista.** `trechos` mostra "14 correções" em cada linha, e a lista de trechos do livro só traz `id`, `title`, `status` e `translated`. Ou a API passa a incluir a contagem, ou a lista fica sem ela.
+A única lacuna da API foi resolvida em 0.3.0: cada item de `chunks` traz `corrections`, a contagem que `trechos` mostra em cada linha.
 
 O restante se resolve no frontend:
 
@@ -85,10 +85,10 @@ O restante se resolve no frontend:
 - **"1 observação para você" na lista de trechos e o filtro "Com observações":** derivados de `editorial_notes`.
 - **Paginação de trechos:** a lista já vem inteira; a tela mostra em partes.
 
-## Decisões em aberto
+## Decisões tomadas
 
-- **Revisão anterior:** manter atrás de um link em "Mais opções", como hoje, ou retirar.
-- **Contagem de correções por trecho:** incluir na API ou tirar da lista.
+- **Revisão anterior:** retirada por completo em 0.3.0, com o código e a API que só ela usava.
+- **Contagem de correções por trecho:** incluída na API em 0.3.0.
 
 ## Verificação
 

@@ -14,6 +14,7 @@ dist/
 .vite/
 .books/
 .impeccable/review/
+.jev-browser/
 
 # Dados locais e documentos pessoais
 *.docx
@@ -22,12 +23,6 @@ dist/
 .env
 .env.*
 !.env.example
-/manuscript/
-/editorial/
-/reviews/
-/reports/
-/deliverables/
 /.agents/
 /skills-lock.json
-/fixtures/bot-contracts/
 /TASKS-HISTORY.md

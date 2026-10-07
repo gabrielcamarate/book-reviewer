@@ -2,18 +2,11 @@
 __pycache__
 *.pyc
 .pytest_cache
-manuscript/extracted
-reviews
-reports
 dist
 node_modules
 *.log
-livro.docx
 
 .books
-editorial
-manuscript
-deliverables
 .agents
 .env
 .env.*

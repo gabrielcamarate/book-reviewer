@@ -12,6 +12,8 @@ export default defineConfig({
     },
   },
   server: {
+    // The design reference (tokens and brand icons) lives beside the app, in ../design.
+    fs: { allow: ['..'] },
     proxy: {
       "/downloads": {
         target: `http://127.0.0.1:${process.env.REVIEW_API_PORT ?? "8766"}`,

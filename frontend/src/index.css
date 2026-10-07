@@ -1,73 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
+/* Every color, space, radius, size and text style comes from the design reference. */
+@import "../../design/tokens.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme="dark"] *));
 
-@theme {
-  --font-sans: "Manrope", sans-serif;
-  --font-serif-display: "Fraunces", serif;
-
-  --color-paper-50: oklch(0.97 0.012 82);
-  --color-paper-100: oklch(0.92 0.015 82);
-  --color-paper-200: oklch(0.84 0.014 82);
-  --color-paper-300: oklch(0.72 0.013 82);
-  --color-paper-400: oklch(0.62 0.014 82);
-
-  --color-ink-950: oklch(0.16 0.018 260);
-  --color-ink-980: oklch(0.11 0.018 260);
-
-  --color-surface: oklch(0.23 0.02 260 / 0.9);
-  --color-surface-muted: oklch(0.27 0.018 260 / 0.82);
-  --color-panel: oklch(0.21 0.018 260 / 0.86);
-
-  --color-line: oklch(0.45 0.018 260 / 0.42);
-  --color-line-strong: oklch(0.68 0.05 78 / 0.62);
-
-  --color-accent-300: oklch(0.79 0.1 74);
-  --color-accent-400: oklch(0.71 0.12 70);
-  --color-accent-500: oklch(0.76 0.12 74);
-  --color-highlight: oklch(0.82 0.1 88 / 0.8);
-  --color-highlight-strong: oklch(0.84 0.11 88 / 0.94);
-  --color-highlight-foreground: oklch(0.2 0.02 260);
-}
-
+/* Names the local shadcn primitives expect, mapped onto design tokens. */
 :root {
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--input);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--track);
+  --accent: var(--input);
+  --accent-foreground: var(--foreground);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--color-paper-50);
-  background: var(--color-ink-980);
-  --background: oklch(0.19 0.018 260);
-  --foreground: oklch(0.96 0.012 82);
-  --card: oklch(0.24 0.02 260 / 0.95);
-  --card-foreground: oklch(0.96 0.012 82);
-  --popover: oklch(0.23 0.02 260);
-  --popover-foreground: oklch(0.96 0.012 82);
-  --primary: oklch(0.77 0.11 74);
-  --primary-foreground: oklch(0.18 0.018 260);
-  --secondary: oklch(0.3 0.017 260);
-  --secondary-foreground: oklch(0.95 0.012 82);
-  --muted: oklch(0.28 0.015 260);
-  --muted-foreground: oklch(0.72 0.013 82);
-  --accent: oklch(0.31 0.02 260);
-  --accent-foreground: oklch(0.96 0.012 82);
-  --destructive: oklch(0.68 0.17 28);
-  --border: oklch(0.42 0.016 260 / 0.55);
-  --input: oklch(0.26 0.016 260 / 0.95);
-  --ring: oklch(0.77 0.11 74 / 0.7);
-  --radius: 1rem;
 }
+
+[data-theme="dark"] { color-scheme: dark; }
+[data-theme="light"] { color-scheme: light; }
 
 * {
   box-sizing: border-box;
 }
 
 html {
-  color-scheme: dark;
   min-width: 320px;
-  background: var(--color-ink-980);
+  background: var(--background);
 }
 
 body {
@@ -75,7 +39,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   font-family: var(--font-sans);
-  background: var(--color-ink-980);
+  background: var(--background);
+  color: var(--foreground);
 }
 
 button,
@@ -88,8 +53,6 @@ a {
 }
 
 @theme inline {
-  --font-sans: "Manrope", sans-serif;
-  --font-serif-display: "Fraunces", serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -108,13 +71,6 @@ a {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
@@ -123,9 +79,6 @@ a {
   }
   body {
     @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
   }
 }
 
@@ -222,7 +175,7 @@ h1, h2 { text-wrap: balance; }
 .text-pane h3 { color: var(--muted-foreground); }
 .pane-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 44px; }
 .original-pane > h3 { min-height: 44px; display: flex; align-items: center; }
-.manuscript-text { display: flex; flex-direction: column; gap: 20px; font-family: Georgia, 'Times New Roman', serif; line-height: 1.85; font-size: 1rem; max-height: 510px; overflow: auto; padding: 14px 4px 8px 0; overflow-wrap: anywhere; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.manuscript-text { display: flex; flex-direction: column; gap: 20px; font-family: var(--font-serif); line-height: 1.85; font-size: 1rem; max-height: 510px; overflow: auto; padding: 14px 4px 8px 0; overflow-wrap: anywhere; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .manuscript-text label, .manuscript-text textarea { font-family: var(--font-sans); }
 .manuscript-text p { white-space: pre-wrap; }
 .manuscript-text mark { background: var(--highlight); color: var(--highlight-foreground); border-radius: 2px; padding-inline: 2px; }

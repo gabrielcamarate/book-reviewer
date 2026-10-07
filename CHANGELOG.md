@@ -5,6 +5,19 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-07
+
+### Alterado
+
+- Interface passa a usar os tokens de `design/tokens.css` (cores, espaços, raios, tamanhos e tipos), sem paleta própria no frontend. Primeiro passo da migração para o novo design.
+- Tema escuro e claro: segue o sistema por padrão e guarda a escolha da pessoa no navegador, aplicado antes da primeira pintura.
+- Newsreader substitui Fraunces nos títulos e no texto do livro; Manrope continua na interface.
+- Favicon, ícone SVG e ícone de atalho do celular vêm de `design/assets/brand/`.
+
+### Removido
+
+- Regras de `.gitignore` e `.dockerignore` das pastas do acervo anterior, já fora do projeto.
+
 ## [0.3.0] - 2026-10-07
 
 ### Adicionado
