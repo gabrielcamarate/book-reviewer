@@ -5,6 +5,13 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-10-07
+
+### Adicionado
+
+- O destaque das grafias protegidas vale para todas as ocorrências: se o original marca a letra incomum (o "X" vermelho de eXilados, o "TT" roxo de CamaraTTe) na maioria das vezes, os dois Word gerados usam esse destaque em todas, inclusive onde o original veio sem cor e na forma em espanhol ("eXiliados"). No Livro 2, isso corrigiu 18 letras em cada arquivo.
+- O cartão "Grafias de quem escreveu" mostra cada palavra com o destaque aprendido.
+
 ## [0.18.0] - 2026-10-07
 
 ### Adicionado

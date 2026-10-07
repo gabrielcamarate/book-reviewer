@@ -18,6 +18,7 @@ from revisor import book_prompts
 from revisor.book_pipeline import run_automatic
 from revisor.book_response import EditorialIssues, apply_paragraphs, expand_changed
 from revisor.book_spellings import detect, occurrences, protect
+from revisor.docx import spelling_styles
 from revisor.book_terms import canonical_glossary, contains_target, source_terms
 from revisor.docx.editable import MAX_ARCHIVE, edit_document, inspect_document, splice_sections
 from revisor.docx.reader import parse_xml, extract_docx_metadata
@@ -48,6 +49,7 @@ class BookWorkspace:
         self.thread = None
         self.active_job = None
         self._detected = {}
+        self._styles = {}
         self.file_lock = (self.root / 'workspace.lock').open('a')
         try:
             fcntl.flock(self.file_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -422,7 +424,16 @@ class BookWorkspace:
         auto = {word:count for word,count in found.items() if count>=2}
         active = sorted((set(auto)|set(added))-set(removed))
         return {'auto':[{'word':w,'count':c} for w,c in sorted(auto.items())], 'added':added, 'removed':removed, 'active':active,
+                'styles':spelling_styles.describe(self._spelling_styles(project,active)),
                 'suggested':[{'word':w,'count':c} for w,c in sorted(found.items()) if c<2 and w not in added]}
+
+    def _spelling_styles(self, project, active):
+        """Highlighted letters of the protected spellings, learned from the original Word once per word list."""
+        cached = self._styles.get(project['id'])
+        if not cached or cached[0] != tuple(active):
+            cached = (tuple(active), spelling_styles.learn(self._folder(project['id'])/'source.docx', active))
+            self._styles[project['id']] = cached
+        return cached[1]
 
     def _protected(self, project, state):
         return self._spellings(project,state)['active']
@@ -609,7 +620,7 @@ class BookWorkspace:
             self._not_running(pid); folder = self._folder(pid)
             trash = self.root/'.removidos'; trash.mkdir(exist_ok=True)
             folder.rename(trash/f'{pid}-{time.strftime("%Y%m%d-%H%M%S")}')
-            self._detected.pop(pid, None)
+            self._detected.pop(pid, None); self._styles.pop(pid, None)
 
     def reopen(self, pid, chunk_id):
         with self.lock:
@@ -806,6 +817,7 @@ class BookWorkspace:
             else:
                 only = {pid for s in sections for pid in range(s['start'],s['end']+1)} if language=='es' and settings['scope']=='sections' else None
                 edit_document(folder/'source.docx',output,values,only_ids=only,language='es-MX' if language=='es' else None)
+            spelling_styles.apply(output, self._spelling_styles(project,self._protected(project,state)))
             self._validate_word(output)
             manifest = {'project':pid,'language':language,'source_sha256':project['document']['sha256'],
                         'destination_sha256':project['destination']['sha256'] if project['destination'] else None,

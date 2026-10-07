@@ -133,3 +133,79 @@ class WorkspaceSpellingTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+RED = '<w:rPr><w:color w:val="EE0000"/></w:rPr>'
+
+
+def styled_book(path, paragraphs):
+    """paragraphs: list of lists of (text, rPr xml)."""
+    body = ''.join('<w:p>' + ''.join(f'<w:r>{props}<w:t xml:space="preserve">{text}</w:t></w:r>' for text, props in runs) + '</w:p>' for runs in paragraphs)
+    with zipfile.ZipFile(path, 'w') as archive:
+        archive.writestr('word/document.xml', f'<w:document xmlns:w="{NS["w"]}"><w:body>{body}<w:sectPr/></w:body></w:document>')
+        archive.writestr('word/styles.xml', '<styles/>')
+        archive.writestr('[Content_Types].xml', '<Types/>')
+
+
+def letter_colors(path, word_prefix):
+    """Color of every character of each word starting with word_prefix, from the Word file."""
+    from xml.etree import ElementTree as ET
+    import re
+    W = '{%s}' % NS['w']
+    root = ET.fromstring(zipfile.ZipFile(path).read('word/document.xml'))
+    found = []
+    for p in root.iter(W + 'p'):
+        chars = []
+        for r in p.iter(W + 'r'):
+            color = r.find(f'{W}rPr/{W}color')
+            for t in r.iter(W + 't'):
+                chars += [(ch, color.get(W + 'val') if color is not None else None) for ch in (t.text or '')]
+        text = ''.join(ch for ch, _ in chars)
+        for m in re.finditer(r'(?<!\w)' + word_prefix + r'\w*', text):
+            found.append([(ch, c) for ch, c in chars[m.start():m.end()]])
+    return found
+
+
+class SpellingStyleTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.root = Path(self.temp.name)
+        self.source = self.root / 'livro.docx'
+        styled_book(self.source, [
+            [('Capítulo 1', '')],
+            [('Os e', ''), ('X', RED), ('ilados chegaram com CamaraTTe.', '')],
+            [('Depois, os e', ''), ('X', RED), ('ilados partiram.', '')],
+            [('Livro eXilados da Terra, sem cor no original.', '')],
+            [('CamaraTTe ficou.', '')],
+        ])
+        def runner(**kwargs):
+            data = json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])
+            if data['task'] == 'translate':
+                return {'translations': [{'paragraph_id': p['id'], 'text': p['text'].replace('Os eXilados', 'Los eXiliados').replace('Livro eXilados', 'Libro eXiliados')} for p in data['paragraphs']], 'terms': []}
+            return normalizing_runner(**kwargs)
+        self.ws = BookWorkspace(self.root, runner=runner)
+        self.pid = self.ws.import_book(self.source)['id']
+
+    def tearDown(self):
+        self.ws.close(); self.temp.cleanup()
+
+    def test_learns_the_highlighted_letter_from_the_original(self):
+        styles = self.ws.detail(self.pid)['spellings']['styles']
+        self.assertEqual(styles, {'eXilados': [{'letter': 'X', 'color': 'EE0000', 'bold': False, 'italic': False}]})
+
+    def test_every_occurrence_gets_the_highlight_in_both_word_files(self):
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        self.assertTrue(self.ws.detail(self.pid)['automatic_result'])
+        folder = self.ws._folder(self.pid) / 'deliverables'
+        pt = letter_colors(folder / 'livro-revisado-ptbr.docx', 'eX')
+        es = letter_colors(folder / 'livro-espanhol-latinoamericano.docx', 'eX')
+        self.assertEqual(len(pt), 3); self.assertEqual(len(es), 3)
+        for word in pt + es:
+            self.assertEqual([c for ch, c in word if ch == 'X'], ['EE0000'], word)
+            self.assertTrue(all(c is None for ch, c in word if ch != 'X'), word)
+        text = ''.join(ch for word in pt for ch, _ in word)
+        self.assertNotIn('Exilados', text)
+        from revisor.docx import spelling_styles
+        rules = spelling_styles.learn(self.ws._folder(self.pid) / 'source.docx', ['eXilados'])
+        self.assertEqual(spelling_styles.apply(folder / 'livro-revisado-ptbr.docx', rules), 0)  # Applying again changes nothing.
+        camaratte = letter_colors(folder / 'livro-revisado-ptbr.docx', 'CamaraTTe')
+        self.assertTrue(all(c is None for word in camaratte for _, c in word))  # No highlight learned: untouched.

@@ -11,7 +11,7 @@ import { ProgressBar } from "@/components/ui/progress"
 import { TextLink } from "@/components/ui/link"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SummaryRows } from "@/components/ui/summary-row"
-import type { BookDetail } from "@/book-types"
+import type { BookDetail, SpellingLetter } from "@/book-types"
 import { scopeLabel, termsLabel } from "@/lib/copy"
 import { setManual, useManual } from "@/lib/manual"
 import { setTextSize, setTheme, useTextSize, useThemeChoice, type TextSize, type ThemeChoice } from "@/lib/theme"
@@ -163,11 +163,23 @@ function times(n: number) {
   return n === 1 ? "1 vez" : `${n} vezes`
 }
 
+/** The word as the original Word shows it: the unusual capitals keep their color, bold or italic. */
+function StyledWord({ word, letters }: { word: string; letters?: SpellingLetter[] }) {
+  if (!letters?.length) return <>{word}</>
+  const capitals = [...word].map((ch, i) => (i && ch !== ch.toLowerCase() ? i : -1)).filter(i => i > 0)
+  return <>{[...word].map((ch, i) => {
+    const style = letters[capitals.indexOf(i)]
+    if (!style) return <span key={i}>{ch}</span>
+    // The color is the author's, read from the Word file: content, not an interface token.
+    return <span key={i} style={{ color: style.color ? `#${style.color}` : undefined, fontWeight: style.bold ? 700 : undefined, fontStyle: style.italic ? "italic" : undefined }}>{ch}</span>
+  })}</>
+}
+
 /** Author spellings found in the original (eXilados, CamaraTTe) and kept by the app, plus the ones the author adds. */
 function SpellingsCard({ book, busy, save }: { book: BookDetail; busy: boolean; save: Save }) {
   const [word, setWord] = useState("")
   const [error, setError] = useState("")
-  const { auto, suggested, added, removed, active } = book.spellings
+  const { auto, suggested, added, removed, active, styles } = book.spellings
   const counts = new Map([...auto, ...suggested].map(item => [item.word, item.count]))
   const running = book.job?.status === "running" || book.job?.status === "stopping"
   const update = (nextAdded: string[], nextRemoved: string[]) => save("spellings", { added: nextAdded, removed: nextRemoved })
@@ -182,10 +194,11 @@ function SpellingsCard({ book, busy, save }: { book: BookDetail; busy: boolean; 
   return (
     <Card variant="outline" aria-labelledby="grafias-titulo">
       <CardTitle id="grafias-titulo">Grafias de quem escreveu</CardTitle>
-      <p className="rv-muted">Palavras escritas de um jeito próprio, como letras maiúsculas no meio. O Revisor encontra as que se repetem no livro e nunca as corrige.</p>
+      <p className="rv-muted">Palavras escritas de um jeito próprio, como letras maiúsculas no meio. O Revisor encontra as que se repetem no livro, nunca as corrige e, se o original destaca essas letras com cor, negrito ou itálico, aplica o mesmo destaque em todas as ocorrências dos dois Word.</p>
       {active.length ? <SummaryRows items={active.map(item => ({
         term: item,
-        value: <span className="rv-muted rv-num">{counts.has(item) ? times(counts.get(item)!) : "acrescentada por você"}</span>,
+        label: <span className="ui-strong"><StyledWord word={item} letters={styles[item]} /></span>,
+        value: <span className="rv-small rv-muted rv-num">{counts.has(item) ? times(counts.get(item)!) : "acrescentada por você"}{styles[item] ? " · destaque do original em todas" : ""}</span>,
         action: <TextLink variant="quiet" onClick={() => drop(item)} disabled={busy}>Deixar de proteger</TextLink>,
       }))} /> : <p className="ui-strong">Nenhuma grafia protegida.</p>}
       {(suggested.length > 0 || removed.length > 0) && <div className="rv-stack rv-stack--xs">
