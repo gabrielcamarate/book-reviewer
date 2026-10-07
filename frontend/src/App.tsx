@@ -101,7 +101,7 @@ function App() {
       return <NewBookScreen busy={books.busy === "import"} canCancel={books.projects.length > 0} onCancel={() => navigate("books")} onImport={importBook} />
     if (screen === "inicio") return <StartScreen onChoose={() => go("novo-livro")} />
     if (area === "books") return <BooksScreen projects={books.projects} activeProjectId={books.activeProjectId} onOpen={openBook} onNew={() => go("novo-livro")} />
-    if (area === "options") return <OptionsScreen book={book} busy={busy} save={save} onBack={book ? () => navigate("book") : null} go={go} />
+    if (area === "options") return <OptionsScreen book={book} busy={busy} save={save} onRemove={() => books.removeBook(book!.id).then(ok => { if (ok) navigate("books") })} onBack={book ? () => navigate("book") : null} go={go} />
     if (book && view === "escolher-capitulos") return <ChaptersScreen key={book.id} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "orientacoes") return <InstructionsScreen key={book.id} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "glossario") return <GlossaryScreen key={`${book.id}-${book.revision}`} book={book} busy={busy} onBack={back} save={save} />

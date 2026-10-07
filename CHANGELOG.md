@@ -5,6 +5,14 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-10-07
+
+### Adicionado
+
+- "Recomeçar do zero" em Mais opções: todos os trechos voltam ao início e as configurações ficam livres para mudar de novo. O arquivo original, as grafias protegidas e o glossário são mantidos, e o estado anterior fica guardado em `history/` dentro da pasta do livro.
+- "Remover este livro": o livro sai de Meus livros e a pasta dele vai para `.books/.removidos/`, de onde pode ser recuperada à mão.
+- Ambas pedem confirmação e não ficam disponíveis enquanto o livro está sendo processado. Novas operações `reset` e `remove`.
+
 ## [0.15.0] - 2026-10-07
 
 ### Adicionado

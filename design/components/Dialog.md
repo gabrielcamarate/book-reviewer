@@ -4,7 +4,7 @@ Caixa de confirmação sobre a tela, para uma decisão que afeta muitos trechos 
 
 **Quem usa fornece:** a pergunta como título, uma frase com a consequência e o que dá para desfazer, e os rótulos dos dois botões.
 
-**Onde aparece:** hoje, só em "Aprovar os 12 trechos de uma vez?", no modo de aprovar à mão.
+**Onde aparece:** em "Aprovar os 12 trechos de uma vez?", no modo de aprovar à mão, e nas duas ações de "Este livro" em Mais opções: "Recomeçar “nome” do zero?" e "Remover “nome”?". O botão secundário sempre diz que nada muda ("Voltar sem mudar nada", "Voltar sem remover").
 
 **Estrutura:** `rv-scrim` cobre a tela; dentro, `rv-dialog` com `role="dialog"`, `aria-modal="true"` e `aria-labelledby` apontando para o título. Os botões ficam em `rv-actions`.
 

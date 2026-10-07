@@ -101,6 +101,20 @@ export function useBooks() {
     } finally { if (mounted.current) setBusy(null) }
   }
 
+  async function removeBook(id: string) {
+    setBusy("remove"); setError(""); setNotice("")
+    try {
+      await api(`/api/books/${id}/remove`, {})
+      const list = await refreshList()
+      const next = list[0]?.id ?? null
+      try { if (next) localStorage.setItem("revisor-project", next); else localStorage.removeItem("revisor-project") } catch { /* Storage is optional. */ }
+      setDetail(null); setChunkId(null); setProjectId(next)
+      return true
+    } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível remover o livro.") }
+    finally { if (mounted.current) setBusy(null) }
+    return false
+  }
+
   async function importBook(name: string, source: File, destination?: File) {
     const encode = (file: File) => new Promise<{ name: string; data: string }>((resolve, reject) => {
       if (file.size > 32 * 1024 * 1024) { reject(new Error("Cada Word deve ter até 32 MB.")); return }
@@ -130,5 +144,5 @@ export function useBooks() {
       setNotice("Word gerado. O download foi iniciado.")
     }
   }
-  return { projects, projectId, chunkId, setChunkId, showChunk, selectProject, detail, busy, error, notice, activeProjectId, action, importBook, download, refreshList, loadDetail, retryLoading }
+  return { projects, projectId, chunkId, setChunkId, showChunk, removeBook, selectProject, detail, busy, error, notice, activeProjectId, action, importBook, download, refreshList, loadDetail, retryLoading }
 }

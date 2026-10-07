@@ -575,3 +575,54 @@ class EditorialNotesTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ws.mark_notes(self.pid, [self.ws.detail(self.pid)['editorial_notes'][0]['id']], 'sim')
         self.assertFalse(any(n['read'] for n in self.ws.detail(self.pid)['editorial_notes']))
+
+
+class ResetAndRemoveTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.root = Path(self.temp.name)
+        self.source = self.root/'pt.docx'; fixture(self.source)
+        self.ws = BookWorkspace(self.root, runner=automatic_runner)
+        self.pid = self.ws.import_book(self.source)['id']
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+
+    def tearDown(self):
+        self.ws.close(); self.temp.cleanup()
+
+    def test_reset_starts_over_keeps_settings_and_archives_the_previous_work(self):
+        self.ws.set_spellings(self.pid, added=['eXtra'], removed=[])
+        self.assertTrue(self.ws.detail(self.pid)['automatic_result'])
+        self.ws.reset(self.pid)
+        detail = self.ws.detail(self.pid)
+        self.assertTrue(all(c['status'] == 'pending' and not c['translated'] for c in detail['chunks']))
+        self.assertIsNone(detail['automatic_result']); self.assertIsNone(detail['job'])
+        self.assertEqual(detail['spellings']['added'], ['eXtra'])
+        archived = list((self.ws._folder(self.pid)/'history').glob('state-*.json'))
+        self.assertEqual(len(archived), 1)
+        self.assertTrue(read_json(archived[0])['automatic_result'])
+        self.ws.configure(self.pid, {'scope': 'sections', 'section_ids': ['epilogo']})  # Settings unlock again.
+        self.assertEqual(read_json(self.ws._folder(self.pid)/'state.json')['audit'][0]['action'], 'reset')
+
+    def test_remove_hides_the_book_but_keeps_its_files_recoverable(self):
+        other = self.ws.import_book(self.source, name='Outro')['id']
+        folder = self.ws._folder(self.pid)
+        self.ws.remove(self.pid)
+        self.assertEqual([p['id'] for p in self.ws.list_projects()], [other])
+        self.assertFalse(folder.exists())
+        kept = list((self.ws.root/'.removidos').glob(f'{self.pid}-*/project.json'))
+        self.assertEqual(len(kept), 1)
+        with self.assertRaises(ValueError): self.ws.detail(self.pid)
+
+    def test_a_running_book_cannot_be_reset_or_removed(self):
+        import threading
+        gate, release = threading.Event(), threading.Event()
+        def slow(**kwargs):
+            gate.set(); release.wait(5); return automatic_runner(**kwargs)
+        self.ws.reset(self.pid)
+        self.ws.runner = slow
+        self.ws.start(self.pid, 'automatic'); self.assertTrue(gate.wait(5))
+        try:
+            for operation in (self.ws.reset, self.ws.remove):
+                with self.subTest(operation=operation.__name__), self.assertRaises(ValueError):
+                    operation(self.pid)
+        finally:
+            release.set(); self.ws.stop(self.pid); self.ws.thread.join(10)

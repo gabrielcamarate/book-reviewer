@@ -4,6 +4,7 @@ import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Choice } from "@/components/ui/choice"
+import { ConfirmDialog } from "@/components/ui/dialog"
 import { Field, Input, Textarea } from "@/components/ui/field"
 import { StatusIcon } from "@/components/ui/notice"
 import { ProgressBar } from "@/components/ui/progress"
@@ -205,16 +206,45 @@ function SpellingsCard({ book, busy, save }: { book: BookDetail; busy: boolean; 
   )
 }
 
+/** Start the book over or take it out of the list, each after a confirmation. */
+function BookCard({ book, busy, save, onRemove }: { book: BookDetail; busy: boolean; save: Save; onRemove: () => Promise<unknown> }) {
+  const mobile = useIsMobile()
+  const [asking, setAsking] = useState<"reset" | "remove" | null>(null)
+  const running = book.job?.status === "running" || book.job?.status === "stopping"
+  return (
+    <Card variant="outline" aria-labelledby="livro-titulo">
+      <CardTitle id="livro-titulo">Este livro</CardTitle>
+      <p className="rv-muted">Para mudar o que revisar ou as orientações depois de começar, recomece o livro. Para tirar um livro importado por engano, remova.</p>
+      <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
+        <Button block={mobile} onClick={() => setAsking("reset")} disabled={busy || running}>Recomeçar do zero</Button>
+        <Button block={mobile} onClick={() => setAsking("remove")} disabled={busy || running}>Remover este livro</Button>
+      </div>
+      {running && <p className="rv-help">Pause o processamento antes de recomeçar ou remover.</p>}
+      <ConfirmDialog open={asking === "reset"} onOpenChange={open => setAsking(open ? "reset" : null)}
+        title={`Recomeçar “${book.name}” do zero?`}
+        description="Todas as correções, aprovações e traduções voltam ao início. O arquivo original, as grafias protegidas e o glossário ficam. O trabalho de agora fica guardado numa cópia dentro da pasta do livro."
+        confirm={<Button variant="primary" onClick={() => save("reset").then(() => setAsking(null))}>Recomeçar do zero</Button>}
+        cancel={<Button onClick={() => setAsking(null)}>Voltar sem mudar nada</Button>} />
+      <ConfirmDialog open={asking === "remove"} onOpenChange={open => setAsking(open ? "remove" : null)}
+        title={`Remover “${book.name}”?`}
+        description="O livro sai de Meus livros. Os arquivos dele vão para a pasta .removidos, dentro da pasta de livros, e podem ser recuperados por quem instalou o Revisor."
+        confirm={<Button variant="primary" onClick={() => onRemove().then(() => setAsking(null))}>Remover o livro</Button>}
+        cancel={<Button onClick={() => setAsking(null)}>Voltar sem remover</Button>} />
+    </Card>
+  )
+}
+
 type OptionsProps = {
   book: BookDetail | null
   busy: boolean
   save: Save
+  onRemove: () => Promise<unknown>
   onBack: (() => void) | null
   go: (view: "escolher-capitulos" | "orientacoes" | "glossario" | "alertas") => void
 }
 
 /** mais-opcoes: appearance and the optional settings of the open book. */
-export function OptionsScreen({ book, busy, save, onBack, go }: OptionsProps) {
+export function OptionsScreen({ book, busy, save, onRemove, onBack, go }: OptionsProps) {
   const mobile = useIsMobile()
   const theme = useThemeChoice()
   const size = useTextSize()
@@ -275,6 +305,7 @@ export function OptionsScreen({ book, busy, save, onBack, go }: OptionsProps) {
             <p className="ui-strong">{warnings === 0 ? "Nenhum alerta" : warnings === 1 ? "1 alerta para conferir" : `${warnings} alertas para conferir`}</p>
             {warnings > 0 && <div><Button onClick={() => go("alertas")}>Ver os alertas</Button></div>}
           </Card>
+          <BookCard book={book} busy={busy} save={save} onRemove={onRemove} />
           <Card variant="outline" aria-labelledby="sobre-titulo">
             <CardTitle id="sobre-titulo">Sobre este livro</CardTitle>
             <SummaryRows items={[

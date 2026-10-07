@@ -578,6 +578,32 @@ class BookWorkspace:
             chunk['approval_mode']='manual'; chunk['approved_at']=time.time(); chunk.pop('translations',None)
             state['revision']+=1; save_json(folder/'state.json',state)
 
+    def _not_running(self, pid):
+        if self.active_job and self.active_job['project_id']==pid:
+            raise ValueError('Este livro está sendo processado. Pause antes de recomeçar ou remover.')
+
+    def reset(self, pid):
+        """Start this book over: every chunk back to pending, settings kept, previous work archived in history/."""
+        with self.lock:
+            self._not_running(pid); folder, project, state = self._load(pid)
+            history = folder/'history'; history.mkdir(exist_ok=True)
+            archived = history/f'state-{time.strftime("%Y%m%d-%H%M%S")}-{uuid.uuid4().hex[:6]}.json'
+            shutil.copy2(folder/'state.json', archived)
+            fresh = {'chunks':self._chunks(project), 'terms':{}, 'revision':state['revision']+1,
+                     'audit':[{'action':'reset','archived':archived.name,'at':time.time()}]}
+            for key in ('glossary_override','spellings'):
+                if key in state: fresh[key] = state[key]
+            (folder/'job.json').unlink(missing_ok=True)
+            save_json(folder/'state.json', fresh)
+
+    def remove(self, pid):
+        """Take the book out of the list; its folder moves to .removidos/ and can be recovered by hand."""
+        with self.lock:
+            self._not_running(pid); folder = self._folder(pid)
+            trash = self.root/'.removidos'; trash.mkdir(exist_ok=True)
+            folder.rename(trash/f'{pid}-{time.strftime("%Y%m%d-%H%M%S")}')
+            self._detected.pop(pid, None)
+
     def reopen(self, pid, chunk_id):
         with self.lock:
             self._idle(); folder, project, state = self._load(pid)
