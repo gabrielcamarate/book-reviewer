@@ -5,6 +5,17 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-07
+
+### Adicionado
+
+- Telas do novo design para começar e acompanhar um livro: início, Meus livros, novo livro (com a opção de Word em espanhol), pronto para começar, livro na fila (outro em processamento), acompanhar as quatro etapas e livro pronto com os dois downloads.
+
+### Alterado
+
+- Importar valida tipo e tamanho do Word antes do envio e explica o problema numa frase.
+- "Pausar" mostra "Pausando…" enquanto termina o que já começou.
+
 ## [0.6.0] - 2026-10-07
 
 ### Adicionado

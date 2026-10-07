@@ -3,17 +3,16 @@ import { CheckIcon, DownloadIcon, LanguagesIcon, PauseIcon, SparklesIcon } from 
 import { TextLink } from "@/components/ui/link"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/dialog"
-import { BookSetup, ImportBook, NewBookButton } from "@/components/book-setup"
+import { BookSetup } from "@/components/book-setup"
 import { BookReader } from "@/components/book-reader"
 import { BookGlossary } from "@/components/book-glossary"
 import { BookProgress, BookJobStatus } from "@/components/book-processing"
 import type { useBooks } from "@/useBooks"
-import type { Area } from "@/components/ui/app-header"
 
 type Books = ReturnType<typeof useBooks>
 
 /** The previous single-page workspace, shown inside the new structure until each screen replaces it. */
-export function LegacyWorkspace({ books, area, onOpenBook, importOpen, setImportOpen }: { books: Books; area: Area; onOpenBook: () => void; importOpen: boolean; setImportOpen: (open: boolean) => void }) {
+export function LegacyWorkspace({ books }: { books: Books }) {
   const [approvalOpen, setApprovalOpen] = useState(false)
   const [manualOpen, setManualOpen] = useState(false)
   const [limit, setLimit] = useState("")
@@ -27,16 +26,11 @@ export function LegacyWorkspace({ books, area, onOpenBook, importOpen, setImport
   async function start(task: "review" | "translate" | "automatic", currentOnly = false) {
     await books.action("start", { task, ...(task !== "automatic" && limit ? { limit: Number(limit) } : {}), ...(currentOnly ? { chunk_id: book?.current?.id } : {}) })
   }
-  if (area === "books" && !importOpen) return <div className="book-app book-main">
-    <div className="rv-page-title rv-page-title--row"><h1 className="title-page">Meus livros</h1><NewBookButton onClick={() => setImportOpen(true)} disabled={disabled} /></div>
-    <ul className="book-list">{books.projects.map(project => <li key={project.id}><button className="book-list-item" aria-current={books.projectId === project.id ? "page" : undefined} onClick={() => { books.selectProject(project.id); setSetupDirty(false); onOpenBook() }} disabled={Boolean(books.busy)}><span>{project.name}</span></button></li>)}</ul>
-  </div>
   return <div className="book-app book-main">
         {books.error && <div role="alert" className="message error-message">{books.error}<Button disabled={Boolean(books.busy)} onClick={() => void books.retryLoading()}>Atualizar</Button></div>}
         {books.notice && <p role="status" className="message">{books.notice}</p>}
         {books.activeProjectId && books.activeProjectId !== books.projectId && <div className="message" role="status">Há um processamento em outro livro. <TextLink onClick={() => books.selectProject(books.activeProjectId!)}>Acompanhar o livro em processamento</TextLink></div>}
-        {(importOpen || (!books.projects.length && books.busy !== "loading")) && <ImportBook busy={books.busy === "import"} onCancel={books.projects.length ? () => setImportOpen(false) : undefined} onImport={async (...args) => { const ok = await books.importBook(...args); if (ok) setImportOpen(false); return ok }} />}
-        {!importOpen && book && <>
+        {book && <>
           <header className="book-heading"><h1>{book.name}</h1>{book.author && <p className="book-author">Autor: {book.author}</p>}<p className="source-filename" title={book.filename}>{book.filename}</p><p>Receba seu livro revisado em português e traduzido para espanhol da América Latina.</p></header>
           <BookSetup key={`setup-${book.id}`} book={book} locked={locked} busy={Boolean(books.busy) || Boolean(books.activeProjectId) || running} onDirty={() => setSetupDirty(true)} onSave={async data => { const result = await books.action("configure", data); if (result) setSetupDirty(false); return result }} />
           {setupDirty && <p role="status" className="field-help">Salve as mudanças de escopo e critérios antes de iniciar o processamento.</p>}
