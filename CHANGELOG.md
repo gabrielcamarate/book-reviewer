@@ -5,6 +5,16 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-07
+
+### Removido
+
+- Área de trabalho anterior, componentes `book-*` e o CSS da interface antiga. O app usa só os tokens e componentes de `design/`, com 26 kB de CSS em vez de 56 kB.
+
+### Alterado
+
+- Documentação do frontend, da arquitetura e do `design/` descreve a estrutura nova; a migração para o design está concluída.
+
 ## [0.11.0] - 2026-10-07
 
 ### Adicionado

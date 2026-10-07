@@ -1,6 +1,6 @@
 # Do design ao código
 
-Roteiro para aplicar o design desta pasta no frontend. Vale enquanto a migração estiver em curso; depois dela, pode ser arquivado.
+Roteiro usado para aplicar o design desta pasta no frontend. A migração terminou em 0.12.0; este arquivo fica como registro das decisões.
 
 ## Alcance
 
@@ -26,6 +26,7 @@ Grupo 3 concluído em 0.8.0: `pausado`, `parou-no-meio` e `precisa-de-atencao` (
 Grupo 2 concluído em 0.9.0: `escolher-capitulos`, `orientacoes`, `glossario`, `mais-opcoes` (tema com "Igual ao do aparelho" e tamanho do texto, guardados no navegador), `alertas` e `observacoes`. A aprovação à mão é ligada por livro em "Mais opções" e, até o grupo 5, abre a área de trabalho anterior.
 Grupo 4 concluído em 0.10.0: `conferir` nas três visões (inclusive sem tradução), `ajustar-espanhol` e `trechos` paginado com filtro de observações. As correções são mostradas por palavra inteira (`lib/marks.ts`, testado), mesmo quando a diferença guardada é de uma letra.
 Grupo 5 concluído em 0.11.0: as oito telas de aprovar à mão, inclusive a confirmação de aprovar vários trechos. Nenhuma tela usa mais a área de trabalho anterior.
+Passo 5 concluído em 0.12.0: saíram a área de trabalho anterior, os componentes `book-*` e todo o CSS antigo. `frontend/src/index.css` só importa os tokens e os componentes de `design/` e define a base da página.
 
 ## Do que existe hoje para o que deve existir
 

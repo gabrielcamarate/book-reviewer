@@ -9,7 +9,7 @@ O Revisor corrige o português de um livro, traduz para o espanhol da América L
 | Caminho | O que é |
 |---|---|
 | `README.md` | Este guia: princípios, voz, cores, tipografia, estrutura. |
-| `IMPLEMENTACAO.md` | Roteiro para levar o design ao código: ordem, mapa do que existe hoje para o que deve existir, lacunas e decisões em aberto. |
+| `IMPLEMENTACAO.md` | Registro da migração do app para este design (concluída em 0.12.0): ordem, mapa do que existia para o que passou a existir e decisões tomadas. |
 | `tokens.json` | Todos os valores (cores nos dois temas, tipos, espaços, raios, tamanhos), cada um com a nota de onde usar. |
 | `tokens.css` | Os mesmos valores como variáveis CSS e classes de texto. Espelha o `tokens.json`. |
 | `components.css` | As classes `rv-…` de cada componente, escritas só com os tokens. |
