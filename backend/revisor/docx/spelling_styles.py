@@ -98,7 +98,7 @@ def describe(rules: dict) -> dict:
     for word, positions in rules.items():
         letters = []
         for p, items in sorted(positions.items()):
-            props = [ET.fromstring(xml) for xml in items]
+            props = [parse_xml(xml) for xml in items]
             color = next((el.get(W + 'val') for el in props if el.tag == W + 'color'), None)
             letters.append({'letter': word[p], 'color': color,
                             'bold': any(el.tag == W + 'b' and el.get(W + 'val', 'true') not in {'0', 'false'} for el in props),
@@ -119,7 +119,7 @@ def _isolate(paragraph, run, t, offset, items):
         new = ET.Element(run.tag, run.attrib)
         base = copy.deepcopy(props) if props is not None else ET.Element(W + 'rPr')
         for xml in extra or []:
-            element = ET.fromstring(xml)
+            element = parse_xml(xml)
             for old in base.findall(element.tag): base.remove(old)
             base.append(element)
         if len(base) or base.attrib: new.append(base)
@@ -158,7 +158,7 @@ def apply(path: Path, rules: dict) -> int:
                     targets += [(m.start() + p, items) for p, items in positions.items() if m.start() + p < m.end()]
             for index, items in sorted(targets, reverse=True):
                 run, t, offset = _characters(paragraph)[index]
-                wanted = {element.tag[len(W):]: _signature(element) for element in map(ET.fromstring, items)}
+                wanted = {element.tag[len(W):]: _signature(element) for element in map(parse_xml, items)}
                 current = _visual(run, True)
                 if all(current.get(tag) == signature for tag, signature in wanted.items()):
                     continue

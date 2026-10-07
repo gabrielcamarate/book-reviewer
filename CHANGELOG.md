@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-10-07
+
+### Corrigido
+
+- O destaque das grafias lê as propriedades do Word com o leitor XML seguro do projeto, que recusa DTD e entidades. A 0.19.0 não foi publicada porque o CI barrou essa leitura.
+
 ## [0.19.0] - 2026-10-07
 
 ### Adicionado
