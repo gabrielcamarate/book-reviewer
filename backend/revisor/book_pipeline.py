@@ -3,7 +3,7 @@ from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from revisor.book_response import EditorialIssues
 from revisor.provider import InvalidModelResponse
 
-WORKERS = 4
+WORKERS = 8  # Measured: 8 simultaneous calls take as long as one.
 
 
 def _phase(workspace, pid, job, phase, targets, operation):

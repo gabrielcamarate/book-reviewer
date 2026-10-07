@@ -5,6 +5,19 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-10-07
+
+### Alterado
+
+- Processamento bem mais rápido. Na revisão e nas duas conferências, o modelo devolve só os parágrafos que alterou e lista os demais em `unchanged`; o app confere que cada parágrafo aparece uma vez. Medido com texto fictício: 32 parágrafos em 12,6 s em vez de 41,5 s, com as mesmas correções.
+- Trechos de até 32 parágrafos (9.000 caracteres) em vez de 8, para livros novos ou recomeçados; livros em andamento mantêm a divisão que já têm.
+- Até 8 chamadas simultâneas em vez de 4; medido: 8 juntas levam o mesmo tempo de uma.
+- Livro fictício de 96 parágrafos processado de ponta a ponta em 110 s, sem repetições.
+
+### Investigado
+
+- Jev como filtro das conferências, testado com 1.284 casos reais do Livro 2: para não perder nenhuma correção do modelo grande, dispensaria só 15% das conferências do português e 31% das do espanhol. Não adotado.
+
 ## [0.16.0] - 2026-10-07
 
 ### Adicionado

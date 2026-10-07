@@ -626,3 +626,46 @@ class ResetAndRemoveTests(unittest.TestCase):
                     operation(self.pid)
         finally:
             release.set(); self.ws.stop(self.pid); self.ws.thread.join(10)
+
+
+class ChangedOnlyWorkflowTests(unittest.TestCase):
+    def test_automatic_book_completes_when_the_model_returns_only_changed_paragraphs(self):
+        def changed_only(**kwargs):
+            data = json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])
+            if data['task'] == 'translate': return automatic_runner(**kwargs)
+            key = 'draft' if data['task'] != 'review' else 'text'
+            changed, unchanged = [], []
+            for p in data['paragraphs']:
+                text = p.get(key, p['text'])
+                fixed = text.replace('estavam', 'estava') if data['task'] == 'review' else text.replace('vosotros', 'ustedes')
+                if fixed != text: changed.append({'paragraph_id': p['id'], 'text': fixed, 'reason': 'Correção.', 'category': 'gramática'})
+                else: unchanged.append(p['id'])
+            result = {'paragraphs': changed, 'unchanged': unchanged}
+            if data['task'] != 'review': result |= {'issues': [], 'notes': []}
+            return result
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root/'pt.docx'; fixture(source)
+            ws = BookWorkspace(root, runner=changed_only)
+            try:
+                pid = ws.import_book(source)['id']
+                ws.start(pid, 'automatic'); ws.thread.join(5)
+                detail = ws.detail(pid)
+                self.assertEqual(detail['job']['status'], 'completed')
+                self.assertTrue(detail['automatic_result'])
+                texts = [t for c in read_json(ws._folder(pid)/'state.json')['chunks'] for t in c['revised'].values()]
+                self.assertIn('Ela estava aqui. ― Olá!', texts)
+            finally:
+                ws.close()
+
+    def test_new_books_are_split_into_chunks_of_up_to_32_paragraphs(self):
+        from test_book_spellings import book
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); source = root/'longo.docx'
+            book(source, [('Capítulo 1', 'Heading1')] + [(f'Parágrafo {i} do capítulo.', '') for i in range(70)] + [('Capítulo 2', 'Heading1'), ('Fim.', '')])
+            ws = BookWorkspace(root, runner=automatic_runner)
+            try:
+                pid = ws.import_book(source)['id']
+                sizes = [len(c['paragraph_ids']) for c in read_json(ws._folder(pid)/'state.json')['chunks']]
+                self.assertEqual(sizes, [32, 32, 7, 2])
+            finally:
+                ws.close()

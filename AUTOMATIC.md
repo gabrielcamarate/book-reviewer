@@ -2,7 +2,7 @@
 
 O fluxo principal cobre o escopo escolhido: revisão pt-BR, validação independente e aprovação registrada, tradução es-419, revisão bilíngue e geração dos Word. O modo manual permanece opcional.
 
-Cada fase usa até quatro chamadas simultâneas, salva resultados independentes e respeita parada/retomada. A tradução exige todo o português aprovado. A entrega exige cobertura espanhola completa, checks atuais, ausência de alertas remanescentes e ZIP/XML válidos.
+Cada fase usa até oito chamadas simultâneas, com trechos de até 32 parágrafos, salva resultados independentes e respeita parada/retomada. A tradução exige todo o português aprovado. A entrega exige cobertura espanhola completa, checks atuais, ausência de alertas remanescentes e ZIP/XML válidos.
 
 No automático, o modelo fornece exatamente um texto completo por parágrafo, com justificativa das mudanças. O código valida IDs, ordem, conteúdo e quebras e calcula diferenças sem sobreposições. Respostas inválidas têm uma segunda tentativa com feedback; pendências não descartam resultados válidos de outros trechos. Falhas de provedor e conflitos de estado interrompem o processamento.
 

@@ -8,6 +8,22 @@ class EditorialIssues(ValueError):
     """A valid model result has unresolved editorial questions; keep other work moving."""
 
 
+def expand_changed(source, response):
+    """Turn an answer with only the changed paragraphs plus `unchanged` ids into one entry per paragraph.
+    The model writes only what it changes; every id must still be accounted for exactly once."""
+    unchanged=response.get('unchanged')
+    if unchanged is None: return response
+    paragraphs=response.get('paragraphs')
+    if not isinstance(paragraphs,list) or any(not isinstance(p,dict) for p in paragraphs) or not isinstance(unchanged,list) or any(not isinstance(i,str) for i in unchanged):
+        raise InvalidModelResponse('A resposta deve listar os parágrafos alterados e, em unchanged, os demais.')
+    changed={p.get('paragraph_id'):p for p in paragraphs}
+    ids=[p.get('paragraph_id') for p in paragraphs]+unchanged
+    if len(ids)!=len(set(ids)) or set(ids)!=set(source):
+        raise InvalidModelResponse('Cada parágrafo precisa aparecer uma vez: alterado em paragraphs ou listado em unchanged.')
+    full=[changed.get(pid) or {'paragraph_id':pid,'text':source[pid],'reason':'','category':''} for pid in source]
+    return {key:value for key,value in response.items() if key!='unchanged'} | {'paragraphs':full}
+
+
 def apply_paragraphs(source, response):
     paragraphs=response.get('paragraphs')
     if not isinstance(paragraphs,list) or any(not isinstance(p,dict) for p in paragraphs):

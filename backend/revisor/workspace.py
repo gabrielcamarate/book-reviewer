@@ -16,7 +16,7 @@ from threading import RLock, Thread
 
 from revisor import book_prompts
 from revisor.book_pipeline import run_automatic
-from revisor.book_response import EditorialIssues, apply_paragraphs
+from revisor.book_response import EditorialIssues, apply_paragraphs, expand_changed
 from revisor.book_spellings import detect, occurrences, protect
 from revisor.book_terms import canonical_glossary, contains_target, source_terms
 from revisor.docx.editable import MAX_ARCHIVE, edit_document, inspect_document, splice_sections
@@ -33,6 +33,10 @@ def save_json(path, value):
     temporary = path.with_suffix('.tmp')
     temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
     temporary.replace(path)
+
+
+CHUNK_PARAGRAPHS = 32
+CHUNK_CHARS = 9000
 
 
 class BookWorkspace:
@@ -118,7 +122,8 @@ class BookWorkspace:
         chunks = []; current = []; size = 0; title = None
         for paragraph in paragraphs:
             section = section_for.get(paragraph['id'], 'Notas e cabeçalhos')
-            if current and (size + len(paragraph['text']) > 4000 or len(current) >= 8 or section != title):
+            # About 32 paragraphs per call: the fixed cost of each model call repeats four times less than with 8.
+            if current and (size + len(paragraph['text']) > CHUNK_CHARS or len(current) >= CHUNK_PARAGRAPHS or section != title):
                 chunks.append({'id':f'chunk-{len(chunks)+1:05}', 'paragraph_ids':current, 'title':title, 'status':'pending'})
                 current = []; size = 0
             current.append(paragraph['id']); size += len(paragraph['text']); title = section
@@ -277,6 +282,7 @@ class BookWorkspace:
             if self._request_token(project,state,chunk) != expected_token: raise ValueError('O trabalho mudou durante a geração. Atualize a tela.')
             by_id = {str(p['id']):p['text'] for p in paragraphs}
             if task == 'review':
+                if paragraph_output: response = expand_changed(by_id,response)
                 revised, changes = apply_paragraphs(by_id,response) if paragraph_output else self._apply_edits(by_id,response)
                 terms = self._protected(project,state)
                 if terms and any(protect(by_id[eid],text,terms)!=text for eid,text in revised.items()):
@@ -373,6 +379,7 @@ class BookWorkspace:
             chunk=next(c for c in state['chunks'] if c['id']==chunk_id)
             if self._request_token(project,state,chunk)!=expected_token:
                 raise ValueError('O trecho mudou durante a validação. Atualize e retome.')
+            response=expand_changed(draft,response)
             changed, edits=apply_paragraphs(draft,response)
             if language=='pt':
                 source={str(p['id']):p['text'] for p in paragraphs}

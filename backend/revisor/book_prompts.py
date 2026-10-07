@@ -15,7 +15,8 @@ def array_schema(properties):
 def schema(task, *, paragraph_output=False):
     string = {'type':'string'}
     if paragraph_output and task in {'review', 'check_pt', 'check_es'}:
-        properties={'paragraphs':array_schema({k:string for k in ('paragraph_id','text','reason','category')})}
+        properties={'paragraphs':array_schema({k:string for k in ('paragraph_id','text','reason','category')}),
+                    'unchanged':{'type':'array','items':string}}
         if task!='review':
             properties['issues']={'type':'array','items':string}
             properties['notes']={'type':'array','items':string}
@@ -77,16 +78,16 @@ def prompt(task, paragraphs, *, previous, following, title, settings, feedback='
     if paragraph_output:
         rules=[r for r in rules if not r.startswith(('Cada edit','Não edite os parágrafos','Os edits','Retorne edits','Todos os edits','Não retorne correções'))]
         rules += [
-            'Retorne paragraphs: exatamente um objeto por paragraph_id, na mesma ordem da entrada, com text contendo o parágrafo final completo. Copie sem alteração os parágrafos que já estiverem corretos.',
+            'Retorne em paragraphs somente os parágrafos que você alterou, na ordem da entrada, cada um com text contendo o parágrafo final completo. Em unchanged, liste o paragraph_id de todos os outros, que ficam exatamente como estão. Cada paragraph_id da entrada aparece exatamente uma vez, em paragraphs ou em unchanged; confira todos antes de responder.',
             'Na revisão, parta de text; nas validações, parta de draft e compare com text. Faça apenas as correções mínimas necessárias no texto completo. O aplicativo calcula os recortes alterados, não retorne edits nem intervalos.',
-            'Para cada parágrafo alterado, reason deve justificar as correções em português e category deve identificar o tipo. Para um parágrafo inalterado, use reason e category vazios. Não reescreva o restante nem exclua separadores.',
+            'Para cada parágrafo alterado, reason deve justificar as correções em português e category deve identificar o tipo. Não coloque em paragraphs um parágrafo sem alteração. Não reescreva o restante nem exclua separadores.',
         ]
     if paragraph_output and task in {'check_pt','check_es'}:
         rules += [
             'Distinga falhas da proposta de dúvidas que já estavam no original. Reverta alterações sem fundamento, inclusive substantivos, unidades ou explicações inferidos para preencher uma lacuna do original; nunca invente a intenção do autor.',
             'Em notes, registre ambiguidades, termos possivelmente inventados e informações incompletas que já existiam no original e foram preservados fielmente. Essas são observações de autoria, não falhas da correção/tradução. No espanhol, traduza a expressão fielmente sem preencher lacunas; preserve nomes e termos inventados.',
             'Use issues somente para problemas da proposta/tradução que não conseguiu corrigir nem reverter com segurança. Uma dúvida original preservada deve aparecer apenas em notes. Sem observações, retorne notes vazio; sem falhas remanescentes, issues vazio.',
-            'Um parágrafo sem correções deve copiar draft exatamente, inclusive espaços. Se text diferir de draft em qualquer caractere, inclusive espaços finais, forneça reason e category não vazios explicando a mudança.',
+            'Um parágrafo sem correções vai para unchanged. Se você o puser em paragraphs, text que difira de draft em qualquer caractere, inclusive espaços finais, precisa de reason e category não vazios explicando a mudança.',
         ]
     if consistency_feedback:
         rules.append('O aplicativo identificou alertas de consistência em consistency_feedback. Confira-os e ajuste a tradução final para cumprir o glossário, preservando sentido, nomes e concordância. Esses alertas não são uma rejeição de formato.')

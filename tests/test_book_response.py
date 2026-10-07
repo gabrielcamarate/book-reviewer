@@ -1,6 +1,6 @@
 """Full paragraph responses: exact coverage and deterministic, reversible differences."""
 import unittest
-from revisor.book_response import apply_paragraphs
+from revisor.book_response import apply_paragraphs, expand_changed
 from revisor.provider import InvalidModelResponse
 
 
@@ -34,6 +34,30 @@ class ParagraphResponseTests(unittest.TestCase):
 
     def test_unchanged_paragraph_has_no_invented_corrections(self):
         self.assertEqual(apply_paragraphs({'1':'a'},self.response('a')),({'1':'a'},[]))
+
+
+class ChangedOnlyResponseTests(unittest.TestCase):
+    """The model returns only the paragraphs it changed and lists every other id as unchanged."""
+    source = {'1': 'Haviam conchas.', '2': 'Texto certo.', '3': 'Outro certo.'}
+
+    def test_unchanged_ids_are_filled_in_from_the_source_in_order(self):
+        response = {'paragraphs': [{'paragraph_id': '1', 'text': 'Havia conchas.', 'reason': 'Concordância.', 'category': 'gramática'}], 'unchanged': ['3', '2'], 'issues': []}
+        full = expand_changed(self.source, response)
+        self.assertEqual([p['paragraph_id'] for p in full['paragraphs']], ['1', '2', '3'])
+        revised, changes = apply_paragraphs(self.source, full)
+        self.assertEqual(revised, {'1': 'Havia conchas.', '2': 'Texto certo.', '3': 'Outro certo.'})
+        self.assertEqual({c['paragraph_id'] for c in changes}, {'1'})
+        self.assertEqual(full['issues'], [])
+
+    def test_every_id_must_appear_exactly_once(self):
+        changed = [{'paragraph_id': '1', 'text': 'Havia conchas.', 'reason': 'x', 'category': 'y'}]
+        for unchanged in (['2'], ['2', '3', '3'], ['1', '2', '3'], ['2', '3', '9'], [2, 3], 'tudo'):
+            with self.subTest(unchanged=unchanged), self.assertRaises(InvalidModelResponse):
+                expand_changed(self.source, {'paragraphs': changed, 'unchanged': unchanged})
+
+    def test_full_answers_without_unchanged_still_work(self):
+        full = {'paragraphs': [{'paragraph_id': k, 'text': v, 'reason': '', 'category': ''} for k, v in self.source.items()]}
+        self.assertIs(expand_changed(self.source, full), full)
 
 
 class QueueRecoveryTests(unittest.TestCase):
