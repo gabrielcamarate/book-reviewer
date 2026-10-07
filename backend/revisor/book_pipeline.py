@@ -71,6 +71,15 @@ def _attention(job):
 
 
 def run_automatic(workspace, pid, job):
+    # Author spellings saved while processing are applied here, before any chunk is in flight,
+    # and again at the end: a restored chunk is translated and checked once more before delivery.
+    workspace.restore_spellings(pid)
+    for _ in range(3):
+        if _run_stages(workspace, pid, job) != 'restart': return
+    _attention(job)
+
+
+def _run_stages(workspace, pid, job):
     job['problems']=[]
     stages=(('Revisão do português','review'),('Validação das correções','check_pt'),
             ('Tradução para espanhol','translate'),('Revisão do espanhol','check_es'))
@@ -107,6 +116,8 @@ def run_automatic(workspace, pid, job):
         if job['problems']:
             _attention(job)
             return
+        if workspace.restore_spellings(pid):
+            return 'restart'  # Restored chunks are translated and checked again before any Word file.
         job.update(phase='Preparação dos arquivos',message='Validando os arquivos Word…')
         workspace.save_job(pid,job)
         workspace._deliver_automatic(pid)

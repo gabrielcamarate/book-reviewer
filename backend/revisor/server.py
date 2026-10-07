@@ -154,6 +154,7 @@ class Handler(BaseHTTPRequestHandler):
         elif operation=='save-translation': self.workspace.save_translation(pid,data.get('chunk_id'),data.get('translations'),data.get('revision'))
         elif operation=='glossary': return self.workspace.update_glossary(pid,data.get('glossary'),data.get('revision'))
         elif operation=='edit-portuguese': self.workspace.edit_portuguese(pid,data.get('chunk_id'),data.get('revised'),data.get('revision'))
+        elif operation=='spellings': self.workspace.set_spellings(pid,data.get('added'),data.get('removed'))
         elif operation=='notes': self.workspace.mark_notes(pid,data.get('ids'),data.get('read'))
         else: raise ValueError('Operação de livro desconhecida.')
         return {'ok':True}

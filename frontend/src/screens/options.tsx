@@ -158,14 +158,63 @@ export function GlossaryScreen({ book, busy, onBack, save }: { book: BookDetail;
   )
 }
 
+function times(n: number) {
+  return n === 1 ? "1 vez" : `${n} vezes`
+}
+
+/** Author spellings found in the original (eXilados, CamaraTTe) and kept by the app, plus the ones the author adds. */
+function SpellingsCard({ book, busy, save }: { book: BookDetail; busy: boolean; save: Save }) {
+  const [word, setWord] = useState("")
+  const [error, setError] = useState("")
+  const { auto, suggested, added, removed, active } = book.spellings
+  const counts = new Map([...auto, ...suggested].map(item => [item.word, item.count]))
+  const running = book.job?.status === "running" || book.job?.status === "stopping"
+  const update = (nextAdded: string[], nextRemoved: string[]) => save("spellings", { added: nextAdded, removed: nextRemoved })
+  const keep = (value: string) => update([...new Set([...added, value])], removed.filter(item => item !== value))
+  const drop = (value: string) => update(added.filter(item => item !== value), auto.some(item => item.word === value) ? [...new Set([...removed, value])] : removed)
+  async function add() {
+    const value = word.trim()
+    if (!value || /\s/.test(value)) { setError("Escreva uma palavra só, do jeito que está no livro."); return }
+    setError("")
+    if (await keep(value)) setWord("")
+  }
+  return (
+    <Card variant="outline" aria-labelledby="grafias-titulo">
+      <CardTitle id="grafias-titulo">Grafias de quem escreveu</CardTitle>
+      <p className="rv-muted">Palavras escritas de um jeito próprio, como letras maiúsculas no meio. O Revisor encontra as que se repetem no livro e nunca as corrige.</p>
+      {active.length ? <SummaryRows items={active.map(item => ({
+        term: item,
+        value: <span className="rv-muted rv-num">{counts.has(item) ? times(counts.get(item)!) : "acrescentada por você"}</span>,
+        action: <TextLink variant="quiet" onClick={() => drop(item)} disabled={busy}>Deixar de proteger</TextLink>,
+      }))} /> : <p className="ui-strong">Nenhuma grafia protegida.</p>}
+      {(suggested.length > 0 || removed.length > 0) && <div className="rv-stack rv-stack--xs">
+        <span className="ui-strong">Talvez também</span>
+        <SummaryRows items={[...suggested.map(item => item.word), ...removed].filter((item, index, list) => list.indexOf(item) === index && !active.includes(item)).map(item => ({
+          term: item,
+          value: <span className="rv-muted rv-num">{counts.has(item) ? times(counts.get(item)!) : ""}</span>,
+          action: <TextLink onClick={() => keep(item)} disabled={busy}>Proteger</TextLink>,
+        }))} />
+      </div>}
+      <Field id="nova-grafia" label="Acrescentar uma grafia" error={error || undefined} help={running ? "Vale já para os próximos trechos. Os já revisados são ajustados no fim do processamento, antes de gerar os Word." : "Os trechos já revisados voltam a usar a grafia na hora; só esses são traduzidos de novo."}>
+        <div className="rv-actions">
+          <Input id="nova-grafia" type="text" value={word} placeholder="Ex.: eXilados" onChange={event => setWord(event.target.value)} disabled={busy} aria-invalid={Boolean(error) || undefined} />
+          <Button onClick={() => add()} disabled={busy}>Acrescentar</Button>
+        </div>
+      </Field>
+    </Card>
+  )
+}
+
 type OptionsProps = {
   book: BookDetail | null
+  busy: boolean
+  save: Save
   onBack: (() => void) | null
   go: (view: "escolher-capitulos" | "orientacoes" | "glossario" | "alertas") => void
 }
 
 /** mais-opcoes: appearance and the optional settings of the open book. */
-export function OptionsScreen({ book, onBack, go }: OptionsProps) {
+export function OptionsScreen({ book, busy, save, onBack, go }: OptionsProps) {
   const mobile = useIsMobile()
   const theme = useThemeChoice()
   const size = useTextSize()
@@ -206,6 +255,7 @@ export function OptionsScreen({ book, onBack, go }: OptionsProps) {
             {locked ? <p className="rv-help">As orientações ficam fixas depois que a revisão começa.</p>
               : <div><TextLink onClick={() => go("orientacoes")}>{book.settings.instructions.trim() ? "Ver e mudar" : "Escrever"}</TextLink></div>}
           </Card>
+          <SpellingsCard book={book} busy={busy} save={save} />
           <Card variant="outline" aria-labelledby="glossario-titulo">
             <CardTitle id="glossario-titulo">Glossário da tradução</CardTitle>
             <p className="rv-muted">Como certas palavras devem ficar em espanhol, sempre do mesmo jeito.</p>

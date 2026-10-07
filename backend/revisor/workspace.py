@@ -17,6 +17,7 @@ from threading import RLock, Thread
 from revisor import book_prompts
 from revisor.book_pipeline import run_automatic
 from revisor.book_response import EditorialIssues, apply_paragraphs
+from revisor.book_spellings import detect, occurrences, protect
 from revisor.book_terms import canonical_glossary, contains_target, source_terms
 from revisor.docx.editable import MAX_ARCHIVE, edit_document, inspect_document, splice_sections
 from revisor.docx.reader import parse_xml, extract_docx_metadata
@@ -42,6 +43,7 @@ class BookWorkspace:
         self.lock = RLock()
         self.thread = None
         self.active_job = None
+        self._detected = {}
         self.file_lock = (self.root / 'workspace.lock').open('a')
         try:
             fcntl.flock(self.file_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -211,7 +213,7 @@ class BookWorkspace:
                     'destination_filename':project['destination_filename'], 'settings':project['settings'],
                     'sections':project['document']['sections'], 'model':self.model, 'reasoning_effort':'low', 'locale':'es-419',
                     'progress':self._progress(project,state), 'current':enriched,
-                    'editorial_notes':self._editorial_notes(project,state),
+                    'editorial_notes':self._editorial_notes(project,state), 'spellings':self._spellings(project,state),
                     'chunks':[{'id':c['id'], 'title':c['title'], 'status':c['status'], 'translated':bool(c.get('translations')), 'corrections':len(c.get('edits') or [])} for c in state['chunks']],
                     'job':job,
                     'automatic_result':automatic_result,
@@ -225,7 +227,7 @@ class BookWorkspace:
             chosen = [p | {'text':chunk['revised'][str(p['id'])]} for p in chosen]
         first = next(i for i,p in enumerate(paragraphs) if p['id'] == chunk['paragraph_ids'][0])
         last = next(i for i,p in enumerate(paragraphs) if p['id'] == chunk['paragraph_ids'][-1])
-        settings = project['settings'] | {'glossary':self._glossary(project,state)}
+        settings = project['settings'] | {'glossary':self._glossary(project,state),'protected_spellings':self._protected(project,state)}
         dest_context = ''
         if project['destination']:
             # Bounded, source-grounded context from existing Spanish near the selected sections.
@@ -276,6 +278,16 @@ class BookWorkspace:
             by_id = {str(p['id']):p['text'] for p in paragraphs}
             if task == 'review':
                 revised, changes = apply_paragraphs(by_id,response) if paragraph_output else self._apply_edits(by_id,response)
+                terms = self._protected(project,state)
+                if terms and any(protect(by_id[eid],text,terms)!=text for eid,text in revised.items()):
+                    # The model changed an author spelling: undo just that change, keep the rest.
+                    if paragraph_output:
+                        response = response | {'paragraphs':[p | {'text':protect(by_id[str(p['paragraph_id'])],p['text'],terms)} for p in response['paragraphs']]}
+                        revised, changes = apply_paragraphs(by_id,response)
+                    else:
+                        kept = [c for c in changes if not any(c['start'] < end and c['start']+len(c['original']) > start
+                                                              for start,end in occurrences(by_id[str(c['paragraph_id'])],terms))]
+                        revised, changes = self._apply_edits(by_id,{'edits':kept})
                 if paragraph_output: chunk['paragraph_proposals']=response['paragraphs']
                 chunk.update(status='ready', edits=changes, revised=revised, proposal_id=uuid.uuid4().hex)
                 chunk.pop('feedback',None); chunk.pop('checks',None)
@@ -362,6 +374,10 @@ class BookWorkspace:
             if self._request_token(project,state,chunk)!=expected_token:
                 raise ValueError('O trecho mudou durante a validação. Atualize e retome.')
             changed, edits=apply_paragraphs(draft,response)
+            if language=='pt':
+                source={str(p['id']):p['text'] for p in paragraphs}
+                terms=self._protected(project,state)
+                changed={eid:protect(source[eid],text,terms) for eid,text in changed.items()}
             receipt={'issues':response['issues'],'notes':notes,'paragraphs':response['paragraphs'],'model':self.model,'prompt_version':book_prompts.VERSION,
                      'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(),'at':time.time()}
             if not response['issues']:
@@ -390,6 +406,65 @@ class BookWorkspace:
             state['revision']+=1; save_json(folder/'state.json',state)
         if response['issues']:
             raise EditorialIssues('Validação com pendências. '+ '; '.join(i[:200] for i in response['issues'][:3]))
+
+    def _spellings(self, project, state):
+        if project['id'] not in self._detected:
+            self._detected[project['id']] = detect(p['text'] for p in project['document']['paragraphs'])
+        found = self._detected[project['id']]
+        chosen = state.get('spellings',{}); added = chosen.get('added',[]); removed = chosen.get('removed',[])
+        auto = {word:count for word,count in found.items() if count>=2}
+        active = sorted((set(auto)|set(added))-set(removed))
+        return {'auto':[{'word':w,'count':c} for w,c in sorted(auto.items())], 'added':added, 'removed':removed, 'active':active,
+                'suggested':[{'word':w,'count':c} for w,c in sorted(found.items()) if c<2 and w not in added]}
+
+    def _protected(self, project, state):
+        return self._spellings(project,state)['active']
+
+    def _restore_spellings(self, project, state):
+        """Put author spellings back in text reviewed before they were protected. True when something changed."""
+        terms = self._protected(project,state); source = {str(p['id']):p['text'] for p in project['document']['paragraphs']}
+        touched = False
+        for chunk in state['chunks']:
+            revised = chunk.get('revised')
+            if not revised or not terms: continue
+            restored = {eid:protect(source[eid],text,terms) for eid,text in revised.items()}
+            changed = [eid for eid in revised if restored[eid]!=revised[eid]]
+            if not changed: continue
+            reasons = {eid:next((e['reason'] for e in chunk.get('edits',[]) if str(e['paragraph_id'])==eid),'Grafia de quem escreveu mantida.') for eid in changed}
+            _, edits = apply_paragraphs({eid:source[eid] for eid in changed},
+                {'paragraphs':[{'paragraph_id':eid,'text':restored[eid],'reason':reasons[eid],'category':'grafia'} for eid in changed]})
+            state['audit'].append({'action':'protect-spelling','chunk':chunk['id'],'previous':{eid:revised[eid] for eid in changed},'at':time.time()})
+            chunk['revised'] = restored
+            chunk['edits'] = [e for e in chunk.get('edits',[]) if str(e['paragraph_id']) not in changed]+edits
+            if chunk['status']=='ready': chunk['proposal_id'] = uuid.uuid4().hex
+            receipt = chunk.get('checks',{}).get('pt')
+            if receipt and chunk['status']=='approved': receipt['signature'] = self._digest(restored)
+            if chunk.pop('translations',None) is not None: chunk.get('checks',{}).pop('es',None)
+            touched = True
+        if touched: state['revision'] += 1
+        state.pop('spellings_pending',None)
+        return touched
+
+    def restore_spellings(self, pid):
+        with self.lock:
+            folder, project, state = self._load(pid)
+            pending = state.get('spellings_pending')
+            changed = self._restore_spellings(project,state)
+            if changed or pending: save_json(folder/'state.json',state)
+            return changed
+
+    def set_spellings(self, pid, added, removed):
+        """Author spellings to keep exactly as written. While processing, reviewed chunks are restored at the end."""
+        for words in (added, removed):
+            if not isinstance(words,list) or any(not isinstance(w,str) or not w.strip() or re.search(r'\s',w.strip()) or len(w)>80 for w in words) or len(words)>1000:
+                raise ValueError('Cada grafia deve ser uma palavra só.')
+        with self.lock:
+            folder, project, state = self._load(pid)
+            state['spellings'] = {'added':sorted({w.strip() for w in added}), 'removed':sorted({w.strip() for w in removed})}
+            state['audit'].append({'action':'spellings','spellings':state['spellings'],'at':time.time()})
+            if self.active_job and self.active_job['project_id']==pid: state['spellings_pending'] = True
+            else: self._restore_spellings(project,state)
+            save_json(folder/'state.json',state)
 
     @staticmethod
     def _note_id(chunk_id,language,message):

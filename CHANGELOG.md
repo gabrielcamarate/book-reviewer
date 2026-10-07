@@ -5,6 +5,14 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-10-07
+
+### Adicionado
+
+- Grafias de quem escreveu: palavras com maiúsculas incomuns que se repetem no original (eXilados, CamaraTTe) são encontradas e protegidas automaticamente. Se o modelo mexer nelas, o app desfaz só essa mudança e mantém as outras correções do parágrafo, na revisão e na conferência do português. A lista também vai para o modelo, inclusive na tradução.
+- Cartão "Grafias de quem escreveu" em Mais opções: palavras protegidas com contagem, "Deixar de proteger", sugestões (palavras que aparecem uma vez) e campo para acrescentar, a qualquer momento. Nova operação `POST /api/books/<id>/spellings`.
+- Trechos já revisados voltam à grafia original sem nova chamada ao modelo; só esses são traduzidos de novo. Com um processamento em andamento, isso acontece antes de gerar os Word, sem interromper trechos em curso.
+
 ## [0.14.0] - 2026-10-07
 
 ### Adicionado
