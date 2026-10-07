@@ -87,3 +87,19 @@ class DisconnectedClientTest(unittest.TestCase):
                 self.assertEqual(errors, [])
             finally:
                 release.set(); server.shutdown(); server.server_close(); thread.join()
+
+
+class InstallableAppTest(unittest.TestCase):
+    def test_manifest_is_served_as_a_web_app_manifest(self):
+        with tempfile.TemporaryDirectory() as temp:
+            dist = Path(temp) / 'dist'; (dist / 'assets').mkdir(parents=True)
+            (dist / 'index.html').write_text('<!doctype html>')
+            (dist / 'manifest.webmanifest').write_text('{"name":"Revisor"}')
+            server = create_server(Path(temp), port=0, frontend_dist=dist)
+            thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+            try:
+                with urlopen(f'http://127.0.0.1:{server.server_port}/manifest.webmanifest', timeout=3) as response:
+                    self.assertEqual(response.headers['Content-Type'], 'application/manifest+json')
+                    self.assertEqual(json.loads(response.read())['name'], 'Revisor')
+            finally:
+                server.shutdown(); server.server_close(); thread.join()

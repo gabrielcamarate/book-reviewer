@@ -5,6 +5,13 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-10-07
+
+### Adicionado
+
+- Instalar como aplicativo (PWA) no computador: manifesto com nome, cores e ícones gerados de `design/` no build e no servidor de desenvolvimento, e marcações para Chrome, Edge e Safari. O servidor entrega `/manifest.webmanifest`.
+- Ícone de 192px em `design/assets/brand/`, gerado do SVG original.
+
 ## [0.17.1] - 2026-10-07
 
 ### Alterado

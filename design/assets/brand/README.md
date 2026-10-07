@@ -5,6 +5,7 @@ O ícone do app: três linhas de texto sobre o fundo escuro, com uma palavra em 
 - `revisor-icon.svg` — o original, em vetor, com cantos arredondados. Use como favicon nos navegadores que aceitam SVG.
 - `favicon-32.png` — favicon de 32px para os demais navegadores.
 - `apple-touch-icon.png` — 180px, quadrado sem cantos arredondados (o sistema arredonda sozinho). Para o atalho na tela inicial do celular.
+- `icon-192.png` — 192px, gerado do SVG, para o manifesto do app (instalar como aplicativo).
 - `icon-512.png` — 512px, para o manifesto do app e para divulgação.
 
 Regras:

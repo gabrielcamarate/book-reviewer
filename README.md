@@ -30,6 +30,10 @@ pnpm --dir frontend build
 
 Abra http://127.0.0.1:8766. O servidor aceita somente conexões locais. `REVIEW_ROOT=/pasta/dados ./scripts/dev.sh` muda a pasta dos trabalhos; a interface continua vindo deste checkout.
 
+## Instalar como aplicativo
+
+Com o Revisor aberto em http://127.0.0.1:4173 (ou 8766), use "Instalar Revisor" no Chrome ou no Edge: o ícone de instalar fica na barra de endereço, ou no menu ⋮ → "Transmitir, salvar e compartilhar" → "Instalar página como app". O Revisor ganha janela própria, ícone e atalho no menu do sistema. O servidor local (`./scripts/dev.sh`) continua precisando estar rodando; o aplicativo instalado é a janela dele.
+
 ## Trabalhar com um livro
 
 O cabeçalho identifica o autor pelo campo criador dos metadados do Word. Os downloads conservam o nome original e acrescentam ` REVISADO` antes de `.docx`; quando há um destino espanhol, a versão espanhola usa o nome desse arquivo. Livros concluídos recebem esses nomes sem repetir o processamento editorial.

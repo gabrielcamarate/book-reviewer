@@ -86,7 +86,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         dist = self.frontend_dist
         file = (dist / ('index.html' if path == '/' else path.lstrip('/'))).resolve()
-        if path != '/' and not path.startswith('/assets/'):
+        if path == '/manifest.webmanifest':
+            if file.is_file(): self.send_bytes(200, file.read_bytes(), 'application/manifest+json')
+            else: self.json(404, {'error': 'Interface não compilada.'})
+        elif path != '/' and not path.startswith('/assets/'):
             self.json(404, {'error': 'Rota não encontrada.'})
         elif not file.is_relative_to(dist) or not file.is_file():
             self.json(503 if path == '/' else 404, {'error': 'Interface não compilada. Execute pnpm build em frontend/ ou use scripts/dev.sh.'})
