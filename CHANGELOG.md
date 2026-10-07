@@ -7,6 +7,10 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [0.3.0] - 2026-10-07
 
+### Adicionado
+
+- A lista de trechos em `/api/books/<id>` informa `corrections`, a quantidade de correções de cada trecho, para a tela de trechos do novo design.
+
 ### Removido
 
 - Fluxo editorial anterior: tela "Revisão anterior", CLI `revisor.cli`, rotas `/api/simple-home`, `/api/translate`, `/api/export`, `/api/rollback`, `/downloads/ptbr` e `/downloads/es`, e o núcleo `core/`, `prompts/`, `schemas/` e `docx/writer.py` que só ele usava.

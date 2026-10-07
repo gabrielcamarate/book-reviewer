@@ -203,6 +203,19 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(self.workspace.detail(pid)['progress']['translated_paragraphs'], 4)
         self.assertIn('América Latina', self.calls[-1]['prompt'])
 
+    def test_chunk_list_reports_corrections_per_chunk(self):
+        pid = self.workspace.import_book(self.source)['id']
+        listing = self.workspace.detail(pid)['chunks']
+        self.assertTrue(listing and all(c['corrections'] == 0 for c in listing))
+        self.workspace.run_sync(pid, 'review')
+        counts = []
+        for chunk in listing:
+            detail = self.workspace.detail(pid, chunk['id'])
+            counted = next(c for c in detail['chunks'] if c['id'] == chunk['id'])
+            self.assertEqual(counted['corrections'], len(detail['current']['edits']))
+            counts.append(counted['corrections'])
+        self.assertGreater(sum(counts), 0)
+
     def test_translation_requires_approval_and_exact_coverage(self):
         pid = self.workspace.import_book(self.source)['id']
         with self.assertRaises(ValueError): self.workspace.run_sync(pid, 'translate')

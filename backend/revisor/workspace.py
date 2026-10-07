@@ -211,7 +211,7 @@ class BookWorkspace:
                     'sections':project['document']['sections'], 'model':self.model, 'reasoning_effort':'low', 'locale':'es-419',
                     'progress':self._progress(project,state), 'current':enriched,
                     'editorial_notes':self._editorial_notes(project,state),
-                    'chunks':[{'id':c['id'], 'title':c['title'], 'status':c['status'], 'translated':bool(c.get('translations'))} for c in state['chunks']],
+                    'chunks':[{'id':c['id'], 'title':c['title'], 'status':c['status'], 'translated':bool(c.get('translations')), 'corrections':len(c.get('edits') or [])} for c in state['chunks']],
                     'job':job,
                     'automatic_result':automatic_result,
                     'glossary':self._glossary(project,state),
