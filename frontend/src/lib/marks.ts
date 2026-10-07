@@ -48,3 +48,12 @@ export function segments(text: string, ranges: Range[]): Segment[] {
   if (cursor < text.length || !parts.length) parts.push({ text: text.slice(cursor), marked: false })
   return parts
 }
+
+/** Corrections of every paragraph of a chunk, widened to whole words; empty before the review. */
+export function chunkChanges(chunk: BookChunk) {
+  const edits = chunk.edits ?? []
+  const revisedText = (id: string | number) => chunk.revised?.[String(id)] ?? ""
+  const listOf = (paragraph: { id: string | number; text: string }) => (chunk.revised ? changes(paragraph.text, revisedText(paragraph.id), edits, paragraph.id) : [])
+  const total = chunk.paragraphs.reduce((sum, paragraph) => sum + listOf(paragraph).length, 0)
+  return { revisedText, listOf, total }
+}

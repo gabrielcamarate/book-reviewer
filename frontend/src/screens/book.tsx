@@ -13,7 +13,7 @@ import { useIsMobile } from "@/lib/viewport"
 import { STAGE_NAMES, scopeLabel, termsLabel } from "@/lib/copy"
 import { CardTitle, Columns, NumberedList, PageTitle } from "@/screens/parts"
 
-export type BookView = "conferir" | "escolher-capitulos" | "orientacoes" | "glossario" | "observacoes" | "alertas" | "trechos" | "ajustar-espanhol" | "novo-livro"
+export type BookView = "conferir" | "escolher-capitulos" | "orientacoes" | "glossario" | "observacoes" | "alertas" | "trechos" | "ajustar-espanhol" | "ajustar-texto" | "recusar" | "novo-livro"
 
 type BookScreenProps = { book: BookDetail; busy: boolean; go: (view: BookView) => void }
 

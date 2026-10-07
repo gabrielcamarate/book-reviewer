@@ -5,6 +5,16 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-07
+
+### Adicionado
+
+- Telas do novo design para aprovar à mão: as três etapas do livro, conferir um trecho esperando aprovação, aprovar, ajustar o texto antes de aprovar, recusar com o pedido registrado, pedir nova revisão, trecho ainda não revisado, reabrir um trecho aprovado e aprovar vários de uma vez com confirmação. Os dois Word ficam disponíveis no mesmo lugar quando prontos.
+
+### Alterado
+
+- Todas as telas seguem o novo design; a área de trabalho anterior não aparece mais.
+
 ## [0.10.0] - 2026-10-07
 
 ### Adicionado

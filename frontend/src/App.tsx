@@ -4,11 +4,11 @@ import { AppHeader, MobileHeader, type Area } from "@/components/ui/app-header"
 import { TabBar } from "@/components/ui/tab-bar"
 import { cn } from "@/lib/utils"
 import { bookScreen } from "@/lib/screens"
-import { useManual } from "@/lib/manual"
+import { setManual, useManual } from "@/lib/manual"
 import { useIsMobile } from "@/lib/viewport"
 import { AttentionScreen, DoneScreen, ProgressScreen, ReadyScreen, StoppedScreen, type BookView } from "@/screens/book"
 import { BooksScreen } from "@/screens/books"
-import { LegacyWorkspace } from "@/screens/legacy-workspace"
+import { ManualAdjustScreen, ManualChunkScreen, ManualRefuseScreen, ManualScreen } from "@/screens/manual"
 import { AlertsScreen, ChaptersScreen, GlossaryScreen, InstructionsScreen, NotesScreen, OptionsScreen } from "@/screens/options"
 import { AdjustSpanishScreen, ChunksScreen, ReviewScreen, type Pane } from "@/screens/review"
 import { NewBookScreen, StartScreen } from "@/screens/start"
@@ -75,6 +75,12 @@ function App() {
     window.scrollTo(0, 0)
   }
   const save = (operation: string, data?: unknown) => books.action(operation, data)
+  async function act(operation: string, data?: unknown) {
+    const result = await books.action(operation, data)
+    // Approving keeps the same chunk on screen, now marked as approved.
+    if (result && operation === "approve") books.setChunkId((data as { chunk_id: string }).chunk_id)
+    return result
+  }
   const otherBook = books.projects.find(project => project.id === books.activeProjectId)
 
   function content() {
@@ -90,10 +96,14 @@ function App() {
     if (book && view === "glossario") return <GlossaryScreen key={`${book.id}-${book.revision}`} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "alertas") return <AlertsScreen book={book} onBack={back} onOpenChunk={openChunk} />
     if (book && view === "observacoes") return <NotesScreen book={book} onBack={back} onOpenChunk={openChunk} />
+    if (book && manual && view === "conferir") return <ManualChunkScreen key={book.current?.id} book={book} busy={busy} act={act} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-texto")} onRefuse={() => inBook("recusar")} />
+    if (book?.current?.revised && view === "ajustar-texto") return <ManualAdjustScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />
+    if (book?.current && view === "recusar") return <ManualRefuseScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />
     if (book && view === "conferir") return <ReviewScreen book={book} pane={pane} onPane={setPane} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-espanhol")} />
     if (book && view === "trechos") return <ChunksScreen book={book} onBack={() => inBook("conferir")} onOpen={chunkId => { showChunk(chunkId); inBook("conferir") }} />
     if (book?.current?.translations && view === "ajustar-espanhol") return <AdjustSpanishScreen key={`${book.current.id}-${book.revision}`} book={book} busy={busy} onBack={() => { setPane("spanish"); inBook("conferir") }} save={save} />
-    if (view || !book) return <LegacyWorkspace books={books} />
+    if (!book) return <LoadingScreen book />
+    if (view) return <ReviewScreen book={book} pane={pane} onPane={setPane} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-espanhol")} />
     if (screen === "pronto-para-comecar") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => void books.action("start", { task: "automatic" })} />
     if (screen === "outro-livro") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => undefined} otherBook={otherBook && { name: otherBook.name, onFollow: () => openBook(otherBook.id) }} />
     if (screen === "acompanhar") return <ProgressScreen book={book} busy={busy} go={go} onPause={() => void books.action("stop")} />
@@ -102,7 +112,7 @@ function App() {
     const resume = () => void books.action("start", { task: "automatic" })
     if (screen === "pausado" || screen === "parou-no-meio") return <StoppedScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} failed={screen === "parou-no-meio"} />
     if (screen === "precisa-de-atencao") return <AttentionScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} onOpenChunk={openChunk} />
-    return <LegacyWorkspace books={books} />
+    return <ManualScreen book={book} busy={busy} act={act} onAutomatic={() => setManual(book.id, false)} onNext={openChunk} onList={() => go("trechos")} onDownload={language => void books.download(language)} />
   }
 
   return (

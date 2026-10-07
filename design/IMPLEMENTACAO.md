@@ -25,6 +25,7 @@ Passo 4, grupo 1, concluído em 0.7.0: `inicio`, `livros`, `novo-livro` (com e s
 Grupo 3 concluído em 0.8.0: `pausado`, `parou-no-meio` e `precisa-de-atencao` (`outro-livro` saiu no grupo 1). `erro` e `carregando` saíram no passo 3.
 Grupo 2 concluído em 0.9.0: `escolher-capitulos`, `orientacoes`, `glossario`, `mais-opcoes` (tema com "Igual ao do aparelho" e tamanho do texto, guardados no navegador), `alertas` e `observacoes`. A aprovação à mão é ligada por livro em "Mais opções" e, até o grupo 5, abre a área de trabalho anterior.
 Grupo 4 concluído em 0.10.0: `conferir` nas três visões (inclusive sem tradução), `ajustar-espanhol` e `trechos` paginado com filtro de observações. As correções são mostradas por palavra inteira (`lib/marks.ts`, testado), mesmo quando a diferença guardada é de uma letra.
+Grupo 5 concluído em 0.11.0: as oito telas de aprovar à mão, inclusive a confirmação de aprovar vários trechos. Nenhuma tela usa mais a área de trabalho anterior.
 
 ## Do que existe hoje para o que deve existir
 

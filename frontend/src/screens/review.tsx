@@ -1,4 +1,5 @@
 import { useState } from "react"
+import type * as React from "react"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,7 @@ import { ListItem } from "@/components/ui/list-item"
 import { Notice } from "@/components/ui/notice"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import type { BookChunk, BookDetail } from "@/book-types"
-import { changes, segments, type Segment } from "@/lib/marks"
+import { chunkChanges, segments, type Segment } from "@/lib/marks"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/lib/viewport"
 import { CardTitle, PageTitle } from "@/screens/parts"
@@ -28,7 +29,7 @@ function Marked({ parts, original = false }: { parts: Segment[]; original?: bool
 
 type ChunkNavProps = { book: BookDetail; onChunk: (chunkId: string) => void; onList?: () => void }
 
-function ChunkNav({ book, onChunk, onList }: ChunkNavProps) {
+export function ChunkNav({ book, onChunk, onList }: ChunkNavProps) {
   const mobile = useIsMobile()
   const index = book.chunks.findIndex(chunk => chunk.id === book.current?.id)
   const previous = book.chunks[index - 1]
@@ -39,6 +40,71 @@ function ChunkNav({ book, onChunk, onList }: ChunkNavProps) {
       {next && <Button onClick={() => onChunk(next.id)}>{mobile ? "Próximo" : "Próximo trecho"}<ChevronRightIcon size={20} aria-hidden="true" /></Button>}
       {onList && <TextLink onClick={onList}>Escolher outro trecho</TextLink>}
     </nav>
+  )
+}
+
+type HeaderProps = ChunkNavProps & { onBack: () => void; status?: string }
+
+/** Back link, chunk position and title, and the previous/next navigation. */
+export function ChunkHeader({ book, onBack, onChunk, onList, status }: HeaderProps) {
+  const mobile = useIsMobile()
+  const index = book.chunks.findIndex(item => item.id === book.current?.id)
+  return (
+    <>
+      <div><TextLink variant="back" onClick={onBack}>Voltar ao livro</TextLink></div>
+      <div className="rv-toolbar">
+        <PageTitle eyebrow={`Trecho ${index + 1} de ${book.chunks.length}${status ? ` · ${status}` : ""}`}>{book.current?.title}</PageTitle>
+        {!mobile && <ChunkNav book={book} onChunk={onChunk} onList={onList} />}
+      </div>
+      {mobile && <ChunkNav book={book} onChunk={onChunk} onList={onList} />}
+    </>
+  )
+}
+
+/** Segmented control for the views, with the line that goes beside it. */
+export function PaneBar({ pane, onPane, spanish, aside }: { pane: Pane; onPane: (pane: Pane) => void; spanish: boolean; aside?: React.ReactNode }) {
+  const mobile = useIsMobile()
+  const options = [
+    { value: "changes" as const, label: mobile ? "Mudanças" : "O que mudou" },
+    { value: "original" as const, label: mobile ? "Original" : "Texto original" },
+    ...(spanish ? [{ value: "spanish" as const, label: mobile ? "Espanhol" : "Em espanhol" }] : []),
+  ]
+  return <div className="rv-toolbar"><SegmentedControl<Pane> label="O que mostrar" variant={mobile ? "block" : "default"} value={pane} onChange={onPane} options={options} />{aside}</div>
+}
+
+export function ChangesCount({ total, onlyChanged, setOnlyChanged }: { total: number; onlyChanged: boolean; setOnlyChanged: (value: boolean) => void }) {
+  const mobile = useIsMobile()
+  return (
+    <div className="rv-stack rv-stack--xs">
+      <strong role="status">{total ? `${count(total, "correção", "correções")} neste trecho` : "Nenhuma correção neste trecho"}</strong>
+      {total > 0 && <Check checked={onlyChanged} onChange={event => setOnlyChanged(event.target.checked)}>{mobile ? "Só parágrafos com correção" : "Mostrar só os parágrafos com correção"}</Check>}
+    </div>
+  )
+}
+
+/** The revised paragraphs with each correction beside (or under) its paragraph. */
+export function ChangesBody({ chunk, onlyChanged }: { chunk: BookChunk; onlyChanged: boolean }) {
+  const { revisedText, listOf } = chunkChanges(chunk)
+  return (
+    <div>
+      {chunk.paragraphs.map(paragraph => ({ paragraph, list: listOf(paragraph) })).filter(({ list }) => !onlyChanged || list.length).map(({ paragraph, list }) => (
+        <CorrectedParagraph key={paragraph.id} text={<Marked parts={segments(revisedText(paragraph.id), list.map(item => item.revised))} />} items={list} />
+      ))}
+    </div>
+  )
+}
+
+/** The text as written, with the corrected words underlined when there is a review. */
+export function OriginalBody({ chunk }: { chunk: BookChunk }) {
+  const mobile = useIsMobile()
+  const { listOf, total } = chunkChanges(chunk)
+  return (
+    <>
+      <section aria-label="Texto original" className={cn("rv-book-paragraphs", mobile ? "book-text-mobile" : "book-text")}>
+        {chunk.paragraphs.map(paragraph => <p key={paragraph.id}><Marked original parts={segments(paragraph.text, listOf(paragraph).map(item => item.original))} /></p>)}
+      </section>
+      {total > 0 && <p className="rv-muted">As palavras sublinhadas foram corrigidas. O motivo de cada uma está em “O que mudou”.</p>}
+    </>
   )
 }
 
@@ -58,52 +124,25 @@ export function ReviewScreen({ book, pane, onPane, onBack, onChunk, onList, onAd
   const [onlyChanged, setOnlyChanged] = useState(false)
   const chunk = book.current
   if (!chunk) return <><div><TextLink variant="back" onClick={onBack}>Voltar ao livro</TextLink></div><p className="rv-muted">Escolha o que revisar para ver os trechos do livro.</p></>
-  const index = book.chunks.findIndex(item => item.id === chunk.id)
-  const edits = chunk.edits ?? []
   const reviewed = Boolean(chunk.revised)
-  const revisedText = (id: string | number) => chunk.revised?.[String(id)] ?? ""
-  const listOf = (paragraph: { id: string | number; text: string }) => changes(paragraph.text, revisedText(paragraph.id), edits, paragraph.id)
-  const total = chunk.paragraphs.reduce((sum, paragraph) => sum + (reviewed ? listOf(paragraph).length : 0), 0)
-  const options = [
-    { value: "changes" as const, label: mobile ? "Mudanças" : "O que mudou" },
-    { value: "original" as const, label: mobile ? "Original" : "Texto original" },
-    { value: "spanish" as const, label: mobile ? "Espanhol" : "Em espanhol" },
-  ]
+  const { revisedText, total } = chunkChanges(chunk)
   return (
     <>
-      <div><TextLink variant="back" onClick={onBack}>Voltar ao livro</TextLink></div>
-      <div className="rv-toolbar">
-        <PageTitle eyebrow={`Trecho ${index + 1} de ${book.chunks.length}`}>{chunk.title}</PageTitle>
-        {!mobile && <ChunkNav book={book} onChunk={onChunk} onList={onList} />}
-      </div>
-      {mobile && <ChunkNav book={book} onChunk={onChunk} onList={onList} />}
-      <div className="rv-toolbar">
-        <SegmentedControl<Pane> label="O que mostrar" variant={mobile ? "block" : "default"} value={pane} onChange={onPane} options={options} />
-        {pane === "changes" && reviewed && <div className="rv-stack rv-stack--xs">
-          <strong role="status">{total ? `${count(total, "correção", "correções")} neste trecho` : "Nenhuma correção neste trecho"}</strong>
-          {total > 0 && <Check checked={onlyChanged} onChange={event => setOnlyChanged(event.target.checked)}>{mobile ? "Só parágrafos com correção" : "Mostrar só os parágrafos com correção"}</Check>}
-        </div>}
+      <ChunkHeader book={book} onBack={onBack} onChunk={onChunk} onList={onList} />
+      <PaneBar pane={pane} onPane={onPane} spanish aside={<>
+        {pane === "changes" && reviewed && <ChangesCount total={total} onlyChanged={onlyChanged} setOnlyChanged={setOnlyChanged} />}
         {pane === "original" && <p className="rv-muted">Como você escreveu, antes da revisão</p>}
         {pane === "spanish" && chunk.translations && <div className="rv-stack rv-stack--xs">
           <strong>{chunk.spanish_checked ? "Espanhol já revisado neste trecho" : "Espanhol traduzido, ainda sem a revisão final"}</strong>
           <div><TextLink onClick={onAdjust}>Ajustar o espanhol</TextLink></div>
         </div>}
-      </div>
+      </>} />
 
-      {pane === "changes" && (reviewed ? <div>
-        {chunk.paragraphs.map(paragraph => ({ paragraph, list: listOf(paragraph) })).filter(({ list }) => !onlyChanged || list.length).map(({ paragraph, list }) => (
-          <CorrectedParagraph key={paragraph.id} text={<Marked parts={segments(revisedText(paragraph.id), list.map(item => item.revised))} />} items={list} />
-        ))}
-      </div> : <Notice plain>
+      {pane === "changes" && (reviewed ? <ChangesBody chunk={chunk} onlyChanged={onlyChanged} /> : <Notice plain>
         <strong>Este trecho ainda não foi revisado.</strong> As correções aparecem aqui quando o Revisor passar por ele.
       </Notice>)}
 
-      {pane === "original" && <>
-        <section aria-label="Texto original" className={cn("rv-book-paragraphs", mobile ? "book-text-mobile" : "book-text")}>
-          {chunk.paragraphs.map(paragraph => <p key={paragraph.id}><Marked original parts={segments(paragraph.text, reviewed ? listOf(paragraph).map(item => item.original) : [])} /></p>)}
-        </section>
-        {total > 0 && <p className="rv-muted">As palavras sublinhadas foram corrigidas. O motivo de cada uma está em “O que mudou”.</p>}
-      </>}
+      {pane === "original" && <OriginalBody chunk={chunk} />}
 
       {pane === "spanish" && (chunk.translations ? <div className={cn("rv-bilingual", mobile && "rv-bilingual--stack")}>
         {!mobile && <div className="rv-bilingual__row"><span className="ui-label rv-muted">Português revisado</span><span className="ui-label rv-muted">Espanhol da América Latina</span></div>}
