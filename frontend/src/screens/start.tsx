@@ -89,7 +89,7 @@ export function NewBookScreen({ busy, canCancel, onCancel, onImport }: NewBookPr
           </div>
           {error && <p className="rv-error" role="alert">{error}</p>}
           <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
-            <Button variant="primary" size="lg" block={mobile} onClick={() => void submit()} disabled={busy}>{busy ? <><Spinner />Importando…</> : "Importar livro"}</Button>
+            <Button variant="primary" size="lg" block={mobile} onClick={() => submit()} disabled={busy}>{busy ? <><Spinner />Importando…</> : "Importar livro"}</Button>
             {canCancel && <Button block={mobile} onClick={onCancel} disabled={busy}>Cancelar</Button>}
           </div>
         </Card>}

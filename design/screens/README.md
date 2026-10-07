@@ -56,6 +56,7 @@ O texto do livro, os nomes de capítulo e os números são exemplos inventados.
 | `conferir-espanhol.html` | Português revisado e espanhol, parágrafo a parágrafo. | "Ajustar o espanhol" → `ajustar-espanhol` |
 | `conferir-sem-traducao.html` | A aba "Em espanhol" de um trecho ainda não traduzido. | "Ver o que mudou" → `conferir` |
 | `ajustar-espanhol.html` | Editar a tradução, um campo por parágrafo. | "Salvar ajustes" → `conferir-espanhol` |
+| (sem arquivo próprio) Ajustar o português | Mesmo layout de `ajustar-espanhol`: à esquerda o texto como foi escrito, à direita o revisado em campos. Aberto por "Ajustar o português" em `conferir` (trecho aprovado) e em cada trecho de `observacoes`. Ao salvar, `conferir` mostra um aviso para voltar ao livro e continuar, e só a tradução desse trecho é refeita. | "Salvar ajustes" → `conferir` |
 | `trechos.html` | Lista paginada dos trechos, com filtro. | Um trecho → `conferir` |
 
 ## 5. Aprovar à mão (opção avançada)

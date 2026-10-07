@@ -5,6 +5,18 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-10-07
+
+### Adicionado
+
+- Ajustar o português de um trecho aprovado, a partir de "Conferir" ou direto de uma observação: o texto continua aprovado, as correções do parágrafo passam a dizer "Ajustado por você.", o que havia antes fica na auditoria e só a tradução desse trecho é refeita ao continuar. Nova operação `POST /api/books/<id>/edit-portuguese`.
+- Botões e links mostram o carregamento do design enquanto a ação acontece: marcar observação, salvar, aprovar, trocar de trecho, abrir um trecho da lista.
+
+### Corrigido
+
+- Abrir um livro com glossário grande ficou cerca de 10 vezes mais rápido (de 1,5 s para 0,13 s no caso medido): as buscas dos termos são montadas uma vez por glossário, com um filtro rápido antes da expressão regular, e os alertas de consistência são calculados uma vez por abertura. Os resultados são idênticos aos anteriores.
+- Trocar de trecho só muda a tela quando o texto do novo trecho chegou.
+
 ## [0.13.0] - 2026-10-07
 
 ### Adicionado

@@ -427,6 +427,111 @@ class AutomaticBookTests(unittest.TestCase):
             self.assertEqual(self.calls.count('check_es'),before+4)
 
 
+class DetailCostTests(unittest.TestCase):
+    """Opening a book recomputes nothing per paragraph that can be computed once."""
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.root = Path(self.temp.name)
+        self.source = self.root/'pt.docx'; fixture(self.source)
+        self.ws = BookWorkspace(self.root, runner=automatic_runner)
+        self.pid = self.ws.import_book(self.source)['id']
+        self.ws.configure(self.pid, {'glossary': {'Texto': 'Texto', 'Epílogo': 'Epílogo', 'planos terráqueos': 'planos terrícolas'}})
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+
+    def tearDown(self):
+        self.ws.close(); self.temp.cleanup()
+
+    def test_detail_checks_consistency_once_with_one_glossary(self):
+        expected = self.ws.detail(self.pid)['consistency_warnings']
+        calls = {'warnings': 0, 'glossary': 0}
+        warnings, glossary = self.ws._warnings, self.ws._glossary
+        def count_warnings(*args, **kwargs):
+            calls['warnings'] += 1
+            before = calls['glossary']
+            result = warnings(*args, **kwargs)
+            self.assertEqual(calls['glossary'] - before, 1)
+            return result
+        def count_glossary(*args):
+            calls['glossary'] += 1
+            return glossary(*args)
+        self.ws._warnings, self.ws._glossary = count_warnings, count_glossary
+        self.assertEqual(self.ws.detail(self.pid)['consistency_warnings'], expected)
+        self.assertEqual(calls['warnings'], 1)
+
+    def test_term_patterns_are_built_once_per_glossary(self):
+        from revisor import book_terms
+        glossary = {'planos terráqueos': 'planos terrícolas', 'grama': 'césped'}
+        book_terms.term_patterns.cache_clear()
+        for text in ['Os planos terráqueos.', 'A grama.', 'Nada aqui.'] * 50:
+            book_terms.source_terms(text, glossary)
+        self.assertEqual(book_terms.term_patterns.cache_info().misses, 1)
+
+
+class AuthorPortugueseEditTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.root = Path(self.temp.name)
+        self.source = self.root/'pt.docx'; fixture(self.source)
+        self.calls = []
+        def record(**kwargs):
+            self.calls.append(json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])['task'])
+            return automatic_runner(**kwargs)
+        self.ws = BookWorkspace(self.root, runner=record)
+        self.pid = self.ws.import_book(self.source)['id']
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+
+    def tearDown(self):
+        self.ws.close(); self.temp.cleanup()
+
+    def chunk_with_change(self):
+        detail = self.ws.detail(self.pid)
+        for item in detail['chunks']:
+            current = self.ws.detail(self.pid, item['id'])['current']
+            if current['edits']: return detail, current
+        self.fail('fixture has no corrected chunk')
+
+    def test_author_edit_keeps_approval_and_only_retranslates_that_chunk(self):
+        detail, chunk = self.chunk_with_change()
+        changed = chunk['edits'][0]['paragraph_id']
+        revised = dict(chunk['revised']); revised[changed] = revised[changed] + ' Acréscimo da autora.'
+        self.ws.edit_portuguese(self.pid, chunk['id'], revised, detail['revision'])
+        after = self.ws.detail(self.pid, chunk['id'])
+        current = after['current']
+        self.assertEqual(current['status'], 'approved')
+        self.assertEqual(current['revised'][changed], revised[changed])
+        self.assertNotIn('translations', current)
+        self.assertIsNone(after['automatic_result'])
+        self.assertGreater(after['revision'], detail['revision'])
+        mine = [e for e in current['edits'] if e['paragraph_id'] == changed]
+        self.assertTrue(mine and all(e['reason'] == 'Ajustado por você.' for e in mine))
+        others = [e for e in chunk['edits'] if e['paragraph_id'] != changed]
+        self.assertEqual([e for e in current['edits'] if e['paragraph_id'] != changed], others)
+        translated = [c['id'] for c in after['chunks'] if c['translated']]
+        self.assertEqual(len(translated), len(after['chunks']) - 1)
+        state = read_json(self.ws._folder(self.pid)/'state.json')
+        self.assertEqual(state['audit'][-1]['action'], 'edit-portuguese')
+        self.calls.clear()
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        final = self.ws.detail(self.pid)
+        self.assertTrue(final['automatic_result'])
+        self.assertNotIn('review', self.calls)
+        self.assertNotIn('check_pt', self.calls)
+        self.assertEqual(self.calls.count('translate'), 1)
+
+    def test_invalid_author_edits_change_nothing(self):
+        detail, chunk = self.chunk_with_change()
+        revision, revised = detail['revision'], chunk['revised']
+        first = next(iter(revised))
+        cases = [
+            (revised, revision),
+            ({**revised, first: '  '}, revision),
+            ({k: v for k, v in list(revised.items())[1:]}, revision),
+            ({**revised, first: revised[first] + ' x'}, revision - 1),
+        ]
+        for value, expected in cases:
+            with self.subTest(value=value, expected=expected), self.assertRaises(ValueError):
+                self.ws.edit_portuguese(self.pid, chunk['id'], value, expected)
+        self.assertEqual(self.ws.detail(self.pid)['revision'], revision)
+
+
 class EditorialNotesTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(); self.root = Path(self.temp.name)

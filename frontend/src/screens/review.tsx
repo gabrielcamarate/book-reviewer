@@ -116,10 +116,11 @@ type ReviewProps = {
   onChunk: (chunkId: string) => void
   onList: () => void
   onAdjust: () => void
+  onAdjustPortuguese?: () => void
 }
 
 /** conferir, conferir-original, conferir-espanhol and conferir-sem-traducao. */
-export function ReviewScreen({ book, pane, onPane, onBack, onChunk, onList, onAdjust }: ReviewProps) {
+export function ReviewScreen({ book, pane, onPane, onBack, onChunk, onList, onAdjust, onAdjustPortuguese }: ReviewProps) {
   const mobile = useIsMobile()
   const [onlyChanged, setOnlyChanged] = useState(false)
   const chunk = book.current
@@ -130,7 +131,10 @@ export function ReviewScreen({ book, pane, onPane, onBack, onChunk, onList, onAd
     <>
       <ChunkHeader book={book} onBack={onBack} onChunk={onChunk} onList={onList} />
       <PaneBar pane={pane} onPane={onPane} spanish aside={<>
-        {pane === "changes" && reviewed && <ChangesCount total={total} onlyChanged={onlyChanged} setOnlyChanged={setOnlyChanged} />}
+        {pane === "changes" && reviewed && <div className="rv-stack rv-stack--xs">
+          <ChangesCount total={total} onlyChanged={onlyChanged} setOnlyChanged={setOnlyChanged} />
+          {onAdjustPortuguese && chunk.status === "approved" && <div><TextLink onClick={onAdjustPortuguese}>Ajustar o português</TextLink></div>}
+        </div>}
         {pane === "original" && <p className="rv-muted">Como você escreveu, antes da revisão</p>}
         {pane === "spanish" && chunk.translations && <div className="rv-stack rv-stack--xs">
           <strong>{chunk.spanish_checked ? "Espanhol já revisado neste trecho" : "Espanhol traduzido, ainda sem a revisão final"}</strong>
@@ -199,7 +203,53 @@ export function AdjustSpanishScreen({ book, busy, onBack, save }: { book: BookDe
       </div>
       <p className="rv-help">Depois de salvar, o Revisor confere este trecho de novo antes de gerar o Word.</p>
       <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
-        <Button variant="primary" size="lg" block={mobile} onClick={() => void submit()} disabled={busy}>Salvar ajustes</Button>
+        <Button variant="primary" size="lg" block={mobile} onClick={() => submit()} disabled={busy}>Salvar ajustes</Button>
+        <Button block={mobile} onClick={onBack} disabled={busy}>Cancelar</Button>
+      </div>
+    </>
+  )
+}
+
+/** ajustar-portugues: the author changes approved Portuguese; only this chunk is translated again. */
+export function AdjustPortugueseScreen({ book, busy, onBack, onSaved, save }: { book: BookDetail; busy: boolean; onBack: () => void; onSaved: () => void; save: (operation: string, data?: unknown) => Promise<unknown> }) {
+  const mobile = useIsMobile()
+  const chunk = book.current as BookChunk
+  const [values, setValues] = useState<Record<string, string>>(chunk.revised ?? {})
+  const [checked, setChecked] = useState(false)
+  const index = book.chunks.findIndex(item => item.id === chunk.id)
+  const empty = Object.entries(values).filter(([, text]) => !text.trim()).map(([id]) => id)
+  const changed = Object.keys(values).some(id => values[id] !== chunk.revised?.[id])
+  async function submit() {
+    setChecked(true)
+    if (empty.length || !changed) return
+    if (await save("edit-portuguese", { chunk_id: chunk.id, revised: values, revision: book.revision })) onSaved()
+  }
+  return (
+    <>
+      <div><TextLink variant="back" onClick={onBack}>Voltar sem salvar</TextLink></div>
+      <div className="rv-stack rv-stack--sm">
+        <PageTitle eyebrow={`Trecho ${index + 1} de ${book.chunks.length} · ${chunk.title}`}>Ajustar o português</PageTitle>
+        <p className="rv-muted">Mude o que quiser no texto revisado. Ao lado fica o que você escreveu originalmente, só para consulta.</p>
+      </div>
+      <div className={cn("rv-bilingual", mobile && "rv-bilingual--stack")}>
+        {!mobile && <div className="rv-bilingual__row"><span className="ui-label rv-muted">Como você escreveu</span><span className="ui-label rv-muted">Texto revisado</span></div>}
+        {chunk.paragraphs.map((paragraph, position) => {
+          const id = String(paragraph.id)
+          const field = `ajuste-portugues-${id}`
+          return (
+            <div key={id} className="rv-bilingual__row">
+              <p className={cn(mobile ? "book-text-mobile" : "book-text", "rv-muted")}>{paragraph.text}</p>
+              <Field id={field} label={`Parágrafo ${position + 1}`} error={checked && empty.includes(id) ? "Este parágrafo não pode ficar vazio." : undefined}>
+                <Textarea id={field} book rows={Math.max(3, Math.ceil((values[id]?.length ?? 0) / 60))} value={values[id] ?? ""} onChange={event => setValues({ ...values, [id]: event.target.value })} disabled={busy} aria-invalid={(checked && empty.includes(id)) || undefined} />
+              </Field>
+            </div>
+          )
+        })}
+      </div>
+      {checked && !changed && <p className="rv-error" role="alert">Nada mudou no texto.</p>}
+      <p className="rv-help">Depois de salvar, a tradução deste trecho é refeita quando você continuar o processamento. O resto do livro não muda.</p>
+      <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
+        <Button variant="primary" size="lg" block={mobile} onClick={() => submit()} disabled={busy}>Salvar ajustes</Button>
         <Button block={mobile} onClick={onBack} disabled={busy}>Cancelar</Button>
       </div>
     </>

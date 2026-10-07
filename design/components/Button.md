@@ -10,6 +10,7 @@ Botão de ação, sempre com texto. Use a classe `rv-btn` num `<button>` (ação
 - `rv-btn--lg`: 68px de altura (`control-lg`), para a ação que resolve a tela ("Processar o livro completo", "Continuar").
 - `rv-btn--block`: largura total. No celular, todo botão é assim.
 - `disabled`: fundo `track`. Explique logo abaixo, em `ui-small`, quando ele fica disponível.
+- Em curso (`aria-busy="true"`): o arco do `Spinner` entra no lugar do ícone e o botão fica desativado até a ação terminar. Toda ação que fala com o servidor mostra esse estado, inclusive trocar de trecho.
 
 **Regras**
 - Nunca só ícone. Nunca dois botões principais lado a lado.

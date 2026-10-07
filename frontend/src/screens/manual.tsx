@@ -63,7 +63,7 @@ export function ManualScreen({ book, busy, act, onAutomatic, onNext, onList, onD
           <Steps steps={[
             { title: "Revisar o português", percent: book.progress.draft_percent, state: missing === 0 ? "done" : "current", hideStatus: missing > 0,
               detail: `${proposed} de ${total} trechos já têm correções propostas.`,
-              action: missing > 0 ? <div><Button onClick={() => void act("start", { task: "review" })} disabled={busy}>{missing === 1 ? "Revisar o que falta" : `Revisar os ${missing} que faltam`}</Button></div> : undefined },
+              action: missing > 0 ? <div><Button onClick={() => act("start", { task: "review" })} disabled={busy}>{missing === 1 ? "Revisar o que falta" : `Revisar os ${missing} que faltam`}</Button></div> : undefined },
             { title: "Aprovar as correções", percent: book.progress.review_percent, state: allApproved ? "done" : proposed > 0 ? "current" : "waiting", hideStatus: !allApproved,
               detail: `${plural(waiting, "trecho esperando você", "trechos esperando você")} · ${approved} já ${approved === 1 ? "aprovado" : "aprovados"}.`,
               action: waiting > 0 ? <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
@@ -72,7 +72,7 @@ export function ManualScreen({ book, busy, act, onAutomatic, onNext, onList, onD
               </div> : undefined },
             { title: "Traduzir para o espanhol", percent: book.progress.translation_percent, state: allTranslated ? "done" : allApproved ? "current" : "waiting", hideStatus: !allTranslated,
               detail: allApproved ? (allTranslated ? "Tradução concluída." : `${translated} de ${total} trechos traduzidos.`) : `Fica disponível quando ${total === 1 ? "o trecho estiver aprovado" : `os ${total} trechos estiverem aprovados`}.`,
-              action: allApproved && !allTranslated ? <div><Button variant="primary" onClick={() => void act("start", { task: "translate" })} disabled={busy}>{translated ? "Continuar a tradução" : "Traduzir para o espanhol"}</Button></div> : undefined },
+              action: allApproved && !allTranslated ? <div><Button variant="primary" onClick={() => act("start", { task: "translate" })} disabled={busy}>{translated ? "Continuar a tradução" : "Traduzir para o espanhol"}</Button></div> : undefined },
           ]} />
         </Card>}
         side={<>
@@ -96,7 +96,7 @@ export function ManualScreen({ book, busy, act, onAutomatic, onNext, onList, onD
       <ConfirmDialog open={confirm} onOpenChange={setConfirm}
         title={waiting === 1 ? "Aprovar o trecho que falta?" : `Aprovar os ${waiting} trechos de uma vez?`}
         description="As correções propostas nesses trechos serão aplicadas sem você conferir uma por uma. Depois, se quiser, dá para reabrir qualquer trecho."
-        confirm={<Button variant="primary" disabled={busy} onClick={() => void act("approve-all", { revision: book.revision }).then(result => { if (result) setConfirm(false) })}>{waiting === 1 ? "Aprovar" : `Aprovar os ${waiting}`}</Button>}
+        confirm={<Button variant="primary" disabled={busy} onClick={() => act("approve-all", { revision: book.revision }).then(result => { if (result) setConfirm(false) })}>{waiting === 1 ? "Aprovar" : `Aprovar os ${waiting}`}</Button>}
         cancel={<Button onClick={() => setConfirm(false)}>Voltar para conferir</Button>} />
     </>
   )
@@ -123,7 +123,7 @@ export function ManualChunkScreen({ book, busy, act, onBack, onChunk, onList, on
   const { total } = chunkChanges(chunk)
   const status = { ready: "esperando sua aprovação", approved: "aprovado por você", rejected: undefined, pending: undefined }[chunk.status]
   const nextWaiting = book.chunks.find(item => item.status === "ready" && item.id !== chunk.id)
-  const review = () => void act("start", { task: "review", chunk_id: chunk.id })
+  const review = () => act("start", { task: "review", chunk_id: chunk.id })
   if (chunk.status === "pending" || chunk.status === "rejected") return (
     <>
       <ChunkHeader book={book} onBack={onBack} onChunk={onChunk} onList={onList} />
@@ -153,12 +153,13 @@ export function ManualChunkScreen({ book, busy, act, onBack, onChunk, onList, on
       {chunk.status === "ready" ? <section aria-labelledby="decisao-titulo" className="rv-notice rv-notice--plain">
         <strong id="decisao-titulo" className="rv-notice__text">O que você quer fazer com este trecho?</strong>
         <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
-          <Button variant="primary" block={mobile} onClick={() => void act("approve", { chunk_id: chunk.id, proposal_id: chunk.proposal_id })} disabled={busy}><CheckIcon size={20} aria-hidden="true" />Aprovar este trecho</Button>
+          <Button variant="primary" block={mobile} onClick={() => act("approve", { chunk_id: chunk.id, proposal_id: chunk.proposal_id })} disabled={busy}><CheckIcon size={20} aria-hidden="true" />Aprovar este trecho</Button>
           <Button block={mobile} onClick={onAdjust} disabled={busy}>Ajustar o texto</Button>
           <Button block={mobile} onClick={onRefuse} disabled={busy}>Recusar e pedir outra revisão</Button>
         </div>
       </section> : <>
-        <p className="rv-actions"><span className="rv-muted">Mudou de ideia?</span><TextLink variant="quiet" onClick={() => void act("reopen", { chunk_id: chunk.id })} disabled={busy}>Reabrir a revisão deste trecho</TextLink></p>
+        <div><TextLink onClick={onAdjust} disabled={busy}>Ajustar o português</TextLink></div>
+        <p className="rv-actions"><span className="rv-muted">Mudou de ideia?</span><TextLink variant="quiet" onClick={() => act("reopen", { chunk_id: chunk.id })} disabled={busy}>Reabrir a revisão deste trecho</TextLink></p>
         {nextWaiting && <div><Button variant="primary" block={mobile} onClick={() => onChunk(nextWaiting.id)}>Próximo trecho esperando você<ChevronRightIcon size={20} aria-hidden="true" /></Button></div>}
       </>}
       <ChunkNav book={book} onChunk={onChunk} />
@@ -195,7 +196,7 @@ export function ManualAdjustScreen({ book, busy, act, onDone }: FormProps) {
         })}
       </section>
       <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
-        <Button variant="primary" size="lg" block={mobile} onClick={() => void submit()} disabled={busy}>Aprovar com meus ajustes</Button>
+        <Button variant="primary" size="lg" block={mobile} onClick={() => submit()} disabled={busy}>Aprovar com meus ajustes</Button>
         <Button block={mobile} onClick={onDone} disabled={busy}>Cancelar</Button>
       </div>
     </>
@@ -222,7 +223,7 @@ export function ManualRefuseScreen({ book, busy, act, onDone }: FormProps) {
           <Textarea id="motivo-recusa" value={reason} placeholder="Ex.: mantenha a expressão “fazia em criança” como está." onChange={event => { setReason(event.target.value); setError("") }} disabled={busy} aria-invalid={Boolean(error) || undefined} />
         </Field>
         <div className={cn("rv-actions", mobile && "rv-actions--stack")}>
-          <Button variant="primary" block={mobile} onClick={() => void submit()} disabled={busy}>Registrar e pedir outra revisão</Button>
+          <Button variant="primary" block={mobile} onClick={() => submit()} disabled={busy}>Registrar e pedir outra revisão</Button>
           <Button block={mobile} onClick={onDone} disabled={busy}>Cancelar</Button>
         </div>
       </Card>

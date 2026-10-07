@@ -203,7 +203,8 @@ class BookWorkspace:
                 for problem in job.get('problems',[]):
                     match=next(((i,c) for i,c in enumerate(state['chunks'],1) if c['id']==problem['chunk_id']),None)
                     if match: problem.update(index=match[0],title=match[1]['title'])
-            automatic_result=state.get('automatic_result') if (state.get('automatic_result',{}).get('revision') == state['revision'] and all(c['status']=='approved' and self._es_checked(project,state,c) for c in state['chunks']) and not self._warnings(project,state)) else None
+            warnings=self._warnings(project,state)
+            automatic_result=state.get('automatic_result') if (state.get('automatic_result',{}).get('revision') == state['revision'] and all(c['status']=='approved' and self._es_checked(project,state,c) for c in state['chunks']) and not warnings) else None
             if automatic_result:
                 automatic_result=automatic_result | {'files':{language:artifact | {'filename':self._download_filename(project,language)} for language,artifact in automatic_result['files'].items()}}
             return {'id':pid, 'name':project['name'], 'filename':project['filename'], 'author':project.get('author'),
@@ -215,7 +216,7 @@ class BookWorkspace:
                     'job':job,
                     'automatic_result':automatic_result,
                     'glossary':self._glossary(project,state),
-                    'consistency_warnings':self._warnings(project,state), 'revision':state['revision']}
+                    'consistency_warnings':warnings, 'revision':state['revision']}
 
     def _chunk_input(self, project, state, chunk):
         paragraphs = project['document']['paragraphs']; by_id = {p['id']:p for p in paragraphs}
@@ -480,6 +481,28 @@ class BookWorkspace:
             chunk.update(status='rejected', feedback=reason.strip()); state['revision']+=1
             save_json(folder/'state.json',state)
 
+    def edit_portuguese(self, pid, chunk_id, revised, expected_revision):
+        """The author corrects approved Portuguese; it stays approved and only this chunk is translated again."""
+        with self.lock:
+            self._idle(); folder, project, state = self._load(pid)
+            if state['revision'] != expected_revision: raise ValueError('O texto mudou. Atualize a tela antes de salvar.')
+            chunk = next((c for c in state['chunks'] if c['id']==chunk_id),None)
+            if not chunk or chunk['status']!='approved': raise ValueError('Só dá para ajustar o português de um trecho já aprovado.')
+            if not isinstance(revised,dict) or set(revised)!=set(chunk['revised']) or any(not isinstance(v,str) or not v.strip() for v in revised.values()):
+                raise ValueError('O ajuste deve manter todos os parágrafos do trecho, nenhum vazio.')
+            source={str(p['id']):p['text'] for p in project['document']['paragraphs']}
+            for eid,text in revised.items(): self._validate_breaks(source[eid],text)
+            changed=[eid for eid in chunk['revised'] if revised[eid]!=chunk['revised'][eid]]
+            if not changed: raise ValueError('Nada mudou no texto.')
+            _, edits = apply_paragraphs({eid:source[eid] for eid in changed},
+                {'paragraphs':[{'paragraph_id':eid,'text':revised[eid],'reason':'Ajustado por você.','category':'ajuste de quem escreveu'} for eid in changed]})
+            state['audit'].append({'action':'edit-portuguese','chunk':chunk_id,'paragraphs':changed,
+                                   'previous':{eid:chunk['revised'][eid] for eid in changed},'at':time.time()})
+            chunk['revised']=revised
+            chunk['edits']=[e for e in chunk.get('edits',[]) if str(e['paragraph_id']) not in changed]+edits
+            chunk['approval_mode']='manual'; chunk['approved_at']=time.time(); chunk.pop('translations',None)
+            state['revision']+=1; save_json(folder/'state.json',state)
+
     def reopen(self, pid, chunk_id):
         with self.lock:
             self._idle(); folder, project, state = self._load(pid)
@@ -575,7 +598,7 @@ class BookWorkspace:
             save_json(self._folder(pid)/'job.json',self.active_job)
 
     def _warnings(self, project, state, *, chunk_id=None):
-        warnings = []
+        warnings = []; glossary = self._glossary(project,state)
         for chunk in state['chunks']:
             if chunk_id is not None and chunk['id']!=chunk_id: continue
             for text in chunk.get('translations',{}).values():
@@ -585,7 +608,7 @@ class BookWorkspace:
             for pid,pt in chunk.get('revised',{}).items():
                 es=chunk.get('translations',{}).get(pid,'')
                 if not es: continue
-                for term,expected in source_terms(pt,self._glossary(project,state)):
+                for term,expected in source_terms(pt,glossary):
                     if not contains_target(es,expected): missing.add((term,expected))
             for term,expected in sorted(missing):
                 warnings.append({'chunk_id':chunk['id'],'message':f'Confira a tradução do termo “{term}”: esperado “{expected}”.'})

@@ -81,6 +81,8 @@ ul, ol { padding: 0; list-style: none; }
 .rv-btn--primary { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); font-weight: 700; }
 .rv-btn--lg { min-height: var(--control-lg); padding: var(--space-2) var(--space-7); border-radius: var(--radius-lg); font-size: 20px; font-weight: 700; }
 .rv-btn--block { display: flex; width: 100%; }
+.rv-btn[aria-busy="true"] > svg:not(.rv-spinner) { display: none; }
+.rv-btn[aria-busy="true"] .rv-spinner { color: inherit; }
 .rv-btn:disabled, .rv-btn[aria-disabled="true"] { background: var(--track); border-color: var(--track); color: var(--muted-foreground); cursor: default; }
 
 /* Link */

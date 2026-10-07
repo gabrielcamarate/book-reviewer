@@ -1,4 +1,5 @@
 """Literal terminology guards: word boundaries, phrase priority and number flexion."""
+import functools
 import re
 
 
@@ -10,16 +11,29 @@ def canonical_glossary(learned, explicit):
     return dict(choices.values())
 
 
-def source_terms(text, glossary):
-    matches=[]
-    for source,target in glossary.items():
+@functools.lru_cache(maxsize=8)
+def term_patterns(items):
+    """Compiled pattern per glossary term; built once per glossary, not once per paragraph."""
+    patterns=[]
+    for source,target in items:
         parts=[]
         for piece in re.findall(r'\w+|[^\w]+',source):
             if piece.isalpha() and re.search(r'[aeiouáéíóúãõ]s?$',piece,re.I) and len(piece)>3:
                 piece=piece[:-1] if piece.endswith('s') else piece
                 parts.append(re.escape(piece)+'s?')
             else: parts.append(re.escape(piece))
-        for match in re.finditer(r'(?<!\w)'+''.join(parts)+r'(?!\w)',text,re.I):
+        # Every match contains the first word without its plural ending: a cheap substring test skips the regex.
+        first=next((part for part in re.findall(r'\w+',source)),source)
+        hint=(first[:-1] if first.isalpha() and len(first)>3 and re.search(r'[aeiouáéíóúãõ]s$',first,re.I) else first).lower()
+        patterns.append((re.compile(r'(?<!\w)'+''.join(parts)+r'(?!\w)',re.I),hint,source,target))
+    return tuple(patterns)
+
+
+def source_terms(text, glossary):
+    matches=[]; lowered=text.lower()
+    for pattern,hint,source,target in term_patterns(tuple(glossary.items())):
+        if hint not in lowered: continue
+        for match in pattern.finditer(text):
             matches.append((match.start(),match.end(),source,target,match.group().casefold()==source.casefold()))
     chosen=[]; occupied=[]
     for start,end,source,target,_ in sorted(matches,key=lambda m:(-(m[1]-m[0]),not m[4],m[0])):

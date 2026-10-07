@@ -19,6 +19,7 @@ export function useBooks() {
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
   const mounted = useRef(true)
+  const waiting = useRef(new Map<string, (() => void)[]>())
 
   const refreshList = useCallback(async (signal?: AbortSignal) => {
     const result = await api<{ projects: BookSummary[]; active_project_id: string | null }>("/api/books", undefined, signal)
@@ -39,7 +40,11 @@ export function useBooks() {
     if (!projectId) return
     const suffix = chunkId ? `?chunk=${encodeURIComponent(chunkId)}` : ""
     const result = await api<BookDetail>(`/api/books/${projectId}${suffix}`, undefined, signal)
-    if (mounted.current && !signal?.aborted) setDetail(result)
+    if (mounted.current && !signal?.aborted) {
+      setDetail(result)
+      const id = result.current?.id
+      if (id) { waiting.current.get(id)?.forEach(resolve => resolve()); waiting.current.delete(id) }
+    }
     return result
   }, [projectId, chunkId])
 
@@ -52,12 +57,23 @@ export function useBooks() {
         const [result] = await Promise.all([loadDetail(controller.signal), refreshList(controller.signal)])
         if (!controller.signal.aborted && result && (["running", "stopping"].includes(result.job?.status ?? "") || Boolean(activeProjectId))) timer = setTimeout(poll, 1200)
 
-      } catch (err) { if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Não foi possível carregar o livro.") }
+      } catch (err) {
+        if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Não foi possível carregar o livro.")
+        waiting.current.forEach(list => list.forEach(resolve => resolve())); waiting.current.clear()
+      }
     }
     void poll()
     return () => { controller.abort(); clearTimeout(timer) }
   }, [projectId, loadDetail, refreshList, detail?.job?.id, activeProjectId])
 
+  /** Open a chunk; resolves when its text is on screen, so the button that asked can show progress. */
+  function showChunk(id: string) {
+    if (detail?.current?.id === id) return Promise.resolve()
+    return new Promise<void>(resolve => {
+      waiting.current.set(id, [...(waiting.current.get(id) ?? []), resolve])
+      setChunkId(id)
+    })
+  }
   function selectProject(id: string) { try { localStorage.setItem("revisor-project", id) } catch { /* Keep the session usable without storage. */ } setProjectId(id); setDetail(null); setChunkId(null); setError(""); setNotice("") }
   async function retryLoading() {
     setBusy("loading"); setError("")
@@ -114,5 +130,5 @@ export function useBooks() {
       setNotice("Word gerado. O download foi iniciado.")
     }
   }
-  return { projects, projectId, chunkId, setChunkId, selectProject, detail, busy, error, notice, activeProjectId, action, importBook, download, refreshList, loadDetail, retryLoading }
+  return { projects, projectId, chunkId, setChunkId, showChunk, selectProject, detail, busy, error, notice, activeProjectId, action, importBook, download, refreshList, loadDetail, retryLoading }
 }

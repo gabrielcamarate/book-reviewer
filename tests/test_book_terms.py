@@ -23,6 +23,11 @@ class BookTermsTests(unittest.TestCase):
         self.assertEqual(canonical_glossary(learned,{'Metrô Capsulado':'Metro Capsulado'}),{'Metrô Capsulado':'Metro Capsulado'})
 
 
+    def test_plural_and_case_variants_still_match_after_the_quick_filter(self):
+        glossary={'Terráqueos':'Terrícolas','planos':'planos','Casa das Marés':'Casa de las Mareas'}
+        self.assertEqual(source_terms('O TERRÁQUEO viu um plano na casa das marés.',glossary),[('Terráqueos','Terrícolas'),('planos','planos'),('Casa das Marés','Casa de las Mareas')])
+        self.assertEqual(source_terms('Nada que combine.',glossary),[])
+
     def test_phrase_priority_and_target_contractions_survive_number_changes(self):
         self.assertEqual(source_terms('O plano terráqueo.',{'terráqueo':'terráqueo','planos terráqueos':'planos terrícolas'}),[('planos terráqueos','planos terrícolas')])
         self.assertTrue(contains_target('la facultad del aprendizaje de la delicadeza','el aprendizaje de la delicadeza'))

@@ -11,5 +11,6 @@ Link de texto sublinhado, para ações secundárias e para voltar. Use `rv-link`
 
 **Regras**
 - Mesmo sendo texto, ocupa pelo menos `control-min` (44px) de altura.
+- Quando a ação leva tempo, o arco do `Spinner` aparece depois do texto até ela terminar.
 - O sublinhado nunca sai: é ele que mostra que dá para clicar.
 - Não use link para a ação principal da tela; isso é do `Button`.

@@ -10,7 +10,9 @@ import { AttentionScreen, DoneScreen, ProgressScreen, ReadyScreen, StoppedScreen
 import { BooksScreen } from "@/screens/books"
 import { ManualAdjustScreen, ManualChunkScreen, ManualRefuseScreen, ManualScreen } from "@/screens/manual"
 import { AlertsScreen, ChaptersScreen, GlossaryScreen, InstructionsScreen, NotesScreen, OptionsScreen } from "@/screens/options"
-import { AdjustSpanishScreen, ChunksScreen, ReviewScreen, type Pane } from "@/screens/review"
+import { AdjustPortugueseScreen, AdjustSpanishScreen, ChunksScreen, ReviewScreen, type Pane } from "@/screens/review"
+import { Notice } from "@/components/ui/notice"
+import { Button } from "@/components/ui/button"
 import { NewBookScreen, StartScreen } from "@/screens/start"
 import { ErrorScreen, LoadingScreen } from "@/screens/status"
 import { useBooks } from "@/useBooks"
@@ -22,6 +24,7 @@ function App() {
   const [view, setView] = useState<BookView | null>(null)
   const [origin, setOrigin] = useState<Area>("book")
   const [pane, setPane] = useState<Pane>("changes")
+  const [saved, setSaved] = useState(false)
   const book = books.detail
   const manual = useManual(book?.id ?? null)
   const busy = Boolean(books.busy)
@@ -34,6 +37,7 @@ function App() {
     manual,
   })
   function navigate(next: Area) {
+    setSaved(false)
     if (next === "books") void books.refreshList().catch(() => undefined)
     setArea(next)
     setView(null)
@@ -41,13 +45,19 @@ function App() {
   }
   function go(next: BookView, chunkId?: string) {
     // A finished book opens at its first chunk; while working, the server picks the next one waiting.
-    if (chunkId) books.setChunkId(chunkId)
-    else if (next === "conferir" && !books.chunkId && book?.chunks.every(chunk => chunk.status === "approved")) books.setChunkId(book.chunks[0]?.id ?? null)
-    if (next === "conferir") setPane("changes")
-    setOrigin(area === "options" ? "options" : "book")
-    setArea("book")
-    setView(next)
-    window.scrollTo(0, 0)
+    const target = chunkId ?? (next === "conferir" && !books.chunkId && book?.chunks.every(chunk => chunk.status === "approved") ? book.chunks[0]?.id : undefined)
+    const from = area === "options" ? "options" : "book"
+    const open = () => {
+      if (next === "conferir") setPane("changes")
+      setOrigin(from)
+      setArea("book")
+      setView(next)
+      window.scrollTo(0, 0)
+    }
+    // Stay on the current screen, with the button spinning, until the chunk's text has arrived.
+    if (target) return books.showChunk(target).then(open)
+    open()
+    return Promise.resolve()
   }
   function openBook(id: string) {
     books.selectProject(id)
@@ -64,13 +74,14 @@ function App() {
     window.scrollTo(0, 0)
   }
   function openChunk(chunkId: string) {
-    go("conferir", chunkId)
+    return go("conferir", chunkId)
   }
-  function showChunk(chunkId: string) {
-    books.setChunkId(chunkId)
+  async function showChunk(chunkId: string) {
+    await books.showChunk(chunkId)
     window.scrollTo(0, 0)
   }
   function inBook(next: BookView) {
+    setSaved(false)
     setView(next)
     window.scrollTo(0, 0)
   }
@@ -85,7 +96,7 @@ function App() {
 
   function content() {
     if (screen === "carregando") return <LoadingScreen book={books.projects.length > 0} />
-    if (screen === "erro") return <ErrorScreen onRetry={() => void books.retryLoading()} busy={busy} mobile={mobile} />
+    if (screen === "erro") return <ErrorScreen onRetry={() => books.retryLoading()} busy={busy} mobile={mobile} />
     if (view === "novo-livro" || (screen === "inicio" && area === "books"))
       return <NewBookScreen busy={books.busy === "import"} canCancel={books.projects.length > 0} onCancel={() => navigate("books")} onImport={importBook} />
     if (screen === "inicio") return <StartScreen onChoose={() => go("novo-livro")} />
@@ -95,21 +106,24 @@ function App() {
     if (book && view === "orientacoes") return <InstructionsScreen key={book.id} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "glossario") return <GlossaryScreen key={`${book.id}-${book.revision}`} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "alertas") return <AlertsScreen book={book} onBack={back} onOpenChunk={openChunk} />
-    if (book && view === "observacoes") return <NotesScreen book={book} busy={busy} onBack={back} onOpenChunk={openChunk} save={save} />
-    if (book && manual && view === "conferir") return <ManualChunkScreen key={book.current?.id} book={book} busy={busy} act={act} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-texto")} onRefuse={() => inBook("recusar")} />
+    if (book && view === "observacoes") return <NotesScreen book={book} busy={busy} onBack={back} onOpenChunk={openChunk} onAdjustChunk={chunkId => go("ajustar-portugues", chunkId)} save={save} />
+    const running = book?.job?.status === "running" || book?.job?.status === "stopping"
+    const savedNotice = saved && <Notice plain action={<Button onClick={() => back()}>Voltar ao livro</Button>}><strong>Ajuste salvo.</strong> Para atualizar o espanhol e os arquivos Word, volte ao livro e continue o processamento.</Notice>
+    if (book?.current?.status === "approved" && view === "ajustar-portugues") return <AdjustPortugueseScreen key={`${book.current.id}-${book.revision}`} book={book} busy={busy} onBack={() => inBook("conferir")} onSaved={() => { inBook("conferir"); setPane("changes"); setSaved(true) }} save={save} />
+    if (book && manual && view === "conferir") return <>{savedNotice}<ManualChunkScreen key={book.current?.id} book={book} busy={busy} act={act} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook(book.current?.status === "approved" ? "ajustar-portugues" : "ajustar-texto")} onRefuse={() => inBook("recusar")} /></>
     if (book?.current?.revised && view === "ajustar-texto") return <ManualAdjustScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />
     if (book?.current && view === "recusar") return <ManualRefuseScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />
-    if (book && view === "conferir") return <ReviewScreen book={book} pane={pane} onPane={setPane} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-espanhol")} />
-    if (book && view === "trechos") return <ChunksScreen book={book} onBack={() => inBook("conferir")} onOpen={chunkId => { showChunk(chunkId); inBook("conferir") }} />
+    if (book && view === "conferir") return <>{savedNotice}<ReviewScreen book={book} pane={pane} onPane={setPane} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-espanhol")} onAdjustPortuguese={running ? undefined : () => inBook("ajustar-portugues")} /></>
+    if (book && view === "trechos") return <ChunksScreen book={book} onBack={() => inBook("conferir")} onOpen={chunkId => showChunk(chunkId).then(() => inBook("conferir"))} />
     if (book?.current?.translations && view === "ajustar-espanhol") return <AdjustSpanishScreen key={`${book.current.id}-${book.revision}`} book={book} busy={busy} onBack={() => { setPane("spanish"); inBook("conferir") }} save={save} />
     if (!book) return <LoadingScreen book />
     if (view) return <ReviewScreen book={book} pane={pane} onPane={setPane} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-espanhol")} />
-    if (screen === "pronto-para-comecar") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => void books.action("start", { task: "automatic" })} />
+    if (screen === "pronto-para-comecar") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => books.action("start", { task: "automatic" })} />
     if (screen === "outro-livro") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => undefined} otherBook={otherBook && { name: otherBook.name, onFollow: () => openBook(otherBook.id) }} />
-    if (screen === "acompanhar") return <ProgressScreen book={book} busy={busy} go={go} onPause={() => void books.action("stop")} />
+    if (screen === "acompanhar") return <ProgressScreen book={book} busy={busy} go={go} onPause={() => books.action("stop")} />
     if (screen === "livro-pronto") return <DoneScreen book={book} busy={busy} go={go} onDownload={language => void books.download(language)} />
     const other = Boolean(books.activeProjectId && books.activeProjectId !== book.id)
-    const resume = () => void books.action("start", { task: "automatic" })
+    const resume = () => books.action("start", { task: "automatic" })
     if (screen === "pausado" || screen === "parou-no-meio") return <StoppedScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} failed={screen === "parou-no-meio"} />
     if (screen === "precisa-de-atencao") return <AttentionScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} onOpenChunk={openChunk} />
     return <ManualScreen book={book} busy={busy} act={act} onAutomatic={() => setManual(book.id, false)} onNext={openChunk} onList={() => go("trechos")} onDownload={language => void books.download(language)} />

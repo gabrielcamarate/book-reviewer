@@ -69,7 +69,7 @@ export function ChaptersScreen({ book, busy, onBack, save }: { book: BookDetail;
       <p className="rv-help">Depois que a revisão começa, não dá mais para mudar esta escolha.</p>
       {error && <p className="rv-error" role="alert">{error}</p>}
       <Actions>
-        <Button variant="primary" size="lg" block={mobile} onClick={() => void submit()} disabled={busy}>Salvar e voltar</Button>
+        <Button variant="primary" size="lg" block={mobile} onClick={() => submit()} disabled={busy}>Salvar e voltar</Button>
         <Button block={mobile} onClick={onBack} disabled={busy}>Cancelar</Button>
       </Actions>
     </>
@@ -96,7 +96,7 @@ export function InstructionsScreen({ book, busy, onBack, save }: { book: BookDet
             <Textarea id="orientacoes" rows={8} value={text} maxLength={12000} onChange={event => setText(event.target.value)} disabled={busy} />
           </Field>
           <Actions>
-            <Button variant="primary" block={mobile} onClick={() => void submit()} disabled={busy}>Salvar orientações</Button>
+            <Button variant="primary" block={mobile} onClick={() => submit()} disabled={busy}>Salvar orientações</Button>
             <Button block={mobile} onClick={onBack} disabled={busy}>Cancelar</Button>
           </Actions>
         </Card>}
@@ -151,7 +151,7 @@ export function GlossaryScreen({ book, busy, onBack, save }: { book: BookDetail;
       </Card>
       <p className="rv-muted">Se você mudar um termo, os trechos que usam essa palavra são traduzidos de novo.</p>
       <Actions>
-        <Button variant="primary" size="lg" block={mobile} onClick={() => void submit()} disabled={busy}>Salvar glossário</Button>
+        <Button variant="primary" size="lg" block={mobile} onClick={() => submit()} disabled={busy}>Salvar glossário</Button>
         <Button block={mobile} onClick={onBack} disabled={busy}>Cancelar</Button>
       </Actions>
     </>
@@ -270,7 +270,7 @@ export function AlertsScreen({ book, onBack, onOpenChunk }: { book: BookDetail; 
 const GROUPS = 6
 
 /** observacoes: ambiguities of the original kept for the author; each one can be marked as read. */
-export function NotesScreen({ book, busy, onBack, onOpenChunk, save }: { book: BookDetail; busy: boolean; onBack: () => void; onOpenChunk: (chunkId: string) => void; save: Save }) {
+export function NotesScreen({ book, busy, onBack, onOpenChunk, onAdjustChunk, save }: { book: BookDetail; busy: boolean; onBack: () => void; onOpenChunk: (chunkId: string) => unknown; onAdjustChunk: (chunkId: string) => unknown; save: Save }) {
   const mobile = useIsMobile()
   const notes = book.editorial_notes ?? []
   const unread = notes.filter(note => !note.read)
@@ -278,7 +278,7 @@ export function NotesScreen({ book, busy, onBack, onOpenChunk, save }: { book: B
   const [shown, setShown] = useState(GROUPS)
   const visible = notes.filter(note => (tab === "unread" ? !note.read : note.read))
   const groups = [...new Set(visible.map(note => note.chunk_id))].map(chunkId => ({ chunkId, notes: visible.filter(note => note.chunk_id === chunkId) }))
-  const mark = (ids: string[], read: boolean) => void save("notes", { ids, read })
+  const mark = (ids: string[], read: boolean) => save("notes", { ids, read })
   return (
     <>
       <div><TextLink variant="back" onClick={onBack}>Voltar ao livro</TextLink></div>
@@ -305,7 +305,10 @@ export function NotesScreen({ book, busy, onBack, onOpenChunk, save }: { book: B
             <li key={group.chunkId}>
               <div className="rv-toolbar">
                 <h2 className="ui-strong">Trecho {group.notes[0].index} · {group.notes[0].title}</h2>
-                <TextLink onClick={() => onOpenChunk(group.chunkId)}>Abrir este trecho</TextLink>
+                <div className="rv-actions">
+                  <TextLink onClick={() => onOpenChunk(group.chunkId)}>Abrir este trecho</TextLink>
+                  {book.chunks.find(chunk => chunk.id === group.chunkId)?.status === "approved" && <TextLink onClick={() => onAdjustChunk(group.chunkId)}>Ajustar o português</TextLink>}
+                </div>
               </div>
               <ul className="rv-stack rv-stack--sm">
                 {group.notes.map(note => (
