@@ -1,31 +1,15 @@
-"use client"
-
-import * as React from "react"
-import { Progress as ProgressPrimitive } from "radix-ui"
-
 import { cn } from "@/lib/utils"
 
-function Progress({
-  className,
-  value,
-  ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+type ProgressBarProps = { value: number; label: string; neutral?: boolean; className?: string }
+
+/** 10px bar; the same value is always written beside it (design/components/ProgressBar.md). */
+function ProgressBar({ value, label, neutral = false, className }: ProgressBarProps) {
+  const percent = Math.max(0, Math.min(100, Math.round(value)))
   return (
-    <ProgressPrimitive.Root
-      data-slot="progress"
-      className={cn(
-        "relative flex h-1 w-full items-center overflow-x-hidden rounded-full bg-muted",
-        className
-      )}
-      {...props}
-    >
-      <ProgressPrimitive.Indicator
-        data-slot="progress-indicator"
-        className="size-full flex-1 bg-primary transition-all"
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-      />
-    </ProgressPrimitive.Root>
+    <div className={cn("rv-progress", neutral && "rv-progress--neutral", className)} role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+      <div className="rv-progress__bar" style={{ width: `${percent}%` }} />
+    </div>
   )
 }
 
-export { Progress }
+export { ProgressBar }

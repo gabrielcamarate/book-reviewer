@@ -19,6 +19,7 @@ Roteiro para aplicar o design desta pasta no frontend. Vale enquanto a migraçã
 Cada passo deixa o app funcionando e passa em `scripts/ci.sh`.
 
 Andamento: passo 1 concluído em 0.4.0 (tokens importados de `design/tokens.css`, tema por `data-theme` em `frontend/src/lib/theme.ts`, Newsreader e favicon).
+Passo 2 concluído em 0.5.0: `frontend/src/components/ui/` tem um componente React por arquivo de `design/components/`, todos sobre as classes `rv-` de `design/components.css`, importado sem cópia. `lib/viewport.ts` decide celular ou computador.
 
 ## Do que existe hoje para o que deve existir
 

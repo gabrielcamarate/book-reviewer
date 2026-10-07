@@ -5,6 +5,22 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-07
+
+### Adicionado
+
+- Componentes base do novo design em `frontend/src/components/ui/`: Button, TextLink, Card, Field, FilePicker, SegmentedControl, Choice, ProgressBar, Steps, Notice, Spinner, SummaryRows, ListItem, CorrectedParagraph, ConfirmDialog, AppHeader e TabBar, todos sobre as classes `rv-` de `design/components.css`.
+- Seletor de tema Escuro/Claro pronto no AppHeader, para a estrutura nova.
+
+### Alterado
+
+- Telas atuais usam os botões, a barra de progresso e a caixa de confirmação do design. O botão de atualizar a lista ganhou texto.
+- Celular é abaixo de 768px, registrado em `design/README.md`.
+
+### Removido
+
+- Primitivas shadcn sem uso (empty, hover-card, scroll-area, separator, label) e as dependências `class-variance-authority` e `tw-animate-css`.
+
 ## [0.4.0] - 2026-10-07
 
 ### Alterado

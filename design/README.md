@@ -70,6 +70,7 @@ Quando o design mudar, esta pasta muda na mesma revisão que o código.
 ## Estrutura das telas
 
 - **Computador:** cabeçalho com a marca à esquerda e, à direita, "Meus livros", "Mais opções" e o tema. Conteúdo centralizado com `content-max`. Duas colunas na proporção 3 para 2: à esquerda o cartão com a ação principal; à direita, arquivos, etapas ou explicações.
+- **Largura:** abaixo de 768px vale o layout de celular; a partir daí, o de computador.
 - **Celular:** coluna única com `space-5` de margem e uma barra inferior fixa com três abas escritas por extenso: "Livro", "Meus livros", "Opções".
 - Listas longas são paginadas com um botão "Mostrar mais", nunca rolagem infinita.
 - Correções ficam junto do parágrafo a que pertencem: ao lado no computador, fechadas embaixo dele no celular.

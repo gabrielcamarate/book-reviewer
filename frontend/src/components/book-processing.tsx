@@ -1,6 +1,6 @@
 import { AlertCircleIcon, CheckIcon } from "lucide-react"
-import { Button } from "./ui/button"
-import { Progress } from "./ui/progress"
+import { TextLink } from "@/components/ui/link"
+import { ProgressBar } from "./ui/progress"
 import { Spinner } from "./ui/spinner"
 import type { BookDetail } from "@/book-types"
 
@@ -14,7 +14,7 @@ export function BookProgress({ book }: { book: BookDetail }) {
   ] as const
   return <div className="progress-area" aria-label="Progresso salvo do livro">{stages.map(([label, count, percent]) => <div className="progress-row" key={label}>
     <div><span>{label}</span><strong>{count.toLocaleString("pt-BR")} / {p.total_paragraphs.toLocaleString("pt-BR")} parágrafos</strong></div>
-    <Progress value={percent} aria-label={label} />
+    <ProgressBar value={percent} label={label} />
   </div>)}</div>
 }
 
@@ -39,7 +39,7 @@ export function BookJobStatus({ book, onInspect }: { book: BookDetail; onInspect
       <h3 id="problems-heading">Trechos que precisam de atenção ({job.problems!.length})</h3>
       <p>O progresso dos outros trechos foi salvo. Você pode tentar os pendentes novamente ou conferir cada um pelo modo manual.</p>
       <ul>{job.problems!.map((problem, index) => <li key={`${problem.chunk_id}-${index}`}>
-        <Button variant="link" onClick={() => onInspect(problem.chunk_id)}>Conferir trecho {problem.index ?? ""}: {problem.title ?? "trecho pendente"}</Button>
+        <TextLink onClick={() => onInspect(problem.chunk_id)}>Conferir trecho {problem.index ?? ""}: {problem.title ?? "trecho pendente"}</TextLink>
         <span>{problem.phase}</span><p>{problem.message}</p>
       </li>)}</ul>
     </section>}
