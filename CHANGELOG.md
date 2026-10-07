@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-07
+
+### Alterado
+
+- AGENTS.md referencia as skills `gabriel-*` do repositório canônico `my-skills`, com a skill de cada etapa adaptada ao fluxo só com `main`.
+
 ## [0.2.0] - 2026-10-07
 
 Primeira versão formal: consolida o histórico anterior como pré-release.
