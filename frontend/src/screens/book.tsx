@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { DownloadIcon, PauseIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -67,11 +68,32 @@ export function ReadyScreen({ book, busy, go, onStart, otherBook }: BookScreenPr
   )
 }
 
+function useNow() {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
+  return now
+}
+
+function since(seconds: number) {
+  if (seconds < 60) return "menos de 1 min"
+  const minutes = Math.floor(seconds / 60)
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${minutes % 60} min`
+}
+
 /** acompanhar: the four stages while processing runs. */
 export function ProgressScreen({ book, busy, go, onPause }: BookScreenProps & { onPause: () => void }) {
   const mobile = useIsMobile()
-  const stopping = book.job?.status === "stopping"
+  const now = useNow()
+  const job = book.job
+  const stopping = job?.status === "stopping"
   const stage = Math.min(stageOf(book.progress), 3)
+  const list = steps(book.progress, true).map(step => step.state !== "current" ? step : {
+    ...step, working: !stopping,
+    detail: <span className="rv-num" aria-live="polite">
+      {job?.phase_total ? `${job.phase_processed ?? 0} de ${job.phase_total} trechos` : "Preparando os trechos"}
+      {job?.started_at ? ` · trabalhando há ${since(Math.max(0, now / 1000 - job.started_at))}` : ""}
+    </span>,
+  })
   return (
     <>
       <PageTitle eyebrow="Livro aberto">{book.name}</PageTitle>
@@ -82,7 +104,7 @@ export function ProgressScreen({ book, busy, go, onPause }: BookScreenProps & { 
             <CardTitle id="andamento-titulo" main>{stageTitle(book.progress)}</CardTitle>
             <p className="rv-muted">O progresso é salvo a cada trecho. Se precisar parar, é só continuar depois.</p>
           </div>
-          <Steps steps={steps(book.progress, true)} />
+          <Steps steps={list} />
           <div className="rv-stack rv-stack--xs">
             <Button block={mobile} onClick={onPause} disabled={busy || stopping}><PauseIcon size={20} aria-hidden="true" />{stopping ? "Pausando…" : "Pausar"}</Button>
             <p className="rv-small rv-muted">Termina o que já começou e guarda o progresso.</p>

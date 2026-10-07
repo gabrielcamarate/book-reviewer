@@ -8,7 +8,7 @@ Lista das quatro etapas do livro, com a situação de cada uma. É o centro da t
 
 **Estados de uma etapa (`rv-step`)**
 - `rv-step--done`: círculo preenchido em `primary` com o ícone de visto, e a palavra "Concluído" à direita.
-- `rv-step--current`: círculo com borda `primary` e o número; nome em negrito; `ProgressBar` embaixo do nome; porcentagem em `primary` à direita.
+- `rv-step--current`: círculo com borda `primary`; enquanto o Revisor trabalha, o arco do `Spinner` gira no lugar do número. Nome em negrito e, logo abaixo dele, sem espaço extra, a contagem que muda a cada trecho salvo ("31 de 301 trechos · trabalhando há 2 min"); depois a `ProgressBar`; porcentagem em `primary` à direita.
 - Sem modificador: ainda não começou, ou só acompanha a anterior. Círculo com borda `neutral` e o número; barra `rv-progress--neutral` se já tiver algum progresso.
 
 **Regras**

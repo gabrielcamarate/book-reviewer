@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-10-07
+
+### Alterado
+
+- Acompanhar mostra que o trabalho está andando: o arco gira na etapa em curso e, logo abaixo do nome dela, aparecem os trechos concluídos ("31 de 301 trechos") e há quanto tempo o processamento começou, atualizados a cada trecho e a cada segundo.
+
 ## [0.17.0] - 2026-10-07
 
 ### Alterado
