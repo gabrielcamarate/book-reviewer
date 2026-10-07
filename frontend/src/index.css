@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap');
-@import "tailwindcss";
 /* Every color, space, radius, size and text style comes from the design reference. */
 @import "../../design/tokens.css";
 /* The rv- component classes, written only with tokens. */

@@ -5,6 +5,16 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-10-07
+
+### Removido
+
+- Tailwind, `tailwind-merge`, `clsx` e a configuração do gerador shadcn: o app não usava mais nenhum deles. A caixa de confirmação e os botões de navegação ganharam as poucas regras que vinham deles em `design/components.css`.
+
+### Corrigido
+
+- No celular, o filtro da lista de trechos ocupa a largura toda em vez de quebrar em duas linhas.
+
 ## [0.12.0] - 2026-10-07
 
 ### Removido

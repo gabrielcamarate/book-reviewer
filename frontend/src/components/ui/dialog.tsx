@@ -19,7 +19,7 @@ function ConfirmDialog({ open, onOpenChange, title, description, confirm, cancel
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="rv-scrim fixed inset-0 z-50">
+        <DialogPrimitive.Overlay className="rv-scrim rv-scrim--overlay">
           <DialogPrimitive.Content className="rv-dialog">
             <DialogPrimitive.Title className="title-card">{title}</DialogPrimitive.Title>
             <DialogPrimitive.Description className="rv-muted">{description}</DialogPrimitive.Description>

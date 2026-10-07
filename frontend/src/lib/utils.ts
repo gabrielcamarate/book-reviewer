@@ -1,6 +1,4 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+/** Join the class names that apply, skipping false, null and undefined. */
+export function cn(...names: (string | false | null | undefined)[]) {
+  return names.filter(Boolean).join(" ")
 }

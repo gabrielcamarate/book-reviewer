@@ -210,6 +210,7 @@ const PAGE = 12
 
 /** trechos: paginated list of chunks with a notes filter. */
 export function ChunksScreen({ book, onBack, onOpen }: { book: BookDetail; onBack: () => void; onOpen: (chunkId: string) => void }) {
+  const mobile = useIsMobile()
   const notes = book.editorial_notes ?? []
   const noted = new Set(notes.map(note => note.chunk_id))
   const [filter, setFilter] = useState<"all" | "notes">("all")
@@ -220,7 +221,7 @@ export function ChunksScreen({ book, onBack, onOpen }: { book: BookDetail; onBac
       <div><TextLink variant="back" onClick={onBack}>Voltar ao texto</TextLink></div>
       <div className="rv-toolbar">
         <PageTitle>Escolher um trecho</PageTitle>
-        {noted.size > 0 && <SegmentedControl<"all" | "notes"> label="Quais trechos mostrar" value={filter} onChange={value => { setFilter(value); setShown(PAGE) }}
+        {noted.size > 0 && <SegmentedControl<"all" | "notes"> label="Quais trechos mostrar" variant={mobile ? "block" : "default"} value={filter} onChange={value => { setFilter(value); setShown(PAGE) }}
           options={[{ value: "all", label: `Todos os ${book.chunks.length}` }, { value: "notes", label: `Com observações (${noted.size})` }]} />}
       </div>
       <ol className="rv-items">

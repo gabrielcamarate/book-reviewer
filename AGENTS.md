@@ -29,7 +29,7 @@ Jev fornece julgamentos, não gera traduções. Avaliação de qualidade e limia
 
 O design do app está em `design/`. Leia `design/README.md` antes de qualquer mudança de interface; `design/IMPLEMENTACAO.md` registra a migração, concluída em 0.12.0. Cores, espaços, raios, tamanhos e estilos de texto vêm de `design/tokens.json`; não escreva valores soltos no código. As telas de referência ficam em `design/screens/` e as regras de cada componente em `design/components/`. Quando o design mudar, atualize `design/` na mesma revisão que o código.
 
-Use as skills instaladas relevantes: vercel-react-best-practices para React; frontend-design para apresentação; tailwind-design-system para estilos; shadcn para componentes; web-design-guidelines para auditoria de UI. Componentes existentes têm fontes locais, sem dependência do gerador shadcn no runtime. Consulte sua interface oficial ao acrescentar/atualizar componentes; não crie um segundo design system.
+Use as skills instaladas relevantes: vercel-react-best-practices para React; frontend-design para apresentação; web-design-guidelines para auditoria de UI. Os estilos vêm só de `design/tokens.css` e `design/components.css`, sem Tailwind nem gerador de componentes; cada componente de `design/components/` tem um arquivo em `frontend/src/components/ui/`. Não crie um segundo design system nem acrescente dependência que o app não use.
 
 ## Skills compartilhadas
 

@@ -172,6 +172,7 @@ ul, ol { padding: 0; list-style: none; }
 .rv-brand svg { color: var(--primary); }
 .rv-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
 .rv-nav__link { min-height: 52px; padding: 0 18px; display: inline-flex; align-items: center; color: var(--foreground); border-radius: var(--radius-md); font-weight: 600; text-decoration: none; }
+button.rv-nav__link, button.rv-tabbar__item { background: none; border: 0; font: inherit; cursor: pointer; }
 .rv-nav__link[aria-current="page"] { background: var(--card); color: var(--primary); font-weight: 700; }
 
 /* TabBar */
@@ -188,6 +189,7 @@ ul, ol { padding: 0; list-style: none; }
 
 /* ListItem */
 .rv-item { box-sizing: border-box; min-height: 72px; padding: var(--space-3) var(--space-5); display: flex; align-items: center; gap: var(--space-4); background: var(--card); color: var(--foreground); border: 1.5px solid var(--card-border); border-radius: var(--radius-lg); text-decoration: none; }
+button.rv-item { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .rv-item[aria-current="true"] { border-color: var(--primary); }
 .rv-item__index { flex: 0 0 36px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 .rv-item[aria-current="true"] .rv-item__index { color: var(--primary); font-weight: 700; }
@@ -212,6 +214,7 @@ ul, ol { padding: 0; list-style: none; }
 
 /* Dialog */
 .rv-scrim { box-sizing: border-box; padding: var(--space-10); display: flex; align-items: center; justify-content: center; background: var(--scrim); }
+.rv-scrim--overlay { position: fixed; inset: 0; z-index: 50; }
 .rv-dialog { box-sizing: border-box; max-width: 620px; padding: var(--space-10); display: flex; flex-direction: column; gap: var(--space-5); background: var(--card); border: 1.5px solid var(--border-strong); border-radius: var(--radius-2xl); }
 .rv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .rv-actions--stack { flex-direction: column; align-items: stretch; }

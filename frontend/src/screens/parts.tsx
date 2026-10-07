@@ -7,7 +7,7 @@ import { useIsMobile } from "@/lib/viewport"
 export function PageTitle({ eyebrow, children, action }: { eyebrow?: string; children: React.ReactNode; action?: React.ReactNode }) {
   const mobile = useIsMobile()
   return (
-    <div className={cn("rv-page-title", action && "rv-page-title--row")}>
+    <div className={cn("rv-page-title", Boolean(action) && "rv-page-title--row")}>
       <div className="rv-page-title">
         {eyebrow && <p className="rv-small rv-muted">{eyebrow}</p>}
         <h1 className={mobile ? "title-page-mobile" : "title-page"}>{children}</h1>
