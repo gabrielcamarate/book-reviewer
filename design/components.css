@@ -60,6 +60,14 @@ ul, ol { padding: 0; list-style: none; }
 .rv-list > li { padding: var(--space-6) 0; display: flex; flex-direction: column; gap: var(--space-2); border-top: 1px solid var(--border); }
 .rv-list > li:last-child { border-bottom: 1px solid var(--border); }
 
+.rv-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-6); }
+.rv-bilingual { display: flex; flex-direction: column; }
+.rv-bilingual__row { padding: var(--space-7) 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-4) var(--space-10); border-top: 1px solid var(--border); }
+.rv-bilingual__row:last-child { border-bottom: 1px solid var(--border); }
+.rv-bilingual--stack .rv-bilingual__row { grid-template-columns: minmax(0, 1fr); }
+.rv-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(460px, 100%), 1fr)); gap: var(--space-3) var(--space-6); }
+.rv-book-paragraphs { max-width: var(--reading-max); display: flex; flex-direction: column; gap: var(--space-7); }
+
 /* Foco */
 .rv-btn:focus-visible, .rv-link:focus-visible, .rv-skip:focus-visible, .rv-input:focus-visible, .rv-textarea:focus-visible, .rv-filepicker:focus-visible, .rv-segmented__item:focus-visible, .rv-nav__link:focus-visible, .rv-tabbar__item:focus-visible, .rv-item:focus-visible, .rv-disclosure:focus-visible, .rv-check input:focus-visible, .rv-choice input:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
 

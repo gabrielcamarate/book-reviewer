@@ -24,6 +24,7 @@ Passo 3 concluído em 0.6.0: `App.tsx` monta `AppHeader` ou `TabBar` e escolhe a
 Passo 4, grupo 1, concluído em 0.7.0: `inicio`, `livros`, `novo-livro` (com e sem Word em espanhol), `pronto-para-comecar`, `outro-livro`, `acompanhar` e `livro-pronto` em `frontend/src/screens/`. Telas ainda não feitas abrem a área de trabalho anterior.
 Grupo 3 concluído em 0.8.0: `pausado`, `parou-no-meio` e `precisa-de-atencao` (`outro-livro` saiu no grupo 1). `erro` e `carregando` saíram no passo 3.
 Grupo 2 concluído em 0.9.0: `escolher-capitulos`, `orientacoes`, `glossario`, `mais-opcoes` (tema com "Igual ao do aparelho" e tamanho do texto, guardados no navegador), `alertas` e `observacoes`. A aprovação à mão é ligada por livro em "Mais opções" e, até o grupo 5, abre a área de trabalho anterior.
+Grupo 4 concluído em 0.10.0: `conferir` nas três visões (inclusive sem tradução), `ajustar-espanhol` e `trechos` paginado com filtro de observações. As correções são mostradas por palavra inteira (`lib/marks.ts`, testado), mesmo quando a diferença guardada é de uma letra.
 
 ## Do que existe hoje para o que deve existir
 

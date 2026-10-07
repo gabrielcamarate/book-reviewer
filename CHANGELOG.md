@@ -5,6 +5,17 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-07
+
+### Adicionado
+
+- Telas do novo design para conferir o texto: o que mudou (correções junto de cada parágrafo, fechadas no celular), texto original com as palavras corrigidas sublinhadas, português e espanhol lado a lado, ajustar o espanhol e escolher um trecho numa lista paginada, com filtro de observações.
+
+### Alterado
+
+- Correções aparecem por palavra inteira ("estavam → estava"), não pelo trecho de letras que mudou.
+- Um livro concluído abre a conferência pelo primeiro trecho.
+
 ## [0.9.0] - 2026-10-07
 
 ### Adicionado

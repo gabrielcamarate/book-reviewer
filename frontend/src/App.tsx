@@ -10,6 +10,7 @@ import { AttentionScreen, DoneScreen, ProgressScreen, ReadyScreen, StoppedScreen
 import { BooksScreen } from "@/screens/books"
 import { LegacyWorkspace } from "@/screens/legacy-workspace"
 import { AlertsScreen, ChaptersScreen, GlossaryScreen, InstructionsScreen, NotesScreen, OptionsScreen } from "@/screens/options"
+import { AdjustSpanishScreen, ChunksScreen, ReviewScreen, type Pane } from "@/screens/review"
 import { NewBookScreen, StartScreen } from "@/screens/start"
 import { ErrorScreen, LoadingScreen } from "@/screens/status"
 import { useBooks } from "@/useBooks"
@@ -20,6 +21,7 @@ function App() {
   const [area, setArea] = useState<Area>("book")
   const [view, setView] = useState<BookView | null>(null)
   const [origin, setOrigin] = useState<Area>("book")
+  const [pane, setPane] = useState<Pane>("changes")
   const book = books.detail
   const manual = useManual(book?.id ?? null)
   const busy = Boolean(books.busy)
@@ -37,7 +39,11 @@ function App() {
     setView(null)
     window.scrollTo(0, 0)
   }
-  function go(next: BookView) {
+  function go(next: BookView, chunkId?: string) {
+    // A finished book opens at its first chunk; while working, the server picks the next one waiting.
+    if (chunkId) books.setChunkId(chunkId)
+    else if (next === "conferir" && !books.chunkId && book?.chunks.every(chunk => chunk.status === "approved")) books.setChunkId(book.chunks[0]?.id ?? null)
+    if (next === "conferir") setPane("changes")
     setOrigin(area === "options" ? "options" : "book")
     setArea("book")
     setView(next)
@@ -58,8 +64,15 @@ function App() {
     window.scrollTo(0, 0)
   }
   function openChunk(chunkId: string) {
+    go("conferir", chunkId)
+  }
+  function showChunk(chunkId: string) {
     books.setChunkId(chunkId)
-    go("conferir")
+    window.scrollTo(0, 0)
+  }
+  function inBook(next: BookView) {
+    setView(next)
+    window.scrollTo(0, 0)
   }
   const save = (operation: string, data?: unknown) => books.action(operation, data)
   const otherBook = books.projects.find(project => project.id === books.activeProjectId)
@@ -77,6 +90,9 @@ function App() {
     if (book && view === "glossario") return <GlossaryScreen key={`${book.id}-${book.revision}`} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "alertas") return <AlertsScreen book={book} onBack={back} onOpenChunk={openChunk} />
     if (book && view === "observacoes") return <NotesScreen book={book} onBack={back} onOpenChunk={openChunk} />
+    if (book && view === "conferir") return <ReviewScreen book={book} pane={pane} onPane={setPane} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-espanhol")} />
+    if (book && view === "trechos") return <ChunksScreen book={book} onBack={() => inBook("conferir")} onOpen={chunkId => { showChunk(chunkId); inBook("conferir") }} />
+    if (book?.current?.translations && view === "ajustar-espanhol") return <AdjustSpanishScreen key={`${book.current.id}-${book.revision}`} book={book} busy={busy} onBack={() => { setPane("spanish"); inBook("conferir") }} save={save} />
     if (view || !book) return <LegacyWorkspace books={books} />
     if (screen === "pronto-para-comecar") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => void books.action("start", { task: "automatic" })} />
     if (screen === "outro-livro") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => undefined} otherBook={otherBook && { name: otherBook.name, onFollow: () => openBook(otherBook.id) }} />
