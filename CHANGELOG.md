@@ -1,10 +1,20 @@
 # Changelog
 
-## Design versionado
+Mudanças relevantes do Revisor, em português. Datas em UTC. `VERSION` identifica o
+aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
+## [Unreleased]
+
+## [0.2.0] - 2026-10-07
+
+Primeira versão formal: consolida o histórico anterior como pré-release.
+
+### Design e versões
+
+- Releases versionadas: `VERSION` é a fonte canônica, espelhada em `frontend/package.json` e `pyproject.toml`; o CI valida versão e changelog e a publicação da tag e da GitHub Release ocorre automaticamente após CI verde na `main`.
 - Referência de design em `design/` passa a ser versionada: tokens, componentes, 35 telas, ícones e marca. AGENTS.md aponta para ela como fonte das decisões de interface.
 
-## Distribuição em main
+### Distribuição em main
 
 - Consolidação local e remota em uma única branch `main` e um checkout principal; branches antigas e arquivos exclusivos são arquivados antes da limpeza.
 - Mantidas autoria a partir do criador do Word e exportações com o nome original + REVISADO, inclusive acentos e entregas já concluídas.
@@ -14,7 +24,7 @@
 - CI funciona sem acervo pessoal e mantém a validação de índices quando o acervo local existe.
 - Regras de exclusão protegem dados e documentos pessoais no Git e no contexto Docker.
 
-## Processamento completo
+### Processamento completo
 
 - Painéis de critérios e glossário recebem chaves React distintas, eliminando avisos repetidos e colisão de identidade em livros já revisados.
 
@@ -41,7 +51,7 @@
 - Pendências, cobertura incompleta e alertas de consistência impedem entrega automática. Alterações manuais invalidam os checks/resultados afetados.
 
 
-## Não publicado — fluxo de livros
+### Fluxo de livros
 
 - Desconexões durante respostas HTTP encerram somente a requisição, sem traceback ou segunda resposta de erro; regressão com reset TCP real e resposta seguinte válida.
 
@@ -54,7 +64,7 @@
 - Padrão explícito GPT 6.1 SOL low no Codex exec.
 - Regressões de cobertura, mutações inválidas, bloqueio concorrente, seleção sumário/corpo e estrutura DOCX.
 
-## 0.2.0 — 05/10/2026
+### Consolidação (05/10/2026)
 
 - Uma interface React e um pacote Python, substituindo interfaces duplicadas e seis workspaces separados.
 - API local e CLI única compartilham revisão, aprovação, recusa, tradução em lote, rollback e exportação.

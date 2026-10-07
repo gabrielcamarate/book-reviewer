@@ -23,6 +23,7 @@ Jev fornece julgamentos, não gera traduções. Avaliação de qualidade e limia
 - Gates: scripts/ci.sh e Bandit no backend. UI deve ter smoke isolado e inspeção visual proporcionais.
 - README, arquitetura, operação, tarefas e changelog devem refletir a mesma revisão.
 - Commits Conventional Commits após verificação; push, merge, deploy e publicação só com autorização específica.
+- Toda mudança de comportamento, configuração, tooling, contrato ou `design/` prepara uma versão e a nota no CHANGELOG no mesmo commit, conforme [RELEASES.md](RELEASES.md). A publicação da tag e da release após CI verde na `main` é automática e foi autorizada em 07/10/2026; ela não autoriza push. Confira a release antes de relatar conclusão.
 
 ## Frontend
 

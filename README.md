@@ -2,6 +2,10 @@
 
 Aplicativo local para revisar livros em português brasileiro, validar e aplicar as correções automaticamente, traduzir para espanhol da América Latina e revisar a tradução antes da entrega. O modo manual continua disponível. Importe Word, escolha livro inteiro ou seções e receba novas cópias em DOCX. O original permanece intacto.
 
+## Versões
+
+A versão atual fica em [VERSION](VERSION). Veja o [changelog](CHANGELOG.md), as [releases](https://github.com/gabrielcamarate/book-reviewer/releases) e o [fluxo de versões](RELEASES.md).
+
 ## Executar
 
 Requisitos: Python 3.11+, Node 22+, pnpm 10.18.1 e Codex CLI instalado e autenticado.
