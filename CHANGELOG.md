@@ -5,6 +5,19 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-07
+
+### Adicionado
+
+- Telas do novo design para preparar e ajustar o livro: escolher capítulos, orientações para a revisão, glossário com dois campos por termo e aviso de campo faltando, Mais opções, alertas de consistência e observações para quem escreveu.
+- Aparência em Mais opções: tema Escuro, Claro ou Igual ao do aparelho, e tamanho do texto Normal, Grande ou Muito grande, guardados no navegador.
+- Aprovação à mão ligada ou desligada por livro.
+
+### Alterado
+
+- "Meus livros" atualiza a lista ao abrir.
+- `design/` deixa de mostrar o botão "Abrir a revisão anterior", retirado em 0.3.0.
+
 ## [0.8.0] - 2026-10-07
 
 ### Adicionado

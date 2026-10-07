@@ -6,7 +6,7 @@ Link de texto sublinhado, para ações secundárias e para voltar. Use `rv-link`
 
 **Variações**
 - `rv-link`: cor `primary`. Para "Abrir este trecho", "Mudar", "Escolher outro trecho".
-- `rv-link--quiet`: cor `foreground`. Para ações que não devem chamar atenção ("Reabrir a revisão deste trecho", "Abrir a revisão anterior").
+- `rv-link--quiet`: cor `foreground`. Para ações que não devem chamar atenção ("Reabrir a revisão deste trecho", "Trocar arquivo").
 - `rv-link--back`: o link "Voltar…" no topo de toda tela que não é a principal. O texto diz para onde volta: "Voltar ao livro", "Voltar às opções", "Voltar sem salvar".
 
 **Regras**

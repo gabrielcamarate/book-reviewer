@@ -14,6 +14,9 @@
         try { theme = localStorage.getItem("revisor-theme") } catch (error) { theme = null }
         if (theme !== "dark" && theme !== "light") theme = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"
         document.documentElement.dataset.theme = theme
+        var size = null
+        try { size = localStorage.getItem("revisor-text-size") } catch (error) { size = null }
+        document.documentElement.dataset.textSize = size === "large" || size === "larger" ? size : "normal"
       })()
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

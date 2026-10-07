@@ -76,4 +76,4 @@ Desligado por padrão. Ligado em "Mais opções", troca a tela do livro por esta
 ## O que não está desenhado
 
 - O tema claro só está desenhado em `acompanhar` e `conferir`. As demais telas seguem a mesma troca de tokens.
-- A "Revisão anterior" (interface antiga, de um trecho por vez) não foi redesenhada. O fluxo dela é coberto por "Aprovar à mão".
+- A "Revisão anterior" (interface antiga, de um trecho por vez) foi retirada do app em 0.3.0. O fluxo dela é coberto por "Aprovar à mão".
