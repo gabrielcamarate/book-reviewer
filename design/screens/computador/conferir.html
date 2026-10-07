@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisor — Conferir o texto</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#DEA960}a:hover{color:#EBC48C}
+</style>
+</head>
+<body>
+<div style="min-height: 100vh; box-sizing: border-box; background: #0F141C; color: #F6F1E9; font-family: 'Manrope', 'Segoe UI', sans-serif; font-size: 18px; line-height: 1.55; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 16px 40px; border-bottom: 1px solid #2F3540">
+<div style="display: flex; align-items: center; gap: 12px">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DEA960" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>
+<span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500; letter-spacing: -0.01em">Revisor</span>
+</div>
+<nav aria-label="Principal" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px">
+<a href="livros.html" style="min-height: 52px; padding: 0 18px; display: inline-flex; align-items: center; color: #F6F1E9; font-weight: 600; text-decoration: none; border-radius: 12px">Meus livros</a>
+<a href="mais-opcoes.html" style="min-height: 52px; padding: 0 18px; display: inline-flex; align-items: center; color: #F6F1E9; font-weight: 600; text-decoration: none; border-radius: 12px">Mais opções</a>
+<div role="group" aria-label="Tema" style="display: flex; padding: 4px; margin-left: 8px; border: 1.5px solid #6B7380; border-radius: 12px">
+<button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 16px; background: #DEA960; color: #0D121A; border: 0; border-radius: 8px; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Escuro</button>
+<a href="conferir-claro.html" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; color: #F6F1E9; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none">Claro</a>
+</div>
+</nav>
+</header>
+
+<main style="width: 100%; max-width: 1160px; box-sizing: border-box; margin: 0 auto; padding: 28px 40px 64px; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex">
+<a href="acompanhar.html" style="min-height: 48px; display: inline-flex; align-items: center; gap: 10px; font-weight: 600; text-underline-offset: 5px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+Voltar ao livro
+</a>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<p style="margin: 0; font-size: 16px; color: #CFCAC0">Trecho 4 de 86</p>
+<h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 48px; font-weight: 500; line-height: 1.12; letter-spacing: -0.015em; text-wrap: balance">Capítulo 3 — A maré baixa</h1>
+</div>
+<nav aria-label="Navegar entre trechos" style="display: flex; flex-wrap: wrap; gap: 12px">
+<button type="button" style="min-height: 56px; padding: 0 20px; display: inline-flex; align-items: center; gap: 10px; background: transparent; color: #F6F1E9; border: 1.5px solid #6B7380; border-radius: 12px; font: inherit; font-weight: 600; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+Trecho anterior
+</button>
+<button type="button" style="min-height: 56px; padding: 0 20px; display: inline-flex; align-items: center; gap: 10px; background: transparent; color: #F6F1E9; border: 1.5px solid #6B7380; border-radius: 12px; font: inherit; font-weight: 600; cursor: pointer">
+Próximo trecho
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+<a href="trechos.html" style="min-height: 56px; padding: 0 12px; display: inline-flex; align-items: center; font-weight: 600; text-underline-offset: 5px">Escolher outro trecho</a>
+</nav>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; padding: 16px 20px; background: #1A2029; border-radius: 16px">
+<div role="group" aria-label="O que mostrar" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1.5px solid #6B7380; border-radius: 14px">
+<button type="button" aria-pressed="true" style="min-height: 48px; padding: 0 20px; background: #DEA960; color: #0D121A; border: 0; border-radius: 10px; font: inherit; font-weight: 700; cursor: pointer">O que mudou</button>
+<a href="conferir-original.html" style="min-height: 48px; padding: 0 20px; display: inline-flex; align-items: center; color: #F6F1E9; border-radius: 10px; font-weight: 600; text-decoration: none">Texto original</a>
+<a href="conferir-espanhol.html" style="min-height: 48px; padding: 0 20px; display: inline-flex; align-items: center; color: #F6F1E9; border-radius: 10px; font-weight: 600; text-decoration: none">Em espanhol</a>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+<strong style="font-weight: 700">14 correções neste trecho</strong>
+<label style="min-height: 44px; display: inline-flex; align-items: center; gap: 12px; cursor: pointer"><input type="checkbox" style="width: 24px; height: 24px; margin: 0; accent-color: #DEA960">Mostrar só os parágrafos com correção</label>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px 40px; padding: 28px 0; border-top: 1px solid #2F3540">
+<p style="margin: 0; flex: 3 1 480px; min-width: 0; font-family: 'Newsreader', Georgia, serif; font-size: 23px; line-height: 1.7; text-wrap: pretty"><mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">Havia</mark> muitas conchas na areia quando Helena chegou <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">à praia</mark>. O vento trazia um cheiro de sal e de coisa antiga, e ela pensou que, talvez, a casa ainda se lembrasse dela.</p>
+<ul style="margin: 0; padding: 0; list-style: none; flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">Haviam</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">Havia</ins></span><span style="font-size: 16px; color: #CFCAC0">“Haver” no sentido de existir fica sempre no singular.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">a praia</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">à praia</ins></span><span style="font-size: 16px; color: #CFCAC0">“Chegar a” seguido de “a praia” pede a crase.</span></li>
+</ul>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px 40px; padding: 28px 0; border-top: 1px solid #2F3540">
+<p style="margin: 0; flex: 3 1 480px; min-width: 0; font-family: 'Newsreader', Georgia, serif; font-size: 23px; line-height: 1.7; text-wrap: pretty">Ela subiu os <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">degraus</mark> devagar, contando cada um como fazia em criança. A porta estava <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">entreaberta</mark>, e a maçaneta, fria como sempre, cedeu sem fazer barulho nenhum.</p>
+<ul style="margin: 0; padding: 0; list-style: none; flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">degrais</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">degraus</ins></span><span style="font-size: 16px; color: #CFCAC0">Plural de “degrau”.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">entre-aberta</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">entreaberta</ins></span><span style="font-size: 16px; color: #CFCAC0">Escreve-se sem hífen.</span></li>
+</ul>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px 40px; padding: 28px 0; border-top: 1px solid #2F3540">
+<p style="margin: 0; flex: 3 1 480px; min-width: 0; font-family: 'Newsreader', Georgia, serif; font-size: 23px; line-height: 1.7; text-wrap: pretty">— Tem alguém aí? — perguntou, e a própria voz lhe pareceu de outra pessoa.</p>
+<p style="margin: 0; flex: 2 1 300px; min-width: 0; font-size: 16px; color: #CFCAC0">Sem correções neste parágrafo.</p>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px 40px; padding: 28px 0; border-top: 1px solid #2F3540">
+<p style="margin: 0; flex: 3 1 480px; min-width: 0; font-family: 'Newsreader', Georgia, serif; font-size: 23px; line-height: 1.7; text-wrap: pretty">Na cozinha, as xícaras continuavam penduradas <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">nos mesmos</mark> ganchos. <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">Fazia</mark> vinte anos que ninguém as tirava dali, <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">mas</mark> o pó parecia recente, como se alguém tivesse passado a mão <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">há</mark> poucos dias.</p>
+<ul style="margin: 0; padding: 0; list-style: none; flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">nos mesmo</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">nos mesmos</ins></span><span style="font-size: 16px; color: #CFCAC0">“Mesmos” concorda com “ganchos”.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">Faziam</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">Fazia</ins></span><span style="font-size: 16px; color: #CFCAC0">“Fazer” indicando tempo fica no singular.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">mais</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">mas</ins></span><span style="font-size: 16px; color: #CFCAC0">“Mas” indica oposição; “mais” indica quantidade.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">a poucos dias</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">há poucos dias</ins></span><span style="font-size: 16px; color: #CFCAC0">Tempo que já passou se escreve com “há”.</span></li>
+</ul>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px 40px; padding: 28px 0; border-top: 1px solid #2F3540">
+<p style="margin: 0; flex: 3 1 480px; min-width: 0; font-family: 'Newsreader', Georgia, serif; font-size: 23px; line-height: 1.7; text-wrap: pretty">Helena abriu a janela e deixou que a claridade <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">entrasse</mark>. Lá fora, a maré baixa descobria as pedras <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">onde</mark> ela e o irmão brincavam, e por um instante ela teve a <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">impressão</mark> de ouvir os dois rindo.</p>
+<ul style="margin: 0; padding: 0; list-style: none; flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">entra-se</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">entrasse</ins></span><span style="font-size: 16px; color: #CFCAC0">Forma do verbo “entrar”, escrita junto.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">aonde</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">onde</ins></span><span style="font-size: 16px; color: #CFCAC0">“Aonde” só se usa com ideia de movimento.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">impreção</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">impressão</ins></span><span style="font-size: 16px; color: #CFCAC0">Escreve-se com “ss”.</span></li>
+</ul>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px 40px; padding: 28px 0; border-top: 1px solid #2F3540; border-bottom: 1px solid #2F3540">
+<p style="margin: 0; flex: 3 1 480px; min-width: 0; font-family: 'Newsreader', Georgia, serif; font-size: 23px; line-height: 1.7; text-wrap: pretty">Sentou-se na cadeira do pai, que rangeu do mesmo <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">jeito</mark>. Em cima da mesa havia um envelope com o seu nome escrito <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">à mão</mark>, e ela soube, antes de <mark style="background: #5A4423; color: #FDEBCB; border-radius: 4px; padding: 1px 4px">abri-lo,</mark> que não tinha voltado por acaso.</p>
+<ul style="margin: 0; padding: 0; list-style: none; flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">geito</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">jeito</ins></span><span style="font-size: 16px; color: #CFCAC0">Escreve-se com “j”.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">a mão</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">à mão</ins></span><span style="font-size: 16px; color: #CFCAC0">A expressão “à mão” leva crase.</span></li>
+<li style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-family: 'Newsreader', Georgia, serif; font-size: 21px"><del style="color: #CFCAC0">abri-lo que</del><span aria-hidden="true" style="color: #CFCAC0">→</span><ins style="color: #DEA960; text-decoration: none; font-weight: 600">abri-lo, que</ins></span><span style="font-size: 16px; color: #CFCAC0">A vírgula fecha o trecho “antes de abri-lo”.</span></li>
+</ul>
+</div>
+
+</div>
+
+<nav aria-label="Navegar entre trechos" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px">
+<button type="button" style="min-height: 56px; padding: 0 20px; display: inline-flex; align-items: center; gap: 10px; background: transparent; color: #F6F1E9; border: 1.5px solid #6B7380; border-radius: 12px; font: inherit; font-weight: 600; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+Trecho anterior
+</button>
+<button type="button" style="min-height: 56px; padding: 0 24px; display: inline-flex; align-items: center; gap: 10px; background: #DEA960; color: #0D121A; border: 0; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer">
+Próximo trecho
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+</nav>
+
+</main>
+</div>
+</body>
+</html>

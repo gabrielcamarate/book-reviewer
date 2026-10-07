@@ -1,0 +1,94 @@
+/* Revisor: tokens de design. Espelha o tokens.json: ao mudar um valor, mude nos dois arquivos. */
+
+:root, [data-theme="dark"] {
+  --background: #0F141C;
+  --card: #1A2029;
+  --card-border: #1A2029;
+  --input: #141A23;
+  --nav: #141A23;
+  --scrim: #080B10;
+  --foreground: #F6F1E9;
+  --muted-foreground: #CFCAC0;
+  --primary: #DEA960;
+  --primary-foreground: #0D121A;
+  --selected: #DEA960;
+  --selected-foreground: #0D121A;
+  --ring: #DEA960;
+  --border: #2F3540;
+  --border-strong: #3A414D;
+  --border-control: #6B7380;
+  --track: #2F3540;
+  --neutral: #8E96A3;
+  --destructive: #EF675A;
+  --highlight: #5A4423;
+  --highlight-foreground: #FDEBCB;
+}
+
+[data-theme="light"] {
+  --background: #F6F1E9;
+  --card: #FFFFFF;
+  --card-border: #DDD6C9;
+  --input: #FBF8F3;
+  --nav: #FFFFFF;
+  --scrim: rgba(22, 26, 34, 0.55);
+  --foreground: #161A22;
+  --muted-foreground: #4A4F58;
+  --primary: #8F5300;
+  --primary-foreground: #FFFFFF;
+  --selected: #161A22;
+  --selected-foreground: #F6F1E9;
+  --ring: #8F5300;
+  --border: #DDD6C9;
+  --border-strong: #C9C1B2;
+  --border-control: #8C8676;
+  --track: #E4DDD0;
+  --neutral: #6B7280;
+  --destructive: #B42318;
+  --highlight: #F3DFB8;
+  --highlight-foreground: #3D2600;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-card-mobile: 18px;
+  --control-min: 44px;
+  --control-sm: 48px;
+  --control: 56px;
+  --control-lg: 68px;
+  --content-max: 1160px;
+  --reading-max: 860px;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-sans: "Manrope", "Segoe UI", sans-serif;
+}
+
+.title-page { font-family: var(--font-serif); font-size: 52px; line-height: 1.1; font-weight: 500; letter-spacing: -0.015em; }
+.title-reading { font-family: var(--font-serif); font-size: 48px; line-height: 1.12; font-weight: 500; letter-spacing: -0.015em; }
+.title-page-mobile { font-family: var(--font-serif); font-size: 36px; line-height: 1.15; font-weight: 500; letter-spacing: -0.01em; }
+.title-card { font-family: var(--font-serif); font-size: 34px; line-height: 1.2; font-weight: 500; }
+.title-section { font-family: var(--font-serif); font-size: 28px; line-height: 1.2; font-weight: 500; }
+.book-text { font-family: var(--font-serif); font-size: 23px; line-height: 1.7; font-weight: 400; }
+.book-text-mobile { font-family: var(--font-serif); font-size: 21px; line-height: 1.65; font-weight: 400; }
+.book-quote { font-family: var(--font-serif); font-size: 24px; line-height: 1.5; font-weight: 400; font-style: italic; }
+.ui-body { font-family: var(--font-sans); font-size: 18px; line-height: 1.55; font-weight: 400; }
+.ui-strong { font-family: var(--font-sans); font-size: 18px; line-height: 1.55; font-weight: 700; }
+.ui-small { font-family: var(--font-sans); font-size: 16px; line-height: 1.5; font-weight: 400; }
+.ui-label { font-family: var(--font-sans); font-size: 16px; line-height: 1.5; font-weight: 700; }
+.ui-button { font-family: var(--font-sans); font-size: 18px; line-height: 1.2; font-weight: 700; }
+.ui-button-lg { font-family: var(--font-sans); font-size: 20px; line-height: 1.2; font-weight: 700; }

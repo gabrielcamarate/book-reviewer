@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisor — Aprovar todos de uma vez</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#DEA960}a:hover{color:#EBC48C}
+</style>
+</head>
+<body>
+<div style="min-height: 100vh; box-sizing: border-box; background: #0F141C; color: #F6F1E9; font-family: 'Manrope', 'Segoe UI', sans-serif; font-size: 18px; line-height: 1.55; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 16px 40px; border-bottom: 1px solid #2F3540">
+<div style="display: flex; align-items: center; gap: 12px">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DEA960" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>
+<span style="font-family: 'Newsreader', Georgia, serif; font-size: 28px; font-weight: 500; letter-spacing: -0.01em">Revisor</span>
+</div>
+<nav aria-label="Principal" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px">
+<a href="livros.html" style="min-height: 52px; padding: 0 18px; display: inline-flex; align-items: center; color: #F6F1E9; font-weight: 600; text-decoration: none; border-radius: 12px">Meus livros</a>
+<a href="mais-opcoes.html" style="min-height: 52px; padding: 0 18px; display: inline-flex; align-items: center; color: #F6F1E9; font-weight: 600; text-decoration: none; border-radius: 12px">Mais opções</a>
+<div role="group" aria-label="Tema" style="display: flex; padding: 4px; margin-left: 8px; border: 1.5px solid #6B7380; border-radius: 12px">
+<button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 16px; background: #DEA960; color: #0D121A; border: 0; border-radius: 8px; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Escuro</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 16px; background: transparent; color: #F6F1E9; border: 0; border-radius: 8px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer">Claro</button>
+</div>
+</nav>
+</header>
+
+<main style="flex: 1; box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding: 40px; background: #080B10">
+
+<div role="dialog" aria-modal="true" aria-labelledby="conf-titulo" style="width: 100%; max-width: 620px; box-sizing: border-box; padding: 40px; background: #1A2029; border: 1.5px solid #3A414D; border-radius: 20px; display: flex; flex-direction: column; gap: 20px">
+<h1 id="conf-titulo" style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 34px; font-weight: 500; line-height: 1.2; text-wrap: balance">Aprovar os 12 trechos de uma vez?</h1>
+<p style="margin: 0; color: #CFCAC0">As correções propostas nesses trechos serão aplicadas sem você conferir uma por uma. Depois, se quiser, dá para reabrir qualquer trecho.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; padding-top: 4px">
+<a href="aprovar-a-mao.html" style="min-height: 56px; box-sizing: border-box; padding: 0 28px; display: inline-flex; align-items: center; background: #DEA960; color: #0D121A; border-radius: 12px; font-weight: 700; text-decoration: none">Aprovar os 12</a>
+<a href="aprovar-a-mao.html" style="min-height: 56px; box-sizing: border-box; padding: 0 24px; display: inline-flex; align-items: center; color: #F6F1E9; border: 1.5px solid #6B7380; border-radius: 12px; font-weight: 600; text-decoration: none">Voltar para conferir</a>
+</div>
+</div>
+
+</main>
+</div>
+</body>
+</html>

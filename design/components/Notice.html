@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Notice</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<div class="rv-stage rv-stage--stack" style="gap: var(--space-6)">
+<div class="rv-notice" role="status">
+<p class="rv-notice__text"><strong>O Revisor está trabalhando em “A casa das marés”.</strong> Ele faz um livro por vez.</p>
+<a href="#" class="rv-btn">Acompanhar A casa das marés</a>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: var(--space-6)">
+<section class="rv-card" style="padding: var(--space-8)">
+<div role="status" style="display: flex; align-items: center; gap: var(--space-5)">
+<span class="rv-status-icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+<h2 class="title-section">Seu livro está pronto</h2>
+</div>
+</section>
+<section class="rv-card rv-card--alert" style="padding: var(--space-8)">
+<div role="status" style="display: flex; align-items: center; gap: var(--space-5)">
+<span class="rv-status-icon rv-status-icon--alert" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 6v8"></path><path d="M12 18h.01"></path></svg></span>
+<h2 class="title-section">2 trechos precisam de atenção</h2>
+</div>
+<p class="rv-muted">O resto do livro está salvo. Tente esses dois de novo.</p>
+</section>
+</div>
+</div>
+</body>
+</html>

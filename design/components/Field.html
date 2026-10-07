@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Field</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<div class="rv-stage" style="align-items: flex-start; gap: var(--space-8)">
+<div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6)">
+<div class="rv-field">
+<label class="rv-label" for="pv-nome">Nome do trabalho <span class="rv-label__optional">(opcional)</span></label>
+<input class="rv-input" id="pv-nome" type="text" placeholder="Ex.: Meu romance">
+</div>
+<div class="rv-field">
+<label class="rv-label" for="pv-es">Em espanhol</label>
+<input class="rv-input" id="pv-es" type="text" lang="es-419" aria-invalid="true" aria-describedby="pv-es-erro">
+<p class="rv-error" id="pv-es-erro" role="alert">Falta a palavra em espanhol.</p>
+</div>
+</div>
+<div class="rv-field" style="flex: 1 1 340px; min-width: 0">
+<label class="rv-label" for="pv-par">Parágrafo 3 em espanhol</label>
+<textarea class="rv-textarea rv-textarea--book" id="pv-par" lang="es-419" rows="4">—¿Hay alguien ahí? —preguntó, y su propia voz le pareció la de otra persona.</textarea>
+<p class="rv-help">Depois de salvar, o Revisor confere este trecho de novo.</p>
+</div>
+</div>
+</body>
+</html>

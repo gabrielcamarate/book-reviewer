@@ -1,6 +1,6 @@
 # Revisor e tradutor — orientações
 
-Responda em pt-BR. O produto é um aplicativo local para revisão editorial em português e tradução para espanhol. Preserve a voz do autor e a interface principal aprovada.
+Responda em pt-BR. O produto é um aplicativo local para revisão editorial em português e tradução para espanhol. Preserve a voz do autor. A interface segue o design descrito em `design/`.
 
 ## Arquitetura e escopo
 
@@ -26,7 +26,9 @@ Jev fornece julgamentos, não gera traduções. Avaliação de qualidade e limia
 
 ## Frontend
 
-Use as skills instaladas relevantes: vercel-react-best-practices para React; frontend-design para apresentação; tailwind-design-system para estilos; shadcn para componentes; web-design-guidelines para auditoria de UI. Componentes existentes têm fontes locais, sem dependência do gerador shadcn no runtime. Consulte sua interface oficial ao acrescentar/atualizar componentes; não reinicialize o design system.
+O design do app está em `design/`. Leia `design/README.md` antes de qualquer mudança de interface e `design/IMPLEMENTACAO.md` enquanto a migração para esse design estiver em curso. Cores, espaços, raios, tamanhos e estilos de texto vêm de `design/tokens.json`; não escreva valores soltos no código. As telas de referência ficam em `design/screens/` e as regras de cada componente em `design/components/`. Quando o design mudar, atualize `design/` na mesma revisão que o código.
+
+Use as skills instaladas relevantes: vercel-react-best-practices para React; frontend-design para apresentação; tailwind-design-system para estilos; shadcn para componentes; web-design-guidelines para auditoria de UI. Componentes existentes têm fontes locais, sem dependência do gerador shadcn no runtime. Consulte sua interface oficial ao acrescentar/atualizar componentes; não crie um segundo design system.
 
 ## Ferramentas pessoais
 

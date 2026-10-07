@@ -1,5 +1,9 @@
 # Changelog
 
+## Design versionado
+
+- Referência de design em `design/` passa a ser versionada: tokens, componentes, 35 telas, ícones e marca. AGENTS.md aponta para ela como fonte das decisões de interface.
+
 ## Distribuição em main
 
 - Consolidação local e remota em uma única branch `main` e um checkout principal; branches antigas e arquivos exclusivos são arquivados antes da limpeza.

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>SegmentedControl</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<div class="rv-stage" style="align-items: flex-start; gap: var(--space-8)">
+<div role="group" aria-label="O que mostrar" class="rv-segmented">
+<button type="button" class="rv-segmented__item" aria-pressed="true">O que mudou</button>
+<button type="button" class="rv-segmented__item" aria-pressed="false">Texto original</button>
+<button type="button" class="rv-segmented__item" aria-pressed="false">Em espanhol</button>
+</div>
+<div role="group" aria-label="Tema" class="rv-segmented rv-segmented--sm">
+<button type="button" class="rv-segmented__item" aria-pressed="true">Escuro</button>
+<button type="button" class="rv-segmented__item" aria-pressed="false">Claro</button>
+</div>
+<div role="group" aria-label="Tamanho do texto" class="rv-segmented rv-segmented--stack" style="width: 260px">
+<button type="button" class="rv-segmented__item" aria-pressed="false">Normal</button>
+<button type="button" class="rv-segmented__item" aria-pressed="true">Grande</button>
+<button type="button" class="rv-segmented__item" aria-pressed="false">Muito grande</button>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>FilePicker</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<div class="rv-stage" style="align-items: flex-start; gap: var(--space-8)">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3)">
+<button type="button" class="rv-filepicker">
+<span class="rv-filepicker__title"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 8 5-5 5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>Escolher arquivo Word</span>
+<span class="rv-filepicker__hint">Arquivo .docx de até 32 MB</span>
+</button>
+<p class="rv-help">Seu arquivo original não é alterado. O Revisor trabalha em uma cópia.</p>
+</div>
+<div style="flex: 1 1 360px; min-width: 0">
+<div class="rv-file">
+<div class="rv-file__info">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><path d="M9 13h6"></path><path d="M9 17h6"></path></svg>
+<div><div class="rv-file__name">a-casa-das-mares.docx</div><div class="rv-help">Arquivo escolhido</div></div>
+</div>
+<button type="button" class="rv-link rv-link--quiet">Trocar arquivo</button>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Choice</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<div class="rv-stage rv-stage--stack" style="gap: var(--space-6)">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: var(--space-4)">
+<label class="rv-choice"><input type="radio" name="pv-escopo"><span><span class="rv-choice__title">O livro inteiro</span><span class="rv-choice__text">Todos os capítulos, do começo ao fim.</span></span></label>
+<label class="rv-choice rv-choice--checked"><input type="radio" name="pv-escopo" checked><span><span class="rv-choice__title">Só alguns capítulos</span><span class="rv-choice__text">Você marca abaixo quais entram.</span></span></label>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: var(--space-3) var(--space-6)">
+<label class="rv-choice rv-choice--row"><input type="checkbox" checked><span class="rv-choice__title">Capítulo 1 — O farol</span><span class="rv-choice__text">64 parágrafos</span></label>
+<label class="rv-choice rv-choice--row"><input type="checkbox"><span class="rv-choice__title">Capítulo 4 — A cozinha</span><span class="rv-choice__text">58 parágrafos</span></label>
+</div>
+<label class="rv-check"><input type="checkbox">Mostrar só os parágrafos com correção</label>
+</div>
+</body>
+</html>
