@@ -132,3 +132,69 @@ export function DoneScreen({ book, busy, go, onDownload }: BookScreenProps & { o
     </>
   )
 }
+
+type StoppedProps = BookScreenProps & { onContinue: () => void; disabled: boolean }
+
+/** pausado and parou-no-meio: saved work, nothing running. */
+export function StoppedScreen({ book, busy, go, onContinue, disabled, failed }: StoppedProps & { failed: boolean }) {
+  const stage = Math.min(stageOf(book.progress), 3)
+  return (
+    <>
+      <PageTitle eyebrow="Livro aberto">{book.name}</PageTitle>
+      <Columns
+        main={<Card variant={failed ? "alert" : "default"} aria-labelledby="parado-titulo">
+          {failed ? <>
+            <div role="status" className="rv-status-row"><StatusIcon alert /><CardTitle id="parado-titulo">O trabalho parou no meio</CardTitle></div>
+            <p className="rv-muted">Pode ter sido o computador desligando ou a internet caindo. O que já foi feito está salvo.</p>
+          </> : <div role="status" className="rv-stack rv-stack--xs">
+            <p className="ui-label rv-muted">Pausado na etapa {stage + 1} de 4</p>
+            <CardTitle id="parado-titulo" main>O trabalho está pausado</CardTitle>
+            <p className="rv-muted">Está tudo salvo. É só continuar quando quiser.</p>
+          </div>}
+          <Steps steps={steps(book.progress, false)} />
+          <Button variant="primary" size="lg" block onClick={onContinue} disabled={busy || disabled}>{failed ? "Continuar de onde parou" : "Continuar"}</Button>
+          {disabled && <p className="rv-small rv-muted">Disponível quando o outro livro terminar ou for pausado.</p>}
+        </Card>}
+        side={<>
+          <FilesCard />
+          <Button block onClick={() => go("conferir")}>Ver o texto e as correções</Button>
+        </>}
+      />
+    </>
+  )
+}
+
+/** precisa-de-atencao: some chunks could not be finished. */
+export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk }: StoppedProps & { onOpenChunk: (chunkId: string) => void }) {
+  const problems = book.job?.problems ?? []
+  const count = problems.length
+  return (
+    <>
+      <PageTitle eyebrow="Livro aberto">{book.name}</PageTitle>
+      <Columns
+        main={<Card variant="alert" aria-labelledby="atencao-titulo">
+          <div role="status" className="rv-status-row"><StatusIcon alert /><CardTitle id="atencao-titulo">{count === 1 ? "1 trecho precisa de atenção" : `${count} trechos precisam de atenção`}</CardTitle></div>
+          <p className="rv-muted">O resto do livro está salvo. {count === 1 ? "Tente esse trecho de novo." : "Tente esses trechos de novo."} Se o aviso continuar, abra o trecho para ver o que houve.</p>
+          <ul className="rv-summary">
+            {problems.map((problem, index) => (
+              <li key={`${problem.chunk_id}-${index}`} className="rv-summary__row">
+                <span className="rv-stack rv-stack--xs">
+                  <span className="rv-small rv-muted">Trecho {problem.index ?? index + 1} · na etapa “{problem.phase.toLowerCase()}”</span>
+                  {problem.title && <span className="ui-strong">{problem.title}</span>}
+                  <span>{problem.message}</span>
+                </span>
+                <TextLink onClick={() => onOpenChunk(problem.chunk_id)}>Abrir este trecho</TextLink>
+              </li>
+            ))}
+          </ul>
+          <Button variant="primary" size="lg" block onClick={onContinue} disabled={busy || disabled}>{count === 1 ? "Tentar esse trecho de novo" : "Tentar esses trechos de novo"}</Button>
+        </Card>}
+        side={<Card variant="outline" aria-labelledby="como-titulo">
+          <CardTitle id="como-titulo">Como está o livro</CardTitle>
+          <Steps steps={steps(book.progress, false)} />
+          <p className="rv-muted">Os arquivos Word só ficam prontos quando todos os trechos estiverem completos.</p>
+        </Card>}
+      />
+    </>
+  )
+}

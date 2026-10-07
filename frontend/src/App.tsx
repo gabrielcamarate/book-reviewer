@@ -5,7 +5,7 @@ import { TabBar } from "@/components/ui/tab-bar"
 import { cn } from "@/lib/utils"
 import { bookScreen } from "@/lib/screens"
 import { useIsMobile } from "@/lib/viewport"
-import { DoneScreen, ProgressScreen, ReadyScreen, type BookView } from "@/screens/book"
+import { AttentionScreen, DoneScreen, ProgressScreen, ReadyScreen, StoppedScreen, type BookView } from "@/screens/book"
 import { BooksScreen } from "@/screens/books"
 import { LegacyWorkspace } from "@/screens/legacy-workspace"
 import { NewBookScreen, StartScreen } from "@/screens/start"
@@ -60,6 +60,10 @@ function App() {
     if (screen === "outro-livro") return <ReadyScreen book={book} busy={busy} go={go} onStart={() => undefined} otherBook={otherBook && { name: otherBook.name, onFollow: () => openBook(otherBook.id) }} />
     if (screen === "acompanhar") return <ProgressScreen book={book} busy={busy} go={go} onPause={() => void books.action("stop")} />
     if (screen === "livro-pronto") return <DoneScreen book={book} busy={busy} go={go} onDownload={language => void books.download(language)} />
+    const other = Boolean(books.activeProjectId && books.activeProjectId !== book.id)
+    const resume = () => void books.action("start", { task: "automatic" })
+    if (screen === "pausado" || screen === "parou-no-meio") return <StoppedScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} failed={screen === "parou-no-meio"} />
+    if (screen === "precisa-de-atencao") return <AttentionScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} onOpenChunk={chunkId => { books.setChunkId(chunkId); go("conferir") }} />
     return <LegacyWorkspace books={books} />
   }
 

@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-07
+
+### Adicionado
+
+- Telas do novo design para quando o trabalho sai do caminho: pausado, parou no meio (computador desligado ou servidor reiniciado) e trechos que precisam de atenção, cada uma com o que está salvo, as etapas e a ação para continuar.
+
 ## [0.7.0] - 2026-10-07
 
 ### Adicionado
