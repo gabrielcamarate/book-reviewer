@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Choice } from "@/components/ui/choice"
 import { Field, Input, Textarea } from "@/components/ui/field"
+import { StatusIcon } from "@/components/ui/notice"
+import { ProgressBar } from "@/components/ui/progress"
 import { TextLink } from "@/components/ui/link"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { SummaryRows } from "@/components/ui/summary-row"
@@ -265,25 +267,66 @@ export function AlertsScreen({ book, onBack, onOpenChunk }: { book: BookDetail; 
   )
 }
 
-/** observacoes: ambiguities of the original kept for the author to decide. */
-export function NotesScreen({ book, onBack, onOpenChunk }: { book: BookDetail; onBack: () => void; onOpenChunk: (chunkId: string) => void }) {
+const GROUPS = 6
+
+/** observacoes: ambiguities of the original kept for the author; each one can be marked as read. */
+export function NotesScreen({ book, busy, onBack, onOpenChunk, save }: { book: BookDetail; busy: boolean; onBack: () => void; onOpenChunk: (chunkId: string) => void; save: Save }) {
+  const mobile = useIsMobile()
   const notes = book.editorial_notes ?? []
+  const unread = notes.filter(note => !note.read)
+  const [tab, setTab] = useState<"unread" | "read">(unread.length ? "unread" : "read")
+  const [shown, setShown] = useState(GROUPS)
+  const visible = notes.filter(note => (tab === "unread" ? !note.read : note.read))
+  const groups = [...new Set(visible.map(note => note.chunk_id))].map(chunkId => ({ chunkId, notes: visible.filter(note => note.chunk_id === chunkId) }))
+  const mark = (ids: string[], read: boolean) => void save("notes", { ids, read })
   return (
     <>
       <div><TextLink variant="back" onClick={onBack}>Voltar ao livro</TextLink></div>
       <div className="rv-stack rv-stack--sm">
         <PageTitle>Observações para você</PageTitle>
-        <p className="rv-muted">São pontos em que o seu texto original permite mais de uma leitura. Nada foi inventado para resolver: o texto ficou como estava, e a decisão é sua.</p>
+        <p className="rv-muted">São pontos em que o seu texto original permite mais de uma leitura. Nada foi inventado para resolver: o texto ficou como estava, e a decisão é sua. Depois de ler, marque como lida.</p>
       </div>
-      {notes.length ? <ol className="rv-list">
-        {notes.map((note, index) => (
-          <li key={index}>
-            <span className="rv-small rv-muted">Trecho {note.index} · {note.title} · {note.language === "pt" ? "no português" : "no espanhol"}</span>
-            <p>{note.message}</p>
-            <div><TextLink onClick={() => onOpenChunk(note.chunk_id)}>Abrir este trecho</TextLink></div>
-          </li>
-        ))}
-      </ol> : <p className="ui-strong">Nenhuma observação para este livro.</p>}
+      {!notes.length ? <p className="ui-strong">Nenhuma observação para este livro.</p> : <>
+        <Card variant={unread.length ? "default" : "outline"} aria-labelledby="leitura-titulo">
+          <div className="rv-toolbar">
+            <div className="rv-stack rv-stack--xs">
+              {unread.length ? <strong id="leitura-titulo" role="status">{`${notes.length - unread.length} de ${notes.length} lidas`}</strong>
+                : <div role="status" className="rv-status-row"><StatusIcon /><strong id="leitura-titulo">Você leu todas as observações</strong></div>}
+              {unread.length > 0 && <p className="rv-small rv-muted">{unread.length === 1 ? "Falta 1 para ler." : `Faltam ${unread.length} para ler.`} Ler não muda o livro; serve para você saber o que já viu.</p>}
+            </div>
+            {unread.length > 0 && <Button block={mobile} onClick={() => mark(unread.map(note => note.id), true)} disabled={busy}>Marcar todas como lidas</Button>}
+          </div>
+          {unread.length > 0 && <ProgressBar value={((notes.length - unread.length) / notes.length) * 100} label="Observações lidas" />}
+        </Card>
+        <SegmentedControl<"unread" | "read"> label="Quais observações mostrar" variant={mobile ? "block" : "default"} value={tab} onChange={value => { setTab(value); setShown(GROUPS) }}
+          options={[{ value: "unread", label: `Para ler (${unread.length})` }, { value: "read", label: `Lidas (${notes.length - unread.length})` }]} />
+        {!groups.length ? <p className="rv-muted">{tab === "unread" ? "Nada para ler. Todas as observações já foram lidas." : "Nenhuma observação lida ainda."}</p> : <ol className="rv-list">
+          {groups.slice(0, shown).map(group => (
+            <li key={group.chunkId}>
+              <div className="rv-toolbar">
+                <h2 className="ui-strong">Trecho {group.notes[0].index} · {group.notes[0].title}</h2>
+                <TextLink onClick={() => onOpenChunk(group.chunkId)}>Abrir este trecho</TextLink>
+              </div>
+              <ul className="rv-stack rv-stack--sm">
+                {group.notes.map(note => (
+                  <li key={note.id} className="rv-note">
+                    <div className="rv-stack rv-stack--xs">
+                      <span className="rv-small rv-muted">{note.language === "pt" ? "No português" : "No espanhol"}</span>
+                      <p>{note.message}</p>
+                    </div>
+                    {note.read ? <TextLink variant="quiet" onClick={() => mark([note.id], false)} disabled={busy}>Marcar como não lida</TextLink>
+                      : <Button onClick={() => mark([note.id], true)} disabled={busy}>Marcar como lida</Button>}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>}
+        {groups.length > shown && <div className="rv-actions">
+          <Button onClick={() => setShown(shown + GROUPS)}>Mostrar mais trechos</Button>
+          <span className="rv-muted rv-num">Mostrando {shown} de {groups.length} trechos</span>
+        </div>}
+      </>}
     </>
   )
 }

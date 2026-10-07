@@ -33,7 +33,7 @@ O texto do livro, os nomes de capítulo e os números são exemplos inventados.
 | `glossario.html` | Termos em português e em espanhol, um par por linha, com estado de erro. Pode mudar a qualquer momento. | "Salvar glossário" → `mais-opcoes` |
 | `mais-opcoes.html` | Aparência, o que revisar, orientações, glossário, aprovar à mão, alertas, sobre. | "Editar glossário" → `glossario`; "Ligar aprovação à mão" → `aprovar-a-mao`; "Ver os alertas" → `alertas` |
 | `alertas.html` | Nomes e palavras escritos de mais de um jeito. | "Abrir este trecho" → `conferir` |
-| `observacoes.html` | Pontos ambíguos do original, preservados para decisão de quem escreveu. | "Abrir este trecho" → `conferir` |
+| `observacoes.html` | Pontos ambíguos do original, preservados para decisão de quem escreveu. Agrupados por trecho, com "Para ler" e "Lidas"; cada uma pode ser marcada como lida, ou todas de uma vez. | "Abrir este trecho" → `conferir` |
 
 ## 3. Quando algo sai do caminho
 

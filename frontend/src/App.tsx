@@ -95,7 +95,7 @@ function App() {
     if (book && view === "orientacoes") return <InstructionsScreen key={book.id} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "glossario") return <GlossaryScreen key={`${book.id}-${book.revision}`} book={book} busy={busy} onBack={back} save={save} />
     if (book && view === "alertas") return <AlertsScreen book={book} onBack={back} onOpenChunk={openChunk} />
-    if (book && view === "observacoes") return <NotesScreen book={book} onBack={back} onOpenChunk={openChunk} />
+    if (book && view === "observacoes") return <NotesScreen book={book} busy={busy} onBack={back} onOpenChunk={openChunk} save={save} />
     if (book && manual && view === "conferir") return <ManualChunkScreen key={book.current?.id} book={book} busy={busy} act={act} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook("ajustar-texto")} onRefuse={() => inBook("recusar")} />
     if (book?.current?.revised && view === "ajustar-texto") return <ManualAdjustScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />
     if (book?.current && view === "recusar") return <ManualRefuseScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />

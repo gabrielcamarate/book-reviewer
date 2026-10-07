@@ -100,6 +100,7 @@ export function ProgressScreen({ book, busy, go, onPause }: BookScreenProps & { 
 /** livro-pronto: both Word files ready. */
 export function DoneScreen({ book, busy, go, onDownload }: BookScreenProps & { onDownload: (language: "pt-BR" | "es") => void }) {
   const notes = book.editorial_notes?.length ?? 0
+  const unread = book.editorial_notes?.filter(note => !note.read).length ?? 0
   return (
     <>
       <PageTitle eyebrow="Livro aberto">{book.name}</PageTitle>
@@ -119,9 +120,9 @@ export function DoneScreen({ book, busy, go, onDownload }: BookScreenProps & { o
         </Card>}
         side={<>
           {notes > 0 && <Card variant="outline" aria-labelledby="notas-titulo">
-            <CardTitle id="notas-titulo">{notes === 1 ? "1 observação para você ler" : `${notes} observações para você ler`}</CardTitle>
-            <p className="rv-muted">Em alguns pontos o texto original estava ambíguo. Ele foi mantido como estava, sem inventar nada, e as dúvidas ficaram anotadas.</p>
-            <Button block onClick={() => go("observacoes")}>Ler as observações</Button>
+            <CardTitle id="notas-titulo">{!unread ? "Observações lidas" : unread === 1 ? "1 observação para você ler" : `${unread} observações para você ler`}</CardTitle>
+            <p className="rv-muted">{unread ? "Em alguns pontos o texto original estava ambíguo. Ele foi mantido como estava, sem inventar nada, e as dúvidas ficaram anotadas." : `Você leu as ${notes === 1 ? "observação" : `${notes} observações`} deste livro.`}</p>
+            <Button block onClick={() => go("observacoes")}>{unread ? "Ler as observações" : "Ver as observações"}</Button>
           </Card>}
           <div className={cn("rv-stack", "rv-stack--sm")}>
             <Button block onClick={() => go("conferir")}>Ver o texto e as correções</Button>

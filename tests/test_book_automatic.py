@@ -425,3 +425,48 @@ class AutomaticBookTests(unittest.TestCase):
             before=self.calls.count('check_es')
             self.assertTrue(self.run_job()['automatic_result'])
             self.assertEqual(self.calls.count('check_es'),before+4)
+
+
+class EditorialNotesTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.root = Path(self.temp.name)
+        self.source = self.root/'pt.docx'; fixture(self.source)
+        def noting(**kwargs):
+            result = automatic_runner(**kwargs)
+            if json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])['task'] == 'check_pt':
+                result['notes'] = ['Ambiguidade fictícia preservada.', 'Segunda dúvida fictícia.']
+            return result
+        self.ws = BookWorkspace(self.root, runner=noting)
+        self.pid = self.ws.import_book(self.source)['id']
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+
+    def tearDown(self):
+        self.ws.close(); self.temp.cleanup()
+
+    def test_notes_are_marked_read_without_touching_the_delivery(self):
+        detail = self.ws.detail(self.pid)
+        notes = detail['editorial_notes']
+        self.assertGreater(len(notes), 2)
+        self.assertEqual(len({n['id'] for n in notes}), len(notes))
+        self.assertFalse(any(n['read'] for n in notes))
+        revision, result = detail['revision'], detail['automatic_result']
+        self.assertTrue(result)
+        self.ws.mark_notes(self.pid, [notes[0]['id']], True)
+        after = self.ws.detail(self.pid)
+        self.assertEqual([n['read'] for n in after['editorial_notes']], [True] + [False] * (len(notes) - 1))
+        self.assertEqual((after['revision'], after['automatic_result']), (revision, result))
+        self.ws.mark_notes(self.pid, [n['id'] for n in notes], True)
+        self.ws.mark_notes(self.pid, [notes[1]['id']], False)
+        final = self.ws.detail(self.pid)['editorial_notes']
+        self.assertEqual(sum(not n['read'] for n in final), 1)
+        self.assertFalse(final[1]['read'])
+        state = read_json(self.ws._folder(self.pid)/'state.json')
+        self.assertEqual(sum(a['action'] == 'notes-read' for a in state['audit']), 3)
+
+    def test_unknown_or_invalid_note_ids_change_nothing(self):
+        for ids in (['nao-existe'], 'texto', [], [1]):
+            with self.subTest(ids=ids), self.assertRaises(ValueError):
+                self.ws.mark_notes(self.pid, ids, True)
+        with self.assertRaises(ValueError):
+            self.ws.mark_notes(self.pid, [self.ws.detail(self.pid)['editorial_notes'][0]['id']], 'sim')
+        self.assertFalse(any(n['read'] for n in self.ws.detail(self.pid)['editorial_notes']))

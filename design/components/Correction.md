@@ -19,5 +19,6 @@ Um parágrafo do livro com as palavras corrigidas marcadas e, junto dele, cada c
 
 **Regras**
 - O motivo cabe em uma linha e não usa nome de regra: "Tempo que já passou se escreve com “há”."
+- Quando todas as correções de um parágrafo têm o mesmo motivo (o caso comum na revisão automática), a lista mostra só os pares antes → depois e o motivo aparece uma vez, embaixo. Nunca repita o mesmo motivo em cada correção.
 - O "antes" é sempre riscado e o "depois" em negrito, para a diferença não depender da cor.
 - Não mostre nota de confiança nem categoria gramatical ao usuário.

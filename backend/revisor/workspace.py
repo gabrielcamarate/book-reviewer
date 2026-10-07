@@ -390,14 +390,34 @@ class BookWorkspace:
         if response['issues']:
             raise EditorialIssues('Validação com pendências. '+ '; '.join(i[:200] for i in response['issues'][:3]))
 
+    @staticmethod
+    def _note_id(chunk_id,language,message):
+        # Stable while the receipt that produced the note stays valid.
+        return hashlib.sha256(f'{chunk_id}\0{language}\0{message}'.encode()).hexdigest()[:16]
+
     def _editorial_notes(self,project,state):
-        notes=[]
+        notes=[]; read=set(state.get('notes_read',[]))
         for index,chunk in enumerate(state['chunks'],1):
             for language,receipt in chunk.get('checks',{}).items():
                 current=(chunk['status']=='approved' and receipt.get('signature')==self._digest(chunk.get('revised'))) if language=='pt' else self._es_checked(project,state,chunk)
                 if current:
-                    notes.extend({'chunk_id':chunk['id'],'index':index,'title':chunk['title'],'language':language,'message':message} for message in receipt.get('notes',[]))
+                    for message in receipt.get('notes',[]):
+                        note_id=self._note_id(chunk['id'],language,message)
+                        notes.append({'id':note_id,'chunk_id':chunk['id'],'index':index,'title':chunk['title'],'language':language,'message':message,'read':note_id in read})
         return notes
+
+    def mark_notes(self,pid,ids,read):
+        """Record that the author read (or wants to reread) notes; text, revision and delivery stay as they are."""
+        if not isinstance(ids,list) or not ids or any(not isinstance(i,str) for i in ids) or not isinstance(read,bool):
+            raise ValueError('Escolha as observações e se foram lidas.')
+        with self.lock:
+            folder, project, state = self._load(pid)
+            known={n['id'] for n in self._editorial_notes(project,state)}
+            if not set(ids)<=known: raise ValueError('Essa observação não existe mais. Atualize a tela.')
+            current=set(state.get('notes_read',[]))
+            state['notes_read']=sorted(current|set(ids) if read else current-set(ids))
+            state['audit'].append({'action':'notes-read','ids':ids,'read':read,'at':time.time()})
+            save_json(folder/'state.json',state)
 
     def _deliver_automatic(self,pid):
         with self.lock:

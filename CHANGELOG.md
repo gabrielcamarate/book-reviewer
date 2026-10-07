@@ -5,6 +5,17 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-07
+
+### Adicionado
+
+- Observações podem ser marcadas como lidas, uma por uma ou todas de uma vez, e desmarcadas depois. A leitura fica guardada no livro (`notes_read` em `state.json`, com auditoria) e não muda o texto, a revisão nem os arquivos entregues. Nova operação `POST /api/books/<id>/notes`.
+- A tela de observações agrupa por trecho, separa "Para ler" e "Lidas", mostra quantas faltam e pagina os trechos. O livro pronto mostra quantas faltam ler ou "Observações lidas".
+
+### Alterado
+
+- Quando todas as correções de um parágrafo têm o mesmo motivo, ele aparece uma vez, embaixo dos pares antes → depois, em vez de repetido em cada correção.
+
 ## [0.12.1] - 2026-10-07
 
 ### Removido

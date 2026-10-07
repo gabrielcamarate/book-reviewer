@@ -227,12 +227,12 @@ export function ChunksScreen({ book, onBack, onOpen }: { book: BookDetail; onBac
       <ol className="rv-items">
         {list.slice(0, shown).map(({ chunk, index }) => {
           const current = chunk.id === book.current?.id
-          const own = notes.filter(note => note.chunk_id === chunk.id).length
+          const own = notes.filter(note => note.chunk_id === chunk.id && !note.read).length
           const meta = chunk.status === "pending" && !chunk.corrections ? "Ainda não revisado" : chunk.corrections ? count(chunk.corrections, "correção", "correções") : "Sem correções"
           return (
             <li key={chunk.id}>
               <ListItem index={index + 1} title={chunk.title} meta={meta} current={current} onClick={() => onOpen(chunk.id)}
-                note={current ? "Aberto agora" : own ? count(own, "observação para você", "observações para você") : undefined} />
+                note={current ? "Aberto agora" : own ? count(own, "observação para ler", "observações para ler") : undefined} />
             </li>
           )
         })}

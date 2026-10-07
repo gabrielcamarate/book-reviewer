@@ -68,6 +68,10 @@ ul, ol { padding: 0; list-style: none; }
 .rv-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(460px, 100%), 1fr)); gap: var(--space-3) var(--space-6); }
 .rv-book-paragraphs { max-width: var(--reading-max); display: flex; flex-direction: column; gap: var(--space-7); }
 
+.rv-note { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3) var(--space-6); }
+.rv-note > div { flex: 1 1 360px; min-width: 0; }
+.rv-correction-list { display: flex; flex-direction: column; gap: var(--space-2); }
+
 /* Foco */
 .rv-btn:focus-visible, .rv-link:focus-visible, .rv-skip:focus-visible, .rv-input:focus-visible, .rv-textarea:focus-visible, .rv-filepicker:focus-visible, .rv-segmented__item:focus-visible, .rv-nav__link:focus-visible, .rv-tabbar__item:focus-visible, .rv-item:focus-visible, .rv-disclosure:focus-visible, .rv-check input:focus-visible, .rv-choice input:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
 

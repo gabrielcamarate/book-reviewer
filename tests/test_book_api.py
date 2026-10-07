@@ -59,6 +59,12 @@ class BookApiTest(unittest.TestCase):
             time.sleep(.01)
         self.fail('Background job did not complete')
 
+    def test_notes_operation_rejects_unknown_notes(self):
+        pid=self.workspace.import_book(self.source)['id']
+        status,body=self.request(f'/api/books/{pid}/notes',{'ids':['nao-existe'],'read':True})
+        self.assertEqual(status,400)
+        self.assertIn('observação',json.loads(body)['error'])
+
     def test_retired_editorial_routes_are_gone(self):
         listing=self.json('/api/books')
         self.assertNotIn('legacy_available',listing)
