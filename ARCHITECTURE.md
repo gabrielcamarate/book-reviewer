@@ -2,6 +2,10 @@
 
 ## Aplicativo local
 
+O checkout principal usa `main` e contém seus dados locais em `.books/`. As branches e worktrees antigas são arquivadas em backups fora do checkout antes da remoção. Livros e histórico editorial não são sincronizados pelo Git.
+
+`BookWorkspace` identifica autoria por `dc:creator`, sem confundir o criador com o último editor. Exportação, detalhe de entregas e cabeçalho HTTP compartilham o nome original com sufixo ` REVISADO`; `filename*` UTF-8 conserva acentos. Os nomes internos dos arquivos e manifestos permanecem estáveis.
+
 - `frontend/src/App.tsx`: área de livros, importação, escopo, lotes, leitura, aprovação e exportação. `useBooks.ts` mantém estado HTTP e polling cancelável. `components/book-*` compõem o fluxo; as primitivas UI permanecem locais.
 - `frontend/src/LegacyReview.tsx` e `useReview.ts`: compatibilidade com o acervo editorial anterior, acessível pela mesma aplicação.
 - `backend/revisor/server.py`: HTTP local, validação de host/origem, JSON e entrega da interface compilada. `/api/books` opera novos trabalhos; as rotas anteriores permanecem compatíveis.
@@ -10,7 +14,7 @@
 - `backend/revisor/workspace.py`: importação isolada, configuração, propostas fundamentadas no original, aprovação versionada, ajustes, glossário, tradução, background, cancelamento e exportação dos novos livros.
 - `backend/revisor/service.py` e `cli.py`: casos de uso e comandos do acervo anterior. Não migram suas aprovações para novos trabalhos.
 - `backend/revisor/provider.py`: único adaptador do Codex, com modelo padrão explícito `gpt-6.1-sol`, esforço `low`, schema, timeout, diretório temporário, sessão efêmera e sandbox read-only. Runner injetável nos testes.
-- `backend/revisor/book_terms.py`: escolhas terminológicas únicas por termo sem distinguir caixa; override da autora, palavras inteiras, prioridade de expressões, número e contrações espanholas.
+- `backend/revisor/book_terms.py`: escolhas terminológicas únicas por termo sem distinguir caixa; override do autor, palavras inteiras, prioridade de expressões, número e contrações espanholas.
 - `backend/revisor/book_response.py`: contrato automático de parágrafos completos, cobertura/justificativas/quebras e diferenças determinísticas; pendências editoriais separadas de falhas do provedor.
 - `backend/revisor/book_prompts.py`: contratos e regras de revisão conservadora pt-BR e tradução es-419. Manuscrito é dado sem autoridade para instruir o agente.
 - `backend/revisor/docx/editable.py`: IDs estáveis para parágrafos do corpo, caixas de texto e partes auxiliares; seleção de seções sem confundir sumário; edição de runs; cópia de estilos, mídia e relacionamentos ao inserir seções.

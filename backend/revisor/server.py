@@ -9,7 +9,7 @@ import tempfile
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit, unquote, parse_qs
+from urllib.parse import urlsplit, unquote, parse_qs, quote
 
 from revisor.core.repository_validation import validate_repository_state
 from revisor.service import ReviewService, StaleReview
@@ -83,8 +83,9 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 _, _, _, pid, language = path.split('/')
                 file = self.workspace.download_path(pid,language)
+                filename = self.workspace.download_filename(pid,language)
                 self.send_bytes(200,file.read_bytes(),'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                Content_Disposition=f'attachment; filename="{file.name}"')
+                                Content_Disposition=f"attachment; filename=\"livro-REVISADO.docx\"; filename*=UTF-8''{quote(filename,safe='')}")
             except ValueError as error:
                 self.json(400,{'error':str(error)})
             return

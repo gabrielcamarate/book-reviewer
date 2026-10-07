@@ -16,7 +16,7 @@ Jev fornece julgamentos, não gera traduções. Avaliação de qualidade e limia
 
 ## Desenvolvimento
 
-- Branch dedicada; preserve checkouts e processos ativos. Não faça reset/stash/clean de trabalho desconhecido.
+- Neste projeto, mantenha somente `main` e o checkout principal, conforme pedido do usuário. Não deixe branches ou worktrees auxiliares após concluir tarefas. Preserve processos ativos e trabalho desconhecido; não faça reset/stash/clean indiscriminado.
 - Planeje mudanças estruturais e registre evidências em REFACTOR.md quando pertinente.
 - Para comportamento novo/corrigido, escreva primeiro a prova de regressão; mantenha testes do núcleo. Testes de funcionalidades explicitamente aposentadas podem ser removidos junto com elas.
 - Use scripts/jail.sh quando viável para validação isolada. Não copie credenciais para containers.

@@ -2,6 +2,9 @@
 
 ## Distribuição em main
 
+- Consolidação local e remota em uma única branch `main` e um checkout principal; branches antigas e arquivos exclusivos são arquivados antes da limpeza.
+- Mantidas autoria a partir do criador do Word e exportações com o nome original + REVISADO, inclusive acentos e entregas já concluídas.
+
 - Código atual publicado com histórico próprio, sem manuscritos, Word, resultados editoriais, credenciais ou registros pessoais.
 - Instalação em outra máquina com caminhos relativos; novos clones começam sem livros.
 - CI funciona sem acervo pessoal e mantém a validação de índices quando o acervo local existe.
@@ -11,12 +14,12 @@
 
 - Painéis de critérios e glossário recebem chaves React distintas, eliminando avisos repetidos e colisão de identidade em livros já revisados.
 
-- Consistência usa palavras inteiras, expressões com prioridade, singular/plural e contrações del/al. Elimina alertas de ego/emprego e grama/programadores. Escolhas duplicadas por maiúsculas compartilham um glossário efetivo; override da autora prevalece.
+- Consistência usa palavras inteiras, expressões com prioridade, singular/plural e contrações del/al. Elimina alertas de ego/emprego e grama/programadores. Escolhas duplicadas por maiúsculas compartilham um glossário efetivo; override do autor prevalece.
 - Revisão bilíngue recebe alertas de terminologia explicitamente, separando feedback de consistência de rejeição de formato.
 - Sidebar mostra espanhol revisado quando a geração já terminou, mantendo visível a última etapa pendente.
 
 
-- Observações do original preservado separadas de falhas nas correções/traduções: lacunas e termos possivelmente inventados ficam registrados sem inferir fatos. Falhas remanescentes continuam bloqueando. Recibo JSON e navegação por trecho para a autora.
+- Observações do original preservado separadas de falhas nas correções/traduções: lacunas e termos possivelmente inventados ficam registrados sem inferir fatos. Falhas remanescentes continuam bloqueando. Recibo JSON e navegação por trecho para o autor.
 - Mudanças no contrato de revisão invalidam a indicação automática de conclusão quando receipts espanhóis estão desatualizados.
 
 

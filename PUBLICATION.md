@@ -1,5 +1,13 @@
 # Distribuição do código
 
+## Manutenção em main — 07/10/2026
+
+O projeto mantém uma única branch `main` e um checkout principal. A compatibilidade com a versão local conserva autoria pelo criador do Word e nomes originais com sufixo REVISADO, sem incorporar livros ou histórico privado na publicação. Branches e arquivos exclusivos de worktrees antigas são preservados em backup recuperável antes da exclusão.
+
+Três regressões reproduziram as funcionalidades ausentes na distribuição e passaram após sua incorporação. CI local: 125 testes em 7,251 s, lint e build; jail Python 3.11: 125 testes em 8,283 s; Bandit aprovado. Jev Browser oficial confirmou títulos, autoria, quatro contagens completas e console sem erros; GET dos Word manteve hashes e cabeçalhos UTF-8 esperados. Hunch revisou somente dois arquivos públicos: sete hunks, 14 perguntas, sete requests, 16.592 input tokens, sem falhas ou notices. Um alerta de nome de download no fallback ASCII (0,85) foi confrontado com o `filename*` UTF-8 e as regressões HTTP; não representa perda do nome no download observado. Pruner dispensado pelo histórico privado dos livros; Test Filter dispensado para testes rápidos e gate completo. Sessão de navegador e servidores de verificação foram encerrados.
+
+## Distribuição inicial
+
 A branch main distribui a versão atual do aplicativo com histórico próprio, sem manuscritos, arquivos Word/PDF, revisões pessoais, livros importados, credenciais ou provas editoriais de usuários. A documentação usa caminhos relativos e exemplos fictícios.
 
 Instalação: clone main, instale o frontend com o lockfile e inicie scripts/dev.sh. O app começa sem livros; os Word são importados pela interface. Dados locais e andamento ficam em .books e não são sincronizados pelo Git.

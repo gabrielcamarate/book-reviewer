@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request,urlopen
+from urllib.parse import unquote
 
 from revisor.server import create_server
 from revisor.service import ReviewService
@@ -87,6 +88,37 @@ class BookApiTest(unittest.TestCase):
         for artifact in detail['automatic_result']['files'].values():
             status,body=self.request(artifact['download_url'])
             self.assertEqual(status,200); self.assertTrue(body.startswith(b'PK'))
+
+    def test_download_names_keep_original_source_and_spanish_destination_unicode(self):
+        source=self.root/'Romance (Recuperação).docx'; source.write_bytes(self.source.read_bytes())
+        destination=self.root/'Romance español.docx'; destination.write_bytes(self.dest.read_bytes())
+        pid=self.workspace.import_book(source,destination=destination)['id']
+        self.workspace.configure(pid,{'scope':'sections','section_ids':['epilogo','posfacio']})
+        self.workspace.start(pid,'automatic'); self.workspace.thread.join(3)
+        detail=self.workspace.detail(pid)
+        for language,expected in [('pt-BR','Romance (Recuperação) REVISADO.docx'),('es','Romance español REVISADO.docx')]:
+            with self.subTest(language=language):
+                artifact=detail['automatic_result']['files'][language]
+                self.assertEqual(artifact['filename'],expected)
+                exported=self.json(f'/api/books/{pid}/export',{'language':language})
+                self.assertEqual(exported['filename'],expected)
+                with urlopen(self.url+exported['download_url'],timeout=3) as response:
+                    disposition=response.headers['Content-Disposition']
+                    self.assertEqual(unquote(disposition.split("filename*=UTF-8''",1)[1]),expected)
+                    self.assertTrue(response.read().startswith(b'PK'))
+
+
+    def test_completed_books_get_new_download_names_without_reprocessing(self):
+        pid=self.workspace.import_book(self.source)['id']
+        self.workspace.start(pid,'automatic'); self.workspace.thread.join(3)
+        folder,_,state=self.workspace._load(pid)
+        for artifact in state['automatic_result']['files'].values(): artifact['filename']='nome-antigo.docx'
+        save_json(folder/'state.json',state)
+        before=(folder/'state.json').read_bytes()
+        detail=self.workspace.detail(pid)
+        self.assertEqual({a['filename'] for a in detail['automatic_result']['files'].values()},{'pt REVISADO.docx'})
+        self.assertEqual((folder/'state.json').read_bytes(),before)
+
 
     def test_automatic_api_recovers_retired_response_format_and_records_retry(self):
         calls = []

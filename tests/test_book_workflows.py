@@ -147,6 +147,19 @@ class DocumentWorkflowTests(unittest.TestCase):
 
 
 class WorkspaceTests(unittest.TestCase):
+    def test_author_is_the_document_creator_not_the_last_editor(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder); source=root/'pt.docx'; fixture(source)
+            with zipfile.ZipFile(source,'a') as archive:
+                archive.writestr('docProps/core.xml', f'<cp:coreProperties xmlns:cp="{NS["cp"]}" xmlns:dc="{NS["dc"]}"><dc:creator>Escritor de teste</dc:creator><cp:lastModifiedBy>Pessoa que revisou</cp:lastModifiedBy></cp:coreProperties>')
+            workspace=BookWorkspace(root)
+            try:
+                pid=workspace.import_book(source)['id']
+                self.assertEqual(workspace.detail(pid)['author'],'Escritor de teste')
+            finally:
+                workspace.close()
+
+
     def test_invalid_editorial_reason_never_becomes_a_saved_proposal(self):
         pid=self.workspace.import_book(self.source)['id']
         chunk=self.workspace.detail(pid)['chunks'][0]['id']

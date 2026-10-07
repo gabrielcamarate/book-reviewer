@@ -19,7 +19,7 @@ from revisor.book_pipeline import run_automatic
 from revisor.book_response import EditorialIssues, apply_paragraphs
 from revisor.book_terms import canonical_glossary, contains_target, source_terms
 from revisor.docx.editable import MAX_ARCHIVE, edit_document, inspect_document, splice_sections
-from revisor.docx.reader import parse_xml
+from revisor.docx.reader import parse_xml, extract_docx_metadata
 from revisor.provider import DEFAULT_MODEL, InvalidModelResponse, codex_runner
 
 
@@ -93,6 +93,7 @@ class BookWorkspace:
                 shutil.copy2(source, folder / 'source.docx')
                 if destination: shutil.copy2(destination, folder / 'destination.docx')
                 project = {'id':pid, 'name':(name or source.stem)[:200], 'filename':source.name,
+                           'author':extract_docx_metadata(source).get('core',{}).get('creator'),
                            'created_at':time.time(), 'document':doc, 'destination':dest_doc,
                            'destination_filename':destination.name if destination else None,
                            'settings':{'scope':'sections' if destination else 'whole', 'section_ids':[], 'instructions':'', 'glossary':{}},
@@ -202,14 +203,17 @@ class BookWorkspace:
                 for problem in job.get('problems',[]):
                     match=next(((i,c) for i,c in enumerate(state['chunks'],1) if c['id']==problem['chunk_id']),None)
                     if match: problem.update(index=match[0],title=match[1]['title'])
-            return {'id':pid, 'name':project['name'], 'filename':project['filename'],
+            automatic_result=state.get('automatic_result') if (state.get('automatic_result',{}).get('revision') == state['revision'] and all(c['status']=='approved' and self._es_checked(project,state,c) for c in state['chunks']) and not self._warnings(project,state)) else None
+            if automatic_result:
+                automatic_result=automatic_result | {'files':{language:artifact | {'filename':self._download_filename(project,language)} for language,artifact in automatic_result['files'].items()}}
+            return {'id':pid, 'name':project['name'], 'filename':project['filename'], 'author':project.get('author'),
                     'destination_filename':project['destination_filename'], 'settings':project['settings'],
                     'sections':project['document']['sections'], 'model':self.model, 'reasoning_effort':'low', 'locale':'es-419',
                     'progress':self._progress(project,state), 'current':enriched,
                     'editorial_notes':self._editorial_notes(project,state),
                     'chunks':[{'id':c['id'], 'title':c['title'], 'status':c['status'], 'translated':bool(c.get('translations'))} for c in state['chunks']],
                     'job':job,
-                    'automatic_result':state.get('automatic_result') if (state.get('automatic_result',{}).get('revision') == state['revision'] and all(c['status']=='approved' and self._es_checked(project,state,c) for c in state['chunks']) and not self._warnings(project,state)) else None,
+                    'automatic_result':automatic_result,
                     'glossary':self._glossary(project,state),
                     'consistency_warnings':self._warnings(project,state), 'revision':state['revision']}
 
@@ -624,6 +628,17 @@ class BookWorkspace:
             self._idle()
             return self._export(pid,language)
 
+    @staticmethod
+    def _download_filename(project, language):
+        original=project['destination_filename'] if language=='es' and project['destination_filename'] else project['filename']
+        return f'{Path(original).stem} REVISADO.docx'
+
+    def download_filename(self, pid, language):
+        if language not in {'pt-BR','es'}: raise ValueError('Idioma inválido.')
+        with self.lock:
+            _,project,_=self._load(pid)
+            return self._download_filename(project,language)
+
     def _export(self, pid, language):
         with self.lock:
             folder, project, state = self._load(pid)
@@ -649,7 +664,7 @@ class BookWorkspace:
                         'checked_paragraphs':self._progress(project,state)['checked_paragraphs']}
 
             save_json(output.with_suffix('.manifest.json'),manifest)
-            return {'path':str(output),'filename':output.name,'paragraph_count':len(values),
+            return {'path':str(output),'filename':self._download_filename(project,language),'paragraph_count':len(values),
                     'download_url':f'/downloads/books/{pid}/{language}'}
 
     def download_path(self, pid, language):
