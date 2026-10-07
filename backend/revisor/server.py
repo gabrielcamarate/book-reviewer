@@ -11,22 +11,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit, unquote, parse_qs, quote
 
-from revisor.core.repository_validation import validate_repository_state
-from revisor.service import ReviewService, StaleReview
 from revisor.workspace import BookWorkspace
-from revisor.provider import DEFAULT_MODEL
+from revisor.provider import DEFAULT_MODEL, codex_runner
 
 LOCAL_HOSTS = {'127.0.0.1', 'localhost', '::1'}
-ACTIONS = {
-    '/api/simple-home/review': 'review', '/api/simple-home/accept': 'accept',
-    '/api/simple-home/reject': 'reject', '/api/translate': 'translate',
-    '/api/export': 'export', '/api/rollback': 'rollback',
-}
 
 
 class Handler(BaseHTTPRequestHandler):
-    def __init__(self, *args, service: ReviewService, workspace: BookWorkspace, frontend_dist: Path, **kwargs):
-        self.service = service
+    def __init__(self, *args, workspace: BookWorkspace, frontend_dist: Path, **kwargs):
         self.workspace = workspace
         self.frontend_dist = frontend_dist.resolve()
         super().__init__(*args, **kwargs)
@@ -68,7 +60,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/books':
             with self.workspace.lock:
                 active_id = self.workspace.active_job['project_id'] if self.workspace.active_job else None
-            self.json(200, {'projects':self.workspace.list_projects(), 'legacy_available':(self.service.root/'manuscript/chunks/index.json').is_file(),
+            self.json(200, {'projects':self.workspace.list_projects(),
                             'model':self.workspace.model, 'reasoning_effort':'low',
                             'active_project_id':active_id})
             return
@@ -89,25 +81,8 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError as error:
                 self.json(400,{'error':str(error)})
             return
-        if path == '/api/simple-home':
-            try:
-                self.json(200, self.service.state())
-            except (OSError, ValueError):
-                self.json(500, {'error': 'Não foi possível ler o estado editorial. Execute o comando check.'})
-            return
         if path == '/healthz':
             self.json(200, {'ready': True})
-            return
-        downloads = {'/downloads/ptbr': 'deliverables/ptbr/livro-ptbr.docx',
-                     '/downloads/es': 'deliverables/es/livro-es.docx'}
-        if path in downloads:
-            file = self.service.root / downloads[path]
-            if not file.is_file():
-                self.json(404, {'error': 'Gere o arquivo antes de baixá-lo.'})
-                return
-            self.send_bytes(200, file.read_bytes(),
-                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                            Content_Disposition=f'attachment; filename="{file.name}"')
             return
         dist = self.frontend_dist
         file = (dist / ('index.html' if path == '/' else path.lstrip('/'))).resolve()
@@ -121,9 +96,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self.local_request():
             return
-        action = ACTIONS.get(urlsplit(self.path).path)
-        book_action = urlsplit(self.path).path.startswith('/api/books/')
-        if action is None and not book_action:
+        if not urlsplit(self.path).path.startswith('/api/books/'):
             self.json(404, {'error': 'Rota não encontrada.'})
             return
         try:
@@ -134,12 +107,7 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length) or b'{}')
             if not isinstance(data, dict):
                 raise ValueError('Envie um objeto JSON válido.')
-            result = self.book_action(data) if book_action else self.service.perform(action, data)
-            if action == 'export':
-                result['download_url'] = '/downloads/ptbr' if data.get('language', 'pt-BR') == 'pt-BR' else '/downloads/es'
-            self.json(200, result)
-        except StaleReview as error:
-            self.json(409, {'error': str(error)})
+            self.json(200, self.book_action(data))
         except (ValueError, FileNotFoundError) as error:
             self.json(400, {'error': str(error)})
         except (RuntimeError, TimeoutError):
@@ -195,13 +163,13 @@ class LocalServer(ThreadingHTTPServer):
         self.workspace.close()
 
 
-def create_server(service: ReviewService, *, host='127.0.0.1', port=8766, frontend_dist: Path | None = None, workspace=None):
+def create_server(root: Path, *, runner=codex_runner, model=DEFAULT_MODEL, host='127.0.0.1', port=8766, frontend_dist: Path | None = None, workspace=None):
     if host not in {'127.0.0.1', 'localhost'}:
         raise ValueError('Use 127.0.0.1 ou localhost. Exposição remota não faz parte deste aplicativo local.')
     dist = frontend_dist if frontend_dist is not None else Path(__file__).resolve().parents[2] / 'frontend/dist'
-    workspace = workspace or BookWorkspace(service.root,runner=service.runner,model=service.model)
+    workspace = workspace or BookWorkspace(root,runner=runner,model=model)
     try:
-        server = LocalServer((host, port), partial(Handler, service=service, workspace=workspace, frontend_dist=dist))
+        server = LocalServer((host, port), partial(Handler, workspace=workspace, frontend_dist=dist))
     except Exception:
         workspace.close()
         raise
@@ -216,11 +184,8 @@ def main() -> int:
     parser.add_argument('--port', type=int, default=8766)
     parser.add_argument('--model', default=DEFAULT_MODEL)
     args = parser.parse_args()
-    validation = validate_repository_state(root_dir=args.root)
-    if (args.root/'manuscript').is_dir() and not validation['ok']:
-        parser.error('; '.join(validation['errors']))
     try:
-        with create_server(ReviewService(args.root, model=args.model), port=args.port) as server:
+        with create_server(args.root, model=args.model, port=args.port) as server:
             print(f'Revisor: http://127.0.0.1:{server.server_port}/', flush=True)
             server.serve_forever()
     except KeyboardInterrupt:

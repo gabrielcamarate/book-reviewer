@@ -10,7 +10,6 @@ from urllib.request import Request,urlopen
 from urllib.parse import unquote
 
 from revisor.server import create_server
-from revisor.service import ReviewService
 from revisor.workspace import BookWorkspace, read_json, save_json
 from test_book_workflows import fixture
 
@@ -35,7 +34,7 @@ class BookApiTest(unittest.TestCase):
         self.source=self.root/'pt.docx'; fixture(self.source)
         self.dest=self.root/'es.docx'; fixture(self.dest,True)
         self.workspace=BookWorkspace(self.root,runner=runner)
-        self.server=create_server(ReviewService(self.root),port=0,workspace=self.workspace)
+        self.server=create_server(self.root,port=0,workspace=self.workspace)
         self.thread=threading.Thread(target=self.server.serve_forever,daemon=True); self.thread.start()
         self.url=f'http://127.0.0.1:{self.server.server_port}'
 
@@ -59,6 +58,14 @@ class BookApiTest(unittest.TestCase):
             if detail['job']['status'] not in {'running','stopping'}: return detail
             time.sleep(.01)
         self.fail('Background job did not complete')
+
+    def test_retired_editorial_routes_are_gone(self):
+        listing=self.json('/api/books')
+        self.assertNotIn('legacy_available',listing)
+        for path in ['/api/simple-home','/downloads/ptbr','/downloads/es']:
+            with self.subTest(path=path): self.assertEqual(self.request(path)[0],404)
+        for path in ['/api/simple-home/review','/api/simple-home/accept','/api/simple-home/reject','/api/translate','/api/export','/api/rollback']:
+            with self.subTest(path=path): self.assertEqual(self.request(path,{})[0],404)
 
     def test_upload_background_review_approve_translate_and_both_downloads(self):
         payload=lambda p:{'name':p.name,'data':base64.b64encode(p.read_bytes()).decode()}

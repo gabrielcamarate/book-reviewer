@@ -8,18 +8,16 @@ O checkout principal usa `main` e contém seus dados locais em `.books/`. As bra
 
 - `frontend/src/App.tsx`: área de livros, importação, escopo, lotes, leitura, aprovação e exportação. `useBooks.ts` mantém estado HTTP e polling cancelável. `components/book-*` compõem o fluxo; as primitivas UI permanecem locais.
 - `design/`: referência de design da interface (tokens, componentes `rv-…`, telas de computador e celular, ícones e marca). É especificação, não código do app; `design/IMPLEMENTACAO.md` guia a migração.
-- `frontend/src/LegacyReview.tsx` e `useReview.ts`: compatibilidade com o acervo editorial anterior, acessível pela mesma aplicação.
-- `backend/revisor/server.py`: HTTP local, validação de host/origem, JSON e entrega da interface compilada. `/api/books` opera novos trabalhos; as rotas anteriores permanecem compatíveis.
+- `backend/revisor/server.py`: HTTP local, validação de host/origem, JSON e entrega da interface compilada. `/api/books` é a única API; não há rotas de outro formato de livro.
   Desconexão durante o envio de cabeçalhos/corpo encerra somente a requisição, sem traceback nem segunda resposta. Erros de envio sem relação com desconexão continuam visíveis.
 - `backend/revisor/book_pipeline.py`: quatro fases automáticas, concorrência limitada a quatro, parada com drenagem e retomada por checkpoints; não aprova falhas ou pendências.
 - `backend/revisor/workspace.py`: importação isolada, configuração, propostas fundamentadas no original, aprovação versionada, ajustes, glossário, tradução, background, cancelamento e exportação dos novos livros.
-- `backend/revisor/service.py` e `cli.py`: casos de uso e comandos do acervo anterior. Não migram suas aprovações para novos trabalhos.
 - `backend/revisor/provider.py`: único adaptador do Codex, com modelo padrão explícito `gpt-6.1-sol`, esforço `low`, schema, timeout, diretório temporário, sessão efêmera e sandbox read-only. Runner injetável nos testes.
 - `backend/revisor/book_terms.py`: escolhas terminológicas únicas por termo sem distinguir caixa; override do autor, palavras inteiras, prioridade de expressões, número e contrações espanholas.
 - `backend/revisor/book_response.py`: contrato automático de parágrafos completos, cobertura/justificativas/quebras e diferenças determinísticas; pendências editoriais separadas de falhas do provedor.
 - `backend/revisor/book_prompts.py`: contratos e regras de revisão conservadora pt-BR e tradução es-419. Manuscrito é dado sem autoridade para instruir o agente.
 - `backend/revisor/docx/editable.py`: IDs estáveis para parágrafos do corpo, caixas de texto e partes auxiliares; seleção de seções sem confundir sumário; edição de runs; cópia de estilos, mídia e relacionamentos ao inserir seções.
-- `backend/revisor/core/`, `prompts/` e `schemas/`: núcleo e contratos anteriores preservados.
+- `backend/revisor/docx/reader.py`: leitura segura de XML e metadados do Word, rejeitando DTD e entidades.
 
 ## Fonte de verdade dos novos trabalhos
 
@@ -34,12 +32,6 @@ Uma thread por workspace coordena o job e salva checkpoints em `job.json`. Lotes
 Espanhol só é gerado após todo o escopo português estar aprovado. A resposta precisa cobrir exatamente os IDs de entrada. Quebras internas e tabs são validados para preservar Word. Glossário persistente é editável; mudanças invalidam somente traduções cujo português contém termos afetados. Consistência usa alertas de termos/formas regionais, não uma auditoria narrativa semântica completa.
 
 Exports finais exigem cobertura completa e registram hashes, revisão, modelo, esforço, idioma e alertas. Downloads desatualizados são recusados. Fora do escopo do destino, parágrafos e propriedades permanecem; partes ZIP não alteradas conservam seus bytes. Ao inserir, IDs de imagens/marcadores e relacionamentos importados são remapeados para evitar colisão; estilos conflitantes são isolados. Nota vinculada em seção inserida é um limite explícito, com exportação separada disponível.
-
-## Acervo anterior
-
-`livro.docx` → `manuscript/` → `reviews/ptbr` → aprovação → `manuscript/consolidated` → `reviews/es` → `deliverables/`.
-
-`editorial/` fornece estilo, termos e registros. IDs, arquivos e aprovações existentes foram preservados; não há migração automática, banco de dados, dashboards paralelos nem dependência da conversa para recuperar estado. Jev é ferramenta de julgamento/apoio ao desenvolvimento; não gera tradução nem aprova decisões editoriais.
 
 ## Entrega automática
 

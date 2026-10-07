@@ -4,9 +4,9 @@ Responda em pt-BR. O produto é um aplicativo local para revisão editorial em p
 
 ## Arquitetura e escopo
 
-Leia README.md, ARCHITECTURE.md e TASKS.md antes de trabalho relevante. Há uma interface React e um pacote Python em backend/revisor. API e CLI chamam o mesmo serviço; regras editoriais ficam no núcleo e modelos no adaptador provider.py. Não reintroduza páginas HTML, dashboards paralelos, monorepo de pacotes vazios ou canais futuros sem necessidade explícita.
+Leia README.md, ARCHITECTURE.md e TASKS.md antes de trabalho relevante. Há uma interface React e um pacote Python em backend/revisor. A API local opera os livros em `.books/`; regras editoriais ficam no núcleo e modelos no adaptador provider.py. Não reintroduza páginas HTML, dashboards paralelos, monorepo de pacotes vazios ou canais futuros sem necessidade explícita.
 
-O manuscrito, segmentação e registros editoriais são dados do usuário. Preserve livro.docx, manuscript/, editorial/, reviews/, reports/ e deliverables/ durante refactors. Revisão aplicada grava estado consolidado e auditoria, nunca sobrescreve o original. Não regenere índices ou normalize aprovações reais durante testes.
+O manuscrito, segmentação e registros editoriais são dados do usuário. Preserve `.books/` durante refactors. Revisão aplicada grava estado consolidado e auditoria, nunca sobrescreve o original. Não regenere índices ou normalize aprovações reais durante testes.
 
 ## Editorial e modelos
 

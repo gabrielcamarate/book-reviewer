@@ -4,7 +4,6 @@ import json
 import time
 from pathlib import Path
 from revisor.server import create_server
-from revisor.service import ReviewService
 from revisor.workspace import BookWorkspace
 from test_book_api import runner
 from test_book_workflows import fixture
@@ -41,7 +40,7 @@ def smoke_runner(**kwargs):
     return runner(**kwargs)
 
 workspace=BookWorkspace(args.root,runner=smoke_runner)
-with create_server(ReviewService(args.root),workspace=workspace,port=args.port) as server:
+with create_server(args.root,workspace=workspace,port=args.port) as server:
     print(f'Fixture pronta em http://127.0.0.1:{server.server_port}',flush=True)
     try: server.serve_forever()
     except KeyboardInterrupt: pass

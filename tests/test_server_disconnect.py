@@ -10,7 +10,6 @@ from unittest.mock import Mock
 from urllib.request import urlopen
 
 from revisor.server import Handler, create_server
-from revisor.service import ReviewService
 
 
 class DisconnectedClientTest(unittest.TestCase):
@@ -41,23 +40,22 @@ class DisconnectedClientTest(unittest.TestCase):
 
     def test_post_success_does_not_send_a_second_error_response_after_disconnect(self):
         handler = self.handler()
-        handler.path = '/api/translate'
+        handler.path = '/api/books/p1/stop'
         handler.headers = Mock()
         handler.headers.get_content_type.return_value = 'application/json'
         handler.headers.get.return_value = '2'
         handler.rfile = io.BytesIO(b'{}')
         handler.local_request = Mock(return_value=True)
-        handler.service = Mock()
-        handler.service.perform.return_value = {'ok': True}
+        handler.workspace = Mock()
         handler.wfile.write.side_effect = BrokenPipeError('client disconnected')
         handler.do_POST()
-        handler.service.perform.assert_called_once_with('translate', {})
+        handler.workspace.stop.assert_called_once_with('p1')
         handler.send_response.assert_called_once_with(200)
         self.assertTrue(handler.close_connection)
 
     def test_real_reset_does_not_report_server_error_and_next_request_succeeds(self):
         with tempfile.TemporaryDirectory() as temp:
-            server = create_server(ReviewService(Path(temp)), port=0)
+            server = create_server(Path(temp), port=0)
             entered = threading.Event(); release = threading.Event(); finished = threading.Event()
             errors = []
             server.handle_error = lambda *_args: errors.append('request exception')

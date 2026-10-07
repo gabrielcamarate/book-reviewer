@@ -14,7 +14,6 @@ export function useBooks() {
   const [projectId, setProjectId] = useState<string | null>(null)
   const [chunkId, setChunkId] = useState<string | null>(null)
   const [detail, setDetail] = useState<BookDetail | null>(null)
-  const [legacy, setLegacy] = useState(false)
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>("loading")
   const [error, setError] = useState("")
@@ -22,8 +21,8 @@ export function useBooks() {
   const mounted = useRef(true)
 
   const refreshList = useCallback(async (signal?: AbortSignal) => {
-    const result = await api<{ projects: BookSummary[]; legacy_available: boolean; active_project_id: string | null }>("/api/books", undefined, signal)
-    if (mounted.current) { setProjects(result.projects); setLegacy(result.legacy_available); setActiveProjectId(result.active_project_id) }
+    const result = await api<{ projects: BookSummary[]; active_project_id: string | null }>("/api/books", undefined, signal)
+    if (mounted.current) { setProjects(result.projects); setActiveProjectId(result.active_project_id) }
     return result.projects
   }, [])
 
@@ -115,5 +114,5 @@ export function useBooks() {
       setNotice("Word gerado. O download foi iniciado.")
     }
   }
-  return { projects, projectId, chunkId, setChunkId, selectProject, detail, busy, error, notice, legacy, activeProjectId, action, importBook, download, refreshList, loadDetail, retryLoading }
+  return { projects, projectId, chunkId, setChunkId, selectProject, detail, busy, error, notice, activeProjectId, action, importBook, download, refreshList, loadDetail, retryLoading }
 }

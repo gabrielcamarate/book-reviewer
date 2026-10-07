@@ -5,6 +5,17 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-07
+
+### Removido
+
+- Fluxo editorial anterior: tela "Revisão anterior", CLI `revisor.cli`, rotas `/api/simple-home`, `/api/translate`, `/api/export`, `/api/rollback`, `/downloads/ptbr` e `/downloads/es`, e o núcleo `core/`, `prompts/`, `schemas/` e `docx/writer.py` que só ele usava.
+- `/api/books` deixa de informar `legacy_available`. O CI não procura mais o acervo `manuscript/`.
+
+### Incompatibilidades
+
+- `create_server` recebe a pasta raiz em vez de um `ReviewService`. Livros em `.books/` não mudam.
+
 ## [0.2.1] - 2026-10-07
 
 ### Alterado

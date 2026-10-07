@@ -44,7 +44,7 @@ O cabeçalho identifica o autor pelo campo criador dos metadados do Word. Os dow
 **Modo manual** permite revisar pendentes ou um trecho, conferir/aprovar/recusar propostas, ajustar textos e gerar a tradução. Suas exportações continuam possíveis após aprovação/cobertura completas; a revisão bilíngue adicional pertence ao processamento completo. A interface distingue aprovação manual de aprovação automática após validação.
 Os lotes rodam em background. Você acompanha o progresso, limita a quantidade de trechos e pode parar após o trecho atual. Reiniciar o servidor preserva o que já foi salvo; retomar pula os trechos concluídos. Mudanças no glossário liberam apenas as traduções afetadas para nova geração. Reabrir uma revisão invalida sua tradução.
 
-Cada trabalho fica isolado em `.books/`, com originais, propostas, aprovações, ajustes, auditoria, progresso e manifestos. Os registros antigos continuam acessíveis em **Revisão anterior** e não são importados como aprovações de novos livros.
+Cada trabalho fica isolado em `.books/`, com originais, propostas, aprovações, ajustes, auditoria, progresso e manifestos.
 
 ## Modelo e limites
 
@@ -54,16 +54,15 @@ O DOCX é editado sobre a estrutura original, preservando propriedades, imagens 
 
 A revisão é objetiva e conservadora. A segunda passagem da IA não é uma certificação de perfeição literária; a aprovação automática tem proveniência própria e não representa aceite humano. Glossário e contexto melhoram consistência, mas não substituem o aceite editorial do autor. Comece por um lote pequeno e confira o resultado antes do livro inteiro.
 
-## Verificar e operar o acervo anterior
+## Verificar
 
 ```bash
 ./scripts/test.sh
 ./scripts/ci.sh
 ./scripts/jail.sh ./scripts/test.sh
-./scripts/workspace-python.sh -m revisor.cli --help
 ```
 
-A CLI existente opera o acervo anterior (`manuscript/`, `reviews/`, `deliverables/`). Os novos trabalhos `.books/` são operados pela interface e pela API local. Não misture os dois formatos nem regenere aprovações reais durante testes.
+Os livros em `.books/` são operados pela interface e pela API local. Não regenere aprovações reais durante testes.
 
 [Arquitetura](ARCHITECTURE.md) · [Operação](RUNBOOK.md) · [Próximos passos](TASKS.md) · [Evidências desta entrega](WORKFLOWS.md)
 

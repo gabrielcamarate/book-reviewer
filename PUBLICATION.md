@@ -12,7 +12,7 @@ A branch main distribui a versão atual do aplicativo com histórico próprio, s
 
 Instalação: clone main, instale o frontend com o lockfile e inicie scripts/dev.sh. O app começa sem livros; os Word são importados pela interface. Dados locais e andamento ficam em .books e não são sincronizados pelo Git.
 
-Gates de distribuição: verificar a árvore e os exemplos publicados, executar scripts/ci.sh numa cópia sem acervo pessoal, executar Bandit e conferir o startup vazio. O check do acervo anterior continua exigido quando seus índices estão presentes. Uma fórmula do glossário anterior é derivada do texto aprovado, sem frases de um livro embutidas no código.
+Gates de distribuição: verificar a árvore e os exemplos publicados, executar scripts/ci.sh numa cópia sem acervo pessoal, executar Bandit e conferir o startup vazio. Uma fórmula do glossário anterior é derivada do texto aprovado, sem frases de um livro embutidas no código.
 
 Ferramentas: leituras/Git/rg nos caminhos confirmados, sem descoberta semântica necessária. Pruner dispensado por histórico com conteúdo privado; nenhum histórico enviado. Test Filter dispensado para testes rápidos e gates finais completos. Smoke de UI usa Jev Browser oficial e documentos fictícios. Hunch é consultivo e recebe somente fonte pública atual, sem diffs que revelem dados removidos. Não há avaliação literária calibrada nem ganho de economia medido.
 

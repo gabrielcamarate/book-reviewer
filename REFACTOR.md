@@ -1,6 +1,6 @@
 # Arquitetura consolidada
 
-Uma interface React e um pacote Python substituem interfaces duplicadas e pacotes sem consumidores. API e CLI compartilham o núcleo editorial. O acervo anterior é opcional e permanece separado dos trabalhos importados.
+Uma interface React e um pacote Python substituem interfaces duplicadas e pacotes sem consumidores. A API local opera os livros importados; o fluxo editorial anterior (CLI, `manuscript/` e rotas próprias) foi removido em 0.3.0.
 
 A orquestração automática fica em book_pipeline.py; persistência e guardas ficam em workspace.py; contratos de parágrafos e terminologia ficam em book_response.py e book_terms.py. Isso mantém filas e validações independentes da interface.
 

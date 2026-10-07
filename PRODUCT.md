@@ -16,7 +16,7 @@ Corrigir erros objetivos em português brasileiro com mínima intervenção, pre
 
 ## Operating Context
 
-Uso local no navegador, Python/React e Codex CLI autenticado. Livro inteiro e seções específicas são escopos configuráveis; um Word espanhol existente pode receber somente as seções selecionadas. O acervo anterior é opcional e permanece independente.
+Uso local no navegador, Python/React e Codex CLI autenticado. Livro inteiro e seções específicas são escopos configuráveis; um Word espanhol existente pode receber somente as seções selecionadas.
 
 ## Capabilities and Constraints
 

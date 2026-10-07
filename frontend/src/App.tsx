@@ -8,12 +8,10 @@ import { BookReader } from "@/components/book-reader"
 import { BookGlossary } from "@/components/book-glossary"
 import { BookProgress, BookJobStatus } from "@/components/book-processing"
 import { useBooks } from "@/useBooks"
-import LegacyReview from "@/LegacyReview"
 
 function App() {
   const books = useBooks()
   const [importOpen, setImportOpen] = useState(false)
-  const [legacyOpen, setLegacyOpen] = useState(false)
   const [approvalOpen, setApprovalOpen] = useState(false)
   const [manualOpen, setManualOpen] = useState(false)
   const [limit, setLimit] = useState("")
@@ -24,13 +22,12 @@ function App() {
   const allApproved = Boolean(book?.progress.total_paragraphs) && book?.progress.approved_paragraphs === book?.progress.total_paragraphs
   const allTranslated = allApproved && book?.progress.translated_paragraphs === book?.progress.total_paragraphs
   const locked = book?.chunks.some(c => c.status !== "pending") ?? false
-  if (legacyOpen) return <><div className="legacy-nav"><Button variant="outline" onClick={() => setLegacyOpen(false)}>Voltar aos livros</Button><span>Trabalho editorial anterior</span></div><LegacyReview /></>
   async function start(task: "review" | "translate" | "automatic", currentOnly = false) {
     await books.action("start", { task, ...(task !== "automatic" && limit ? { limit: Number(limit) } : {}), ...(currentOnly ? { chunk_id: book?.current?.id } : {}) })
   }
   return <div className="book-app">
     <a href="#book-main" className="skip-link">Ir para o livro</a>
-    <header className="app-topbar"><div className="app-brand"><BookOpenIcon aria-hidden="true" /><span>Revisor</span></div><nav aria-label="Ações do aplicativo"><NewBookButton onClick={() => setImportOpen(true)} disabled={disabled} />{books.legacy && <Button variant="ghost" onClick={() => setLegacyOpen(true)} disabled={disabled}>Revisão anterior</Button>}</nav></header>
+    <header className="app-topbar"><div className="app-brand"><BookOpenIcon aria-hidden="true" /><span>Revisor</span></div><nav aria-label="Ações do aplicativo"><NewBookButton onClick={() => setImportOpen(true)} disabled={disabled} /></nav></header>
     <div className="workspace-layout">
       <aside className="book-sidebar" aria-label="Seus livros"><div className="sidebar-title"><h2>Seus livros</h2><Button variant="ghost" size="icon" aria-label="Atualizar lista de livros" disabled={Boolean(books.busy)} onClick={() => void books.retryLoading()}><RefreshCwIcon /></Button></div>
         {books.projects.length ? <ul className="book-list">{books.projects.map(project => <li key={project.id}><button className="book-list-item" aria-current={books.projectId === project.id ? "page" : undefined} onClick={() => { books.selectProject(project.id); setImportOpen(false); setSetupDirty(false) }} disabled={Boolean(books.busy)}><span>{project.name}</span><small>{project.progress.translation_percent === 100 ? `Espanhol revisado ${project.progress.checked_percent}%` : project.progress.review_percent === 100 ? `Tradução ${project.progress.translation_percent}%` : project.progress.draft_percent > project.progress.review_percent ? `Propostas ${project.progress.draft_percent}% · aprovado ${project.progress.review_percent}%` : `Revisão ${project.progress.review_percent}%`}</small></button></li>)}</ul> : <p className="sidebar-empty">Os livros importados aparecerão aqui.</p>}

@@ -29,11 +29,11 @@ Observações para o autor registram ambiguidades preservadas do original; não 
 
 Não altere JSON durante processamento, não regenere aprovações reais durante testes e não apague o lock para contornar outro servidor. Reabrir revisão invalida tradução/checks afetados. Alterar glossário ou contrato exige nova checagem. Downloads antigos são bloqueados quando a revisão mudou.
 
-## Word e acervo anterior
+## Word
 
 Os downloads são novas cópias. Inserção em destino espanhol preserva o conteúdo fora das seções escolhidas. A paginação pode variar. Inserção com notas vinculadas exige exportar as seções separadamente; livro inteiro mantém notas na estrutura original.
 
-Revisão anterior aparece somente quando o acervo local existe. A CLI de compatibilidade continua disponível: `./scripts/workspace-python.sh -m revisor.cli --help`. O comando check exige esse acervo; testes e instalação pública usam documentos fictícios, sem dados pessoais.
+Testes e instalação pública usam documentos fictícios, sem dados pessoais.
 
 ## Verificar
 
@@ -41,4 +41,4 @@ Revisão anterior aparece somente quando o acervo local existe. A CLI de compati
 ./scripts/ci.sh
 ```
 
-CI verifica Python, testes unitários/HTTP, lint e build. Se um acervo local estiver presente, valida também seus índices. Bandit complementa os gates. CI não publica nem processa manuscritos reais.
+CI verifica Python, testes unitários/HTTP, lint e build. Bandit complementa os gates. CI não publica nem processa manuscritos reais.
