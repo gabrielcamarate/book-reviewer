@@ -286,10 +286,12 @@ class BookWorkspace:
             if task == 'translate' and chunk['status'] != 'approved': raise ValueError('Aprove a revisão antes de traduzir.')
             paragraphs, context = self._chunk_input(project,state,chunk)
             if glossary is not None: context['settings']['glossary']=glossary
-            prompt = book_prompts.prompt(task, paragraphs, **context, validation_feedback=validation_feedback, paragraph_output=paragraph_output)
+            # A translation may decline paragraphs explicitly instead of writing a refusal in their place.
+            decline = task == 'translate'
+            prompt = book_prompts.prompt(task, paragraphs, **context, validation_feedback=validation_feedback, paragraph_output=paragraph_output, may_decline=decline)
             expected_token = self._request_token(project,state,chunk)
         # Do not hold the read lock while a model is running: polling remains responsive.
-        response = self.runner(prompt=prompt, schema=book_prompts.schema(task,paragraph_output=paragraph_output), model=self.model)
+        response = self.runner(prompt=prompt, schema=book_prompts.schema(task,paragraph_output=paragraph_output,may_decline=decline), model=self.model)
         if not isinstance(response,dict): raise InvalidModelResponse('A IA devolveu uma resposta inválida. Gere novamente.')
         with self.lock:
             folder, project, state = self._load(pid)
@@ -313,21 +315,30 @@ class BookWorkspace:
                 chunk.update(status='ready', edits=changes, revised=revised, proposal_id=uuid.uuid4().hex)
                 chunk.pop('feedback',None); chunk.pop('checks',None)
             else:
-                translated = response.get('translations'); terms = response.get('terms',[])
-                if not isinstance(translated,list): raise InvalidModelResponse('O modelo devolveu uma tradução inválida.')
+                translated = response.get('translations'); terms = response.get('terms',[]); declined = response.get('declined') or []
+                if not isinstance(translated,list) or not isinstance(declined,list): raise InvalidModelResponse('O modelo devolveu uma tradução inválida.')
+                declined = [str(d) for d in declined]
                 actual = [str(t.get('paragraph_id','')) for t in translated if isinstance(t,dict)]
-                if actual != list(by_id) or any(not isinstance(t.get('text'),str) or not t['text'].strip() for t in translated):
+                if (actual != [eid for eid in by_id if eid not in declined] or set(declined) - set(by_id) or len(set(declined)) != len(declined)
+                        or any(not isinstance(t.get('text'),str) or not t['text'].strip() for t in translated)):
                     raise InvalidModelResponse('A tradução não cobre exatamente todos os parágrafos. O trecho não foi salvo.')
-                chunk['translations'] = {str(t['paragraph_id']):t['text'] for t in translated}
+                done = {str(t['paragraph_id']):t['text'] for t in translated}
+                for eid,text in done.items(): self._validate_model_breaks(by_id[eid],text)
                 chunk.get('checks',{}).pop('es',None)
-                for eid,text in chunk['translations'].items(): self._validate_model_breaks(by_id[eid],text)
+                if declined:
+                    # The author writes only what the model declined; the chunk stays with them from now on.
+                    chunk.update(author_handled=True, model_translations=done, author_paragraphs=[eid for eid in by_id if eid in declined])
+                    chunk.pop('translations',None)
+                    state['audit'].append({'action':'translate-declined','chunk':chunk_id,'declined':chunk['author_paragraphs'],'at':time.time()})
+                else:
+                    chunk['translations'] = done
                 if not isinstance(terms,list): raise InvalidModelResponse('Glossário devolvido inválido.')
                 known = canonical_glossary(state['terms'],self._glossary(project,state))
                 for term in terms:
                     if not isinstance(term,dict): raise InvalidModelResponse('Glossário devolvido inválido.')
                     source, target = term.get('source',''), term.get('target','')
                     if isinstance(source,str) and isinstance(target,str) and source.strip() and target.strip() and source.casefold() not in {s.casefold() for s in known}:
-                        if any(source in text for text in by_id.values()) and any(target in text for text in chunk['translations'].values()):
+                        if any(source in text for text in by_id.values()) and any(target in text for text in done.values()):
                             state['terms'][source] = target
             chunk.setdefault('provenance',{})[task] = {'model':self.model, 'reasoning_effort':'low', 'prompt_version':book_prompts.VERSION,
                                    'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(), 'at':time.time()}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { TextLink } from "@/components/ui/link"
 import { StatusIcon } from "@/components/ui/notice"
+import { Spinner } from "@/components/ui/spinner"
 import { Steps } from "@/components/ui/steps"
 import { SummaryRows } from "@/components/ui/summary-row"
 import type { BookDetail } from "@/book-types"
@@ -101,10 +102,16 @@ export function ProgressScreen({ book, busy, go, onPause }: BookScreenProps & { 
         main={<Card aria-labelledby="andamento-titulo">
           <div role="status" className="rv-stack rv-stack--xs">
             <p className="ui-label rv-accent">Etapa {stage + 1} de 4</p>
-            <CardTitle id="andamento-titulo" main>{stageTitle(book.progress)}</CardTitle>
+            <CardTitle id="andamento-titulo" main>{stageTitle(book.progress, true)}</CardTitle>
             <p className="rv-muted">O progresso é salvo a cada trecho. Se precisar parar, é só continuar depois.</p>
           </div>
           <Steps steps={list} />
+          {stageOf(book.progress) === 4 && !stopping && (
+            <p className="rv-status-row" aria-live="polite">
+              <Spinner size={18} />
+              <span>Gerando e conferindo os dois arquivos Word{job?.started_at ? ` · trabalhando há ${since(Math.max(0, now / 1000 - job.started_at))}` : ""}</span>
+            </p>
+          )}
           <div className="rv-stack rv-stack--xs">
             <Button block={mobile} onClick={onPause} disabled={busy || stopping}><PauseIcon size={20} aria-hidden="true" />{stopping ? "Pausando…" : "Pausar"}</Button>
             <p className="rv-small rv-muted">Termina o que já começou e guarda o progresso.</p>

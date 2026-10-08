@@ -5,6 +5,13 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-08
+
+### Alterado
+
+- Toda tradução pode recusar parágrafos de forma explícita, em vez de escrever uma recusa no lugar do espanhol. Um trecho com recusas passa sozinho para você, só com os parágrafos recusados; o resto fica com a tradução do modelo.
+- Depois das quatro etapas, enquanto os arquivos Word são gerados e conferidos, a tela mostra "Preparando os arquivos Word" com o tempo de trabalho, em vez de "Concluído" sem sinal de atividade.
+
 ## [0.22.1] - 2026-10-08
 
 ### Corrigido

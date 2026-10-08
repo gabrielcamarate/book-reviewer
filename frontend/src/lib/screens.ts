@@ -44,9 +44,11 @@ export function stageOf(progress: ProgressState) {
   return index === -1 ? STAGES.length : index
 }
 
-export function stageTitle(progress: ProgressState) {
+export function stageTitle(progress: ProgressState, running = false) {
   const index = stageOf(progress)
-  return index < STAGES.length ? STAGES[index].running : "Concluído"
+  if (index < STAGES.length) return STAGES[index].running
+  // The four stages are done but the job still runs: it is writing and checking the Word files.
+  return running ? "Preparando os arquivos Word" : "Concluído"
 }
 
 export function steps(progress: ProgressState, running: boolean) {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { bookScreen, openProblems, stageOf, steps } from "./screens.ts"
+import { bookScreen, openProblems, stageOf, stageTitle, steps } from "./screens.ts"
 import type { BookDetail, ProgressState } from "../book-types"
 
 const progress = (values: Partial<ProgressState> = {}): ProgressState => ({
@@ -71,4 +71,11 @@ test("a chunk the author already finished leaves the attention list without anot
       { chunk_id: "c2", phase: "Revisão do espanhol", message: "Pendência." }] },
   })
   assert.deepEqual(openProblems(detail).map(problem => problem.chunk_id), ["c2"])
+})
+
+test("after the four stages a running job says it is preparing the Word files", () => {
+  const done = progress({ draft_percent: 100, review_percent: 100, translation_percent: 100, checked_percent: 100 })
+  assert.equal(stageTitle(done, true), "Preparando os arquivos Word")
+  assert.equal(stageTitle(done), "Concluído")
+  assert.equal(stageTitle(progress(), true), "Revisando o português")
 })

@@ -11,7 +11,7 @@ import { PageTitle } from "@/screens/parts"
 function describe(book: BookSummary, active: boolean) {
   const stage = stageOf(book.progress)
   if (stage === 4) return { label: "Pronto", line: "Revisado e traduzido · dois arquivos Word para baixar" }
-  if (active) return { label: "Em andamento", line: `${stageTitle(book.progress)} · etapa ${stage + 1} de 4` }
+  if (active) return { label: "Em andamento", line: stage === 4 ? stageTitle(book.progress, true) : `${stageTitle(book.progress)} · etapa ${stage + 1} de 4` }
   const started = book.progress.draft_percent > 0
   return started ? { label: "Pausado", line: `Parou em: ${stageTitle(book.progress).toLowerCase()} · etapa ${stage + 1} de 4` }
     : { label: "Pronto para começar", line: "Ainda não foi revisado" }

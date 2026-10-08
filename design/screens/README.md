@@ -20,7 +20,7 @@ O texto do livro, os nomes de capítulo e os números são exemplos inventados.
 | `novo-livro.html` | Importar um livro. | "Importar livro" → `pronto-para-comecar`; "Já tenho um Word em espanhol…" → `novo-livro-com-word-em-espanhol` |
 | `novo-livro-com-word-em-espanhol.html` | Arquivo já escolhido e a opção de inserir a tradução num Word espanhol existente marcada. | "Importar livro" → `escolher-capitulos` (neste caso a escolha de capítulos é obrigatória) |
 | `pronto-para-comecar.html` | Livro importado, revisão ainda não começou. | "Processar o livro completo" → `acompanhar`; "Mudar" → `escolher-capitulos`; "Escrever" → `orientacoes`; "Ver e mudar" → `glossario` |
-| `acompanhar.html` | Processamento rodando. | "Ver o texto e as correções" → `conferir` |
+| `acompanhar.html` | Processamento rodando. Depois das quatro etapas, enquanto os arquivos Word são gerados e conferidos, o título vira "Preparando os arquivos Word" e uma linha com spinner mostra o tempo de trabalho. | "Ver o texto e as correções" → `conferir` |
 | `acompanhar-claro.html` | A mesma tela no tema claro. | |
 | `livro-pronto.html` | As quatro etapas terminaram. | "Ler as observações" → `observacoes`; "Ver o texto e as correções" → `conferir`; "Começar outro livro" → `novo-livro` |
 

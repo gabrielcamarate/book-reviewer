@@ -419,6 +419,27 @@ class AutomaticBookTests(unittest.TestCase):
         self.assertEqual(detail['job']['status'],'needs_attention')
         self.assertTrue(any('preservado' in w['message'] for w in detail['consistency_warnings']))
 
+    def test_a_paragraph_the_model_declines_to_translate_goes_to_the_author_alone(self):
+        def declining(**kwargs):
+            data=json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])
+            if data['task']=='translate':
+                self.assertTrue(data.get('may_decline'))
+                result=automatic_runner(**kwargs)
+                result['declined']=[p['id'] for p in data['paragraphs'] if 'preservado' in p['text']]
+                result['translations']=[t for t in result['translations'] if t['paragraph_id'] not in result['declined']]
+                return result
+            return automatic_runner(**kwargs)
+        self.ws.runner=declining
+        detail=self.run_job()
+        self.assertEqual(detail['job']['status'],'needs_attention')
+        state=read_json(self.ws._folder(self.pid)/'state.json')
+        taken=[c for c in state['chunks'] if c.get('author_handled')]
+        self.assertEqual(len(taken),1)
+        self.assertEqual(len(taken[0]['author_paragraphs']),1)
+        self.assertEqual(set(taken[0]['model_translations']),set(taken[0]['revised'])-set(taken[0]['author_paragraphs']))
+        self.assertEqual([p['chunk_id'] for p in detail['job']['problems']],[taken[0]['id']])
+        self.assertIn('1 parágrafo',detail['job']['problems'][0]['message'])
+
     def test_untrusted_extra_xml_blocks_word_delivery(self):
         with zipfile.ZipFile(self.source,'a') as archive:
             archive.writestr('customXml/item1.xml',b'<!DOCTYPE x [<!ENTITY boom "blocked">]><x>&boom;</x>')
@@ -774,7 +795,8 @@ class AuthorHandledChunkTests(unittest.TestCase):
             return {'translations': [{'paragraph_id': p['id'], 'text': 'ES ' + p['text']} for p in data['paragraphs'] if 'estavam' not in p['text']],
                     'declined': [p['id'] for p in data['paragraphs'] if 'estavam' in p['text']], 'terms': []}
         detail = self.keep_original_and_process(declining)
-        self.assertEqual(len([c for c in self.calls if c[0] == 'translate' and isinstance(c[1], list)]), 1)
+        ids = {str(p['id']) for p in detail['current']['paragraphs']}
+        self.assertEqual(len([c for c in self.calls if c[0] == 'translate' and isinstance(c[1], list) and ids & set(map(str, c[1]))]), 1)
         self.assert_only_declined_paragraph_left(detail)
 
     def test_a_refused_group_is_split_until_only_the_sensitive_paragraph_is_left(self):

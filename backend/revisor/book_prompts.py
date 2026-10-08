@@ -95,7 +95,7 @@ def prompt(task, paragraphs, *, previous, following, title, settings, feedback='
         rules.append('terminology_hints traz traduções escolhidas antes, em outros trechos do livro, para termos deste trecho. Use-as quando o termo tiver o mesmo sentido, para manter a consistência. Se o contexto pedir outro sentido, traduza pelo sentido: não são regras do glossário nem pendências.')
     if may_decline:
         rules=[r for r in rules if not r.startswith('Retorne exatamente uma tradução')]
-        rules.append('O autor revisou este trecho à mão. Traduza todos os parágrafos que puder, na ordem da entrada, preservando quebras internas. Se não for traduzir algum parágrafo, ponha o paragraph_id dele em declined e deixe-o fora de translations; o autor escreve esse espanhol. Nunca escreva recusa, aviso ou resumo no lugar de uma tradução. Cada paragraph_id aparece uma única vez, em translations ou em declined.')
+        rules.append('Traduza todos os parágrafos que puder, na ordem da entrada, preservando quebras internas. Se não for traduzir algum parágrafo, ponha o paragraph_id dele em declined e deixe-o fora de translations; o autor escreve esse espanhol. Nunca escreva recusa, aviso ou resumo no lugar de uma tradução. Cada paragraph_id aparece uma única vez, em translations ou em declined.')
     if consistency_feedback:
         rules.append('O aplicativo identificou alertas de consistência em consistency_feedback. Confira-os e ajuste a tradução final para cumprir o glossário, preservando sentido, nomes e concordância. Esses alertas não são uma rejeição de formato.')
     if validation_feedback:
