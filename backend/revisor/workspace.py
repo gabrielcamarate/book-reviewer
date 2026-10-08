@@ -266,6 +266,7 @@ class BookWorkspace:
 
     def _operate(self, pid, chunk_id, task, *, glossary=None, validation_feedback='', paragraph_output=False):
         if task not in {'review','translate'}: raise ValueError('Operação editorial inválida.')
+        if task == 'translate' and self._author_handled(pid, chunk_id): return self._translate_author(pid, chunk_id, glossary=glossary)
         with self.lock:
             folder, project, state = self._load(pid)
             chunk = next((c for c in state['chunks'] if c['id']==chunk_id), None)
@@ -321,6 +322,60 @@ class BookWorkspace:
                                    'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest(), 'at':time.time()}
             state['revision'] += 1
             state['audit'].append({'action':task, 'chunk':chunk_id, 'at':time.time()})
+            save_json(folder / 'state.json',state)
+
+    def _author_handled(self, pid, chunk_id):
+        with self.lock:
+            _, _, state = self._load(pid)
+            return bool(next((c for c in state['chunks'] if c['id']==chunk_id), {}).get('author_handled'))
+
+    def _translate_author(self, pid, chunk_id, *, glossary=None):
+        """A chunk the author reviewed by hand: the model translates the paragraphs it accepts and the author
+        writes only the ones it declines. A group the model will not answer properly is split in halves until
+        each refused paragraph stands alone."""
+        with self.lock:
+            folder, project, state = self._load(pid)
+            chunk = next(c for c in state['chunks'] if c['id']==chunk_id)
+            paragraphs, context = self._chunk_input(project,state,chunk)
+            if glossary is not None: context['settings']['glossary']=glossary
+            expected_token = self._request_token(project,state,chunk)
+        translated, declined, prompts = {}, set(), []
+
+        def attempt(group):
+            ids = [str(p['id']) for p in group]
+            prompt = book_prompts.prompt('translate', group, **context, may_decline=True)
+            prompts.append(prompt)
+            try:
+                response = self.runner(prompt=prompt, schema=book_prompts.schema('translate', may_decline=True), model=self.model)
+                if not isinstance(response,dict): raise InvalidModelResponse('Resposta inválida.')
+                items = response.get('translations'); refused = response.get('declined')
+                if not isinstance(items,list) or not isinstance(refused,list) or not all(isinstance(t,dict) for t in items):
+                    raise InvalidModelResponse('Resposta inválida.')
+                done = {str(t.get('paragraph_id','')): t.get('text') for t in items}
+                refused = [str(r) for r in refused]
+                if (len(done)+len(refused) != len(ids) or set(done)|set(refused) != set(ids)
+                        or any(not isinstance(t,str) or not t.strip() for t in done.values())):
+                    raise InvalidModelResponse('A tradução não cobre exatamente todos os parágrafos.')
+                for eid,text in done.items(): self._validate_model_breaks(next(p['text'] for p in group if str(p['id'])==eid),text)
+            except InvalidModelResponse:
+                if len(group) == 1: declined.add(ids[0]); return
+                middle = len(group)//2
+                attempt(group[:middle]); attempt(group[middle:]); return
+            translated.update(done); declined.update(refused)
+
+        attempt(paragraphs)
+        with self.lock:
+            folder, project, state = self._load(pid)
+            chunk = next(c for c in state['chunks'] if c['id']==chunk_id)
+            if self._request_token(project,state,chunk) != expected_token: raise ValueError('O trabalho mudou durante a geração. Atualize a tela.')
+            order = [str(p['id']) for p in paragraphs]
+            chunk['model_translations'] = {eid:translated[eid] for eid in order if eid in translated}
+            chunk['author_paragraphs'] = [eid for eid in order if eid in declined]
+            if not chunk['author_paragraphs']: chunk['translations'] = dict(chunk['model_translations'])
+            chunk.setdefault('provenance',{})['translate'] = {'model':self.model, 'reasoning_effort':'low', 'prompt_version':book_prompts.VERSION,
+                'prompt_sha256':[hashlib.sha256(p.encode()).hexdigest() for p in prompts], 'declined':chunk['author_paragraphs'], 'at':time.time()}
+            state['revision'] += 1
+            state['audit'].append({'action':'translate-author-chunk', 'chunk':chunk_id, 'declined':chunk['author_paragraphs'], 'at':time.time()})
             save_json(folder / 'state.json',state)
 
     @classmethod
@@ -594,7 +649,7 @@ class BookWorkspace:
             state['audit'].append({'action':'author-approve','chunk':chunk_id,'proposal':chunk.get('revised'),'at':time.time()})
             chunk.update(status='approved', approval_mode='manual', approved_at=time.time(), author_handled=True,
                          revised={eid:revised[eid] for eid in ids}, edits=edits)
-            for key in ('translations','checks','feedback'): chunk.pop(key,None)
+            for key in ('translations','model_translations','author_paragraphs','checks','feedback'): chunk.pop(key,None)
             state['revision']+=1; save_json(folder/'state.json',state)
 
     def author_translate(self, pid, chunk_id, translations, expected_revision):
@@ -605,11 +660,14 @@ class BookWorkspace:
             chunk = next((c for c in state['chunks'] if c['id']==chunk_id),None)
             if not chunk or not chunk.get('author_handled') or chunk['status']!='approved':
                 raise ValueError('Revise este trecho manualmente antes de escrever o espanhol.')
-            if not isinstance(translations,dict) or set(translations)!=set(chunk['revised']) or any(not isinstance(v,str) or not v.strip() for v in translations.values()):
-                raise ValueError('Escreva o espanhol de todos os parágrafos do trecho.')
+            # Paragraphs the model translated stay; the author writes the ones it declined (or all, if it never ran).
+            wanted = chunk.get('author_paragraphs') if 'model_translations' in chunk and not chunk.get('translations') else list(chunk['revised'])
+            if not isinstance(translations,dict) or set(translations)!=set(wanted) or any(not isinstance(v,str) or not v.strip() for v in translations.values()):
+                raise ValueError('Escreva o espanhol de todos os parágrafos indicados.')
             for eid,text in translations.items(): self._validate_breaks(chunk['revised'][eid],text)
-            state['audit'].append({'action':'author-translate','chunk':chunk_id,'previous':chunk.get('translations'),'at':time.time()})
-            chunk['translations']=dict(translations)
+            state['audit'].append({'action':'author-translate','chunk':chunk_id,'paragraphs':sorted(translations),'previous':chunk.get('translations'),'at':time.time()})
+            merged = {} if wanted == list(chunk['revised']) else chunk.get('model_translations',{})
+            chunk['translations']={eid:(translations.get(eid) or merged[eid]) for eid in chunk['revised']}
             state['revision']+=1; save_json(folder/'state.json',state)
 
     def edit_portuguese(self, pid, chunk_id, revised, expected_revision):
@@ -631,7 +689,8 @@ class BookWorkspace:
                                    'previous':{eid:chunk['revised'][eid] for eid in changed},'at':time.time()})
             chunk['revised']=revised
             chunk['edits']=[e for e in chunk.get('edits',[]) if str(e['paragraph_id']) not in changed]+edits
-            chunk['approval_mode']='manual'; chunk['approved_at']=time.time(); chunk.pop('translations',None)
+            chunk['approval_mode']='manual'; chunk['approved_at']=time.time()
+            for key in ('translations','model_translations','author_paragraphs'): chunk.pop(key,None)
             state['revision']+=1; save_json(folder/'state.json',state)
 
     def _not_running(self, pid):
@@ -676,7 +735,8 @@ class BookWorkspace:
         if task!='translate': raise ValueError('Operação de lote inválida.')
         if any(c['status']!='approved' for c in state['chunks']):
             raise ValueError('Aprove toda a revisão do escopo escolhido antes de traduzir.')
-        return [c['id'] for c in state['chunks'] if not c.get('translations') and not c.get('author_handled')]
+        # An author chunk is offered to the model once; what it declines stays with the author.
+        return [c['id'] for c in state['chunks'] if not c.get('translations') and not (c.get('author_handled') and 'model_translations' in c)]
 
     def run_sync(self, pid, task, *, limit=None):
         if task not in {'review','translate'}: raise ValueError('Use start para o processamento completo.')

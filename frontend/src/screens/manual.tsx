@@ -311,7 +311,10 @@ export function AuthorEditScreen({ book, busy, act, onBack, onApproved }: Author
 export function AuthorSpanishScreen({ book, busy, act, onBack, onSaved }: AuthorProps & { onSaved: () => void }) {
   const mobile = useIsMobile()
   const chunk = book.current!
-  const [values, setValues] = useState<Record<string, string>>(chunk.translations ?? Object.fromEntries(Object.keys(chunk.revised ?? {}).map(id => [id, ""])))
+  // After the model translated what it accepted, the author writes only the paragraphs it declined.
+  const fromModel = !chunk.translations && chunk.model_translations ? chunk.model_translations : null
+  const wanted = fromModel ? chunk.author_paragraphs ?? [] : Object.keys(chunk.revised ?? {})
+  const [values, setValues] = useState<Record<string, string>>(fromModel ? Object.fromEntries(wanted.map(id => [id, ""])) : chunk.translations ?? Object.fromEntries(wanted.map(id => [id, ""])))
   const [checked, setChecked] = useState(false)
   const index = book.chunks.findIndex(item => item.id === chunk.id)
   const empty = Object.entries(values).filter(([, text]) => !text.trim()).map(([id]) => id)
@@ -325,7 +328,10 @@ export function AuthorSpanishScreen({ book, busy, act, onBack, onSaved }: Author
       <div><TextLink variant="back" onClick={onBack}>Voltar sem salvar</TextLink></div>
       <div className="rv-stack rv-stack--sm">
         <PageTitle eyebrow={`Trecho ${index + 1} de ${book.chunks.length} · ${chunk.title}`}>Escrever o espanhol</PageTitle>
-        <p className="rv-muted">Este trecho fica com você: o que você escrever entra no Word em espanhol como está. O português ao lado é só para consulta.</p>
+        <p className="rv-muted">{fromModel
+          ? `O modelo traduziu o resto do trecho. Escreva só ${wanted.length === 1 ? "o parágrafo que ele recusou" : `os ${wanted.length} parágrafos que ele recusou`}; o que você escrever entra no Word em espanhol como está.`
+          : "Este trecho fica com você: o que você escrever entra no Word em espanhol como está. O português ao lado é só para consulta."}</p>
+        {!fromModel && !chunk.translations && <p className="rv-muted">Se preferir, volte e continue o processamento: o modelo traduz os parágrafos que aceitar e deixa aqui só os que recusar.</p>}
       </div>
       <div className={cn("rv-bilingual", mobile && "rv-bilingual--stack")}>
         {chunk.paragraphs.map((paragraph, position) => {
@@ -334,9 +340,9 @@ export function AuthorSpanishScreen({ book, busy, act, onBack, onSaved }: Author
           return (
             <div key={id} className="rv-bilingual__row">
               <p className={cn(mobile ? "book-text-mobile" : "book-text", "rv-muted")}>{chunk.revised?.[id] ?? paragraph.text}</p>
-              <Field id={field} label={`Parágrafo ${position + 1} em espanhol`} error={checked && empty.includes(id) ? "Escreva o parágrafo em espanhol." : undefined}>
+              {fromModel && !wanted.includes(id) ? <p lang="es-419" className={mobile ? "book-text-mobile" : "book-text"}>{fromModel[id]}</p> : <Field id={field} label={`Parágrafo ${position + 1} em espanhol`} error={checked && empty.includes(id) ? "Escreva o parágrafo em espanhol." : undefined}>
                 <Textarea id={field} book lang="es-419" rows={Math.max(3, Math.ceil(((chunk.revised?.[id] ?? paragraph.text).length) / 60))} value={values[id] ?? ""} onChange={event => setValues({ ...values, [id]: event.target.value })} disabled={busy} aria-invalid={(checked && empty.includes(id)) || undefined} />
-              </Field>
+              </Field>}
             </div>
           )
         })}

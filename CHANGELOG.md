@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-08
+
+### Alterado
+
+- Num trecho revisado à mão, o espanhol não é mais todo da pessoa. O processamento automático pede ao modelo a tradução dos parágrafos que ele aceita; os recusados ficam marcados e, se a resposta vier inválida, o grupo é dividido até isolar cada parágrafo recusado. "Escrever o espanhol" pede só esses parágrafos e mostra ao lado o espanhol do modelo para os demais. Mudar o português do trecho descarta essa tradução parcial.
+
 ## [0.20.0] - 2026-10-08
 
 ### Adicionado

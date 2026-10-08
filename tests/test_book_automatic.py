@@ -708,7 +708,7 @@ class AuthorHandledChunkTests(unittest.TestCase):
         self.calls.clear()
         self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
         detail = self.current()
-        self.assertFalse([task for task, sensitive in self.calls if sensitive])  # Nothing of this chunk reaches the model.
+        self.assertFalse([task for task, sensitive in self.calls if sensitive and task != 'translate'])  # Only the Spanish is tried again.
         self.assertEqual(detail['job']['status'], 'needs_attention')
         self.assertEqual([p['chunk_id'] for p in detail['job']['problems']], [self.chunk])
         spanish = {pid: 'Ella estaba aquí. ― ¡Hola!' for pid in detail['current']['revised']}
@@ -717,7 +717,59 @@ class AuthorHandledChunkTests(unittest.TestCase):
         final = self.ws.detail(self.pid)
         self.assertEqual(final['job']['status'], 'completed')
         self.assertTrue(final['automatic_result'])
-        self.assertFalse([task for task, sensitive in self.calls if sensitive])
+        self.assertFalse([task for task, sensitive in self.calls if sensitive and task != 'translate'])
+
+    def keep_original_and_process(self, translate):
+        """The author keeps the sensitive paragraph as written; the model is asked only for the Spanish."""
+        detail = self.current()
+        original = {str(p['id']): p['text'] for p in detail['current']['paragraphs']}
+        self.ws.author_approve(self.pid, self.chunk, original, detail['revision'])
+        fallback = self.ws.runner
+        def runner(**kwargs):
+            data = json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])
+            if data['task'] == 'translate' and data.get('may_decline'):
+                self.calls.append(('translate', [p['id'] for p in data['paragraphs']]))
+                return translate(data)
+            return fallback(**kwargs)
+        self.ws.runner = runner
+        self.calls.clear()
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        return self.current()
+
+    def assert_only_declined_paragraph_left(self, detail):
+        chunk = detail['current']
+        sensitive = [str(p['id']) for p in chunk['paragraphs'] if 'estavam' in p['text']]
+        self.assertEqual(detail['job']['status'], 'needs_attention')
+        self.assertEqual([p['chunk_id'] for p in detail['job']['problems']], [self.chunk])
+        self.assertIn('1 parágrafo', detail['job']['problems'][0]['message'])
+        self.assertEqual(chunk['author_paragraphs'], sensitive)
+        self.assertEqual(set(chunk['model_translations']), set(chunk['revised']) - set(sensitive))
+        self.assertNotIn('translations', chunk)
+        with self.assertRaises(ValueError):  # The author writes only what the model left.
+            self.ws.author_translate(self.pid, self.chunk, {pid: 'x' for pid in chunk['revised']}, detail['revision'])
+        self.ws.author_translate(self.pid, self.chunk, {pid: 'Ella estaba aquí.' for pid in sensitive}, detail['revision'])
+        chunk = self.current()['current']
+        self.assertEqual(chunk['translations'], chunk['model_translations'] | {pid: 'Ella estaba aquí.' for pid in sensitive})
+        self.calls.clear()
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        final = self.ws.detail(self.pid)
+        self.assertEqual(final['job']['status'], 'completed', final['job']['message'])
+        self.assertFalse([call for call in self.calls if call[0] == 'translate' and isinstance(call[1], list)])
+
+    def test_model_translates_what_it_accepts_and_the_author_writes_only_the_declined_paragraph(self):
+        def declining(data):
+            return {'translations': [{'paragraph_id': p['id'], 'text': 'ES ' + p['text']} for p in data['paragraphs'] if 'estavam' not in p['text']],
+                    'declined': [p['id'] for p in data['paragraphs'] if 'estavam' in p['text']], 'terms': []}
+        detail = self.keep_original_and_process(declining)
+        self.assertEqual(len([c for c in self.calls if c[0] == 'translate' and isinstance(c[1], list)]), 1)
+        self.assert_only_declined_paragraph_left(detail)
+
+    def test_a_refused_group_is_split_until_only_the_sensitive_paragraph_is_left(self):
+        def refusing(data):
+            if any('estavam' in p['text'] for p in data['paragraphs']):
+                return {'translations': [], 'declined': [], 'terms': []}  # A refusal that skips the contract.
+            return {'translations': [{'paragraph_id': p['id'], 'text': 'ES ' + p['text']} for p in data['paragraphs']], 'declined': [], 'terms': []}
+        self.assert_only_declined_paragraph_left(self.keep_original_and_process(refusing))
 
     def test_author_can_keep_the_original_text(self):
         detail = self.current()
