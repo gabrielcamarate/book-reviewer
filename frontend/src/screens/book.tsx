@@ -14,7 +14,7 @@ import { useIsMobile } from "@/lib/viewport"
 import { STAGE_NAMES, scopeLabel, termsLabel } from "@/lib/copy"
 import { CardTitle, Columns, NumberedList, PageTitle } from "@/screens/parts"
 
-export type BookView = "conferir" | "escolher-capitulos" | "orientacoes" | "glossario" | "observacoes" | "alertas" | "trechos" | "ajustar-espanhol" | "ajustar-texto" | "ajustar-portugues" | "recusar" | "novo-livro"
+export type BookView = "conferir" | "escolher-capitulos" | "orientacoes" | "glossario" | "observacoes" | "alertas" | "trechos" | "ajustar-espanhol" | "ajustar-texto" | "ajustar-portugues" | "recusar" | "revisar-manual" | "ajustar-manual" | "escrever-espanhol" | "novo-livro"
 
 type BookScreenProps = { book: BookDetail; busy: boolean; go: (view: BookView) => void }
 
@@ -188,7 +188,7 @@ export function StoppedScreen({ book, busy, go, onContinue, disabled, failed }: 
 }
 
 /** precisa-de-atencao: some chunks could not be finished. */
-export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk }: StoppedProps & { onOpenChunk: (chunkId: string) => void }) {
+export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk, onManual, onSpanish }: StoppedProps & { onOpenChunk: (chunkId: string) => unknown; onManual: (chunkId: string) => unknown; onSpanish: (chunkId: string) => unknown }) {
   const problems = book.job?.problems ?? []
   const count = problems.length
   return (
@@ -206,7 +206,17 @@ export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk 
                   {problem.title && <span className="ui-strong">{problem.title}</span>}
                   <span>{problem.message}</span>
                 </span>
-                <TextLink onClick={() => onOpenChunk(problem.chunk_id)}>Abrir este trecho</TextLink>
+                {(() => {
+                  const chunk = book.chunks.find(item => item.id === problem.chunk_id)
+                  if (chunk?.author_handled && chunk.translated) return <span className="rv-small rv-muted">Revisado por você</span>
+                  return (
+                    <div className="rv-actions">
+                      {chunk?.author_handled ? <Button onClick={() => onSpanish(problem.chunk_id)} disabled={busy}>Escrever o espanhol</Button>
+                        : chunk?.status !== "approved" && <Button onClick={() => onManual(problem.chunk_id)} disabled={busy}>Revisar manualmente</Button>}
+                      <TextLink onClick={() => onOpenChunk(problem.chunk_id)}>Abrir este trecho</TextLink>
+                    </div>
+                  )
+                })()}
               </li>
             ))}
           </ul>

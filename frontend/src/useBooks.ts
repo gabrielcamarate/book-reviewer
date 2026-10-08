@@ -68,7 +68,7 @@ export function useBooks() {
 
   /** Open a chunk; resolves when its text is on screen, so the button that asked can show progress. */
   function showChunk(id: string) {
-    if (detail?.current?.id === id) return Promise.resolve()
+    if (detail?.current?.id === id) { setChunkId(id); return Promise.resolve() }  // Pin it: after an action the server may show another one.
     return new Promise<void>(resolve => {
       waiting.current.set(id, [...(waiting.current.get(id) ?? []), resolve])
       setChunkId(id)

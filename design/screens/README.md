@@ -41,7 +41,7 @@ O texto do livro, os nomes de capítulo e os números são exemplos inventados.
 |---|---|---|
 | `pausado.html` | O usuário pausou. | "Continuar" → `acompanhar` |
 | `parou-no-meio.html` | O processamento falhou ou foi interrompido. | "Continuar de onde parou" → `acompanhar` |
-| `precisa-de-atencao.html` | Alguns trechos não foram concluídos. | "Tentar esses trechos de novo" → `acompanhar`; "Abrir este trecho" → `conferir` |
+| `precisa-de-atencao.html` | Alguns trechos não foram concluídos. Cada um tem "Revisar manualmente" ao lado de "Abrir este trecho": o trecho passa a ficar com quem escreveu (revisão e espanhol à mão, sem o modelo) e mostra "Revisado por você" quando pronto. | "Tentar esses trechos de novo" → `acompanhar`; "Abrir este trecho" → `conferir` |
 | `outro-livro.html` | O livro aberto não pode começar porque outro está em processamento. | "Acompanhar…" → `acompanhar` |
 | `erro.html` | O app não conseguiu falar com o servidor local. | "Tentar de novo" recarrega |
 | `carregando.html` | Abrindo a lista de livros ou um livro. | |

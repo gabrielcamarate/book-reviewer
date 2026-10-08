@@ -8,7 +8,7 @@ import { setManual, useManual } from "@/lib/manual"
 import { useIsMobile } from "@/lib/viewport"
 import { AttentionScreen, DoneScreen, ProgressScreen, ReadyScreen, StoppedScreen, type BookView } from "@/screens/book"
 import { BooksScreen } from "@/screens/books"
-import { ManualAdjustScreen, ManualChunkScreen, ManualRefuseScreen, ManualScreen } from "@/screens/manual"
+import { AuthorEditScreen, AuthorReviewScreen, AuthorSpanishScreen, ManualAdjustScreen, ManualChunkScreen, ManualRefuseScreen, ManualScreen } from "@/screens/manual"
 import { AlertsScreen, ChaptersScreen, GlossaryScreen, InstructionsScreen, NotesScreen, OptionsScreen } from "@/screens/options"
 import { AdjustPortugueseScreen, AdjustSpanishScreen, ChunksScreen, ReviewScreen, type Pane } from "@/screens/review"
 import { Notice } from "@/components/ui/notice"
@@ -110,6 +110,9 @@ function App() {
     const running = book?.job?.status === "running" || book?.job?.status === "stopping"
     const savedNotice = saved && <Notice plain action={<Button onClick={() => back()}>Voltar ao livro</Button>}><strong>Ajuste salvo.</strong> Para atualizar o espanhol e os arquivos Word, volte ao livro e continue o processamento.</Notice>
     if (book?.current?.status === "approved" && view === "ajustar-portugues") return <AdjustPortugueseScreen key={`${book.current.id}-${book.revision}`} book={book} busy={busy} onBack={() => inBook("conferir")} onSaved={() => { inBook("conferir"); setPane("changes"); setSaved(true) }} save={save} />
+    if (book?.current && view === "revisar-manual") return <AuthorReviewScreen key={`${book.current.id}-${book.revision}`} book={book} busy={busy} act={act} onBack={back} onAdjust={() => inBook("ajustar-manual")} onApproved={() => inBook("escrever-espanhol")} />
+    if (book?.current && view === "ajustar-manual") return <AuthorEditScreen key={book.current.id} book={book} busy={busy} act={act} onBack={() => inBook("revisar-manual")} onApproved={() => inBook("escrever-espanhol")} />
+    if (book?.current?.author_handled && book.current.revised && view === "escrever-espanhol") return <AuthorSpanishScreen key={`${book.current.id}-es`} book={book} busy={busy} act={act} onBack={back} onSaved={back} />
     if (book && manual && view === "conferir") return <>{savedNotice}<ManualChunkScreen key={book.current?.id} book={book} busy={busy} act={act} onBack={back} onChunk={showChunk} onList={() => inBook("trechos")} onAdjust={() => inBook(book.current?.status === "approved" ? "ajustar-portugues" : "ajustar-texto")} onRefuse={() => inBook("recusar")} /></>
     if (book?.current?.revised && view === "ajustar-texto") return <ManualAdjustScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />
     if (book?.current && view === "recusar") return <ManualRefuseScreen key={book.current.id} book={book} busy={busy} act={act} onDone={() => inBook("conferir")} />
@@ -125,7 +128,8 @@ function App() {
     const other = Boolean(books.activeProjectId && books.activeProjectId !== book.id)
     const resume = () => books.action("start", { task: "automatic" })
     if (screen === "pausado" || screen === "parou-no-meio") return <StoppedScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} failed={screen === "parou-no-meio"} />
-    if (screen === "precisa-de-atencao") return <AttentionScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} onOpenChunk={openChunk} />
+    if (screen === "precisa-de-atencao") return <AttentionScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} onOpenChunk={openChunk}
+      onManual={chunkId => go("revisar-manual", chunkId)} onSpanish={chunkId => go("escrever-espanhol", chunkId)} />
     return <ManualScreen book={book} busy={busy} act={act} onAutomatic={() => setManual(book.id, false)} onNext={openChunk} onList={() => go("trechos")} onDownload={language => void books.download(language)} />
   }
 

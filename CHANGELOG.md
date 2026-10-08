@@ -5,6 +5,16 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-10-08
+
+### Adicionado
+
+- "Revisar manualmente" nos trechos que precisam de atenção, para quando o modelo não processa um trecho: a pessoa vê o original e a proposta, se houver, e aprova as correções, mantém o original ou ajusta o texto; depois escreve o espanhol. O trecho fica com quem escreveu: o processamento automático não o envia mais ao modelo, e o livro é entregue com ele como foi escrito. Novas operações `author-approve` e `author-translate`.
+
+### Corrigido
+
+- Abrir um trecho que já estava na tela agora fixa a escolha; antes, depois de uma ação, a tela podia passar a mostrar outro trecho.
+
 ## [0.19.1] - 2026-10-07
 
 ### Corrigido

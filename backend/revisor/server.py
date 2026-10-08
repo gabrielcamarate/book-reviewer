@@ -160,6 +160,8 @@ class Handler(BaseHTTPRequestHandler):
         elif operation=='spellings': self.workspace.set_spellings(pid,data.get('added'),data.get('removed'))
         elif operation=='reset': self.workspace.reset(pid)
         elif operation=='remove': self.workspace.remove(pid)
+        elif operation=='author-approve': self.workspace.author_approve(pid,data.get('chunk_id'),data.get('revised'),data.get('revision'))
+        elif operation=='author-translate': self.workspace.author_translate(pid,data.get('chunk_id'),data.get('translations'),data.get('revision'))
         elif operation=='notes': self.workspace.mark_notes(pid,data.get('ids'),data.get('read'))
         else: raise ValueError('Operação de livro desconhecida.')
         return {'ok':True}

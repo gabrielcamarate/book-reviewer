@@ -221,7 +221,7 @@ class BookWorkspace:
                     'sections':project['document']['sections'], 'model':self.model, 'reasoning_effort':'low', 'locale':'es-419',
                     'progress':self._progress(project,state), 'current':enriched,
                     'editorial_notes':self._editorial_notes(project,state), 'spellings':self._spellings(project,state),
-                    'chunks':[{'id':c['id'], 'title':c['title'], 'status':c['status'], 'translated':bool(c.get('translations')), 'corrections':len(c.get('edits') or [])} for c in state['chunks']],
+                    'chunks':[{'id':c['id'], 'title':c['title'], 'status':c['status'], 'translated':bool(c.get('translations')), 'corrections':len(c.get('edits') or []), 'author_handled':bool(c.get('author_handled'))} for c in state['chunks']],
                     'job':job,
                     'automatic_result':automatic_result,
                     'glossary':self._glossary(project,state),
@@ -259,6 +259,7 @@ class BookWorkspace:
         return self._digest([chunk.get('revised'),chunk.get('translations'),self._glossary(project,state)])
 
     def _es_checked(self, project, state, chunk):
+        if chunk.get('author_handled'): return bool(chunk.get('translations'))  # The author's Spanish is final.
         receipt=chunk.get('checks',{}).get('es',{})
         return (bool(chunk.get('translations')) and receipt.get('signature')==self._es_signature(project,state,chunk)
                 and receipt.get('issues')==[] and receipt.get('prompt_version')==book_prompts.VERSION)
@@ -574,6 +575,43 @@ class BookWorkspace:
             chunk.update(status='rejected', feedback=reason.strip()); state['revision']+=1
             save_json(folder/'state.json',state)
 
+    def author_approve(self, pid, chunk_id, revised, expected_revision):
+        """The author reviews a chunk by hand (for example one the model will not process). From now on the
+        automatic processing leaves it with the author: no review, check or translation by the model."""
+        with self.lock:
+            self._idle(); folder, project, state = self._load(pid)
+            if state['revision'] != expected_revision: raise ValueError('O trecho mudou. Atualize a tela antes de salvar.')
+            chunk = next((c for c in state['chunks'] if c['id']==chunk_id),None)
+            if not chunk: raise ValueError('Trecho não encontrado.')
+            if chunk['status']=='approved': raise ValueError('Este trecho já está aprovado. Use “Ajustar o português”.')
+            ids = [str(i) for i in chunk['paragraph_ids']]
+            if not isinstance(revised,dict) or set(revised)!=set(ids) or any(not isinstance(v,str) or not v.strip() for v in revised.values()):
+                raise ValueError('Mantenha todos os parágrafos do trecho, nenhum vazio.')
+            source={str(p['id']):p['text'] for p in project['document']['paragraphs']}
+            for eid,text in revised.items(): self._validate_breaks(source[eid],text)
+            _, edits = apply_paragraphs({eid:source[eid] for eid in ids},
+                {'paragraphs':[{'paragraph_id':eid,'text':revised[eid],'reason':'Revisado por você.','category':'revisão de quem escreveu'} for eid in ids]})
+            state['audit'].append({'action':'author-approve','chunk':chunk_id,'proposal':chunk.get('revised'),'at':time.time()})
+            chunk.update(status='approved', approval_mode='manual', approved_at=time.time(), author_handled=True,
+                         revised={eid:revised[eid] for eid in ids}, edits=edits)
+            for key in ('translations','checks','feedback'): chunk.pop(key,None)
+            state['revision']+=1; save_json(folder/'state.json',state)
+
+    def author_translate(self, pid, chunk_id, translations, expected_revision):
+        """The author writes the Spanish of a chunk that stays with them; it goes to the Word file as written."""
+        with self.lock:
+            self._idle(); folder, project, state = self._load(pid)
+            if state['revision'] != expected_revision: raise ValueError('O trecho mudou. Atualize a tela antes de salvar.')
+            chunk = next((c for c in state['chunks'] if c['id']==chunk_id),None)
+            if not chunk or not chunk.get('author_handled') or chunk['status']!='approved':
+                raise ValueError('Revise este trecho manualmente antes de escrever o espanhol.')
+            if not isinstance(translations,dict) or set(translations)!=set(chunk['revised']) or any(not isinstance(v,str) or not v.strip() for v in translations.values()):
+                raise ValueError('Escreva o espanhol de todos os parágrafos do trecho.')
+            for eid,text in translations.items(): self._validate_breaks(chunk['revised'][eid],text)
+            state['audit'].append({'action':'author-translate','chunk':chunk_id,'previous':chunk.get('translations'),'at':time.time()})
+            chunk['translations']=dict(translations)
+            state['revision']+=1; save_json(folder/'state.json',state)
+
     def edit_portuguese(self, pid, chunk_id, revised, expected_revision):
         """The author corrects approved Portuguese; it stays approved and only this chunk is translated again."""
         with self.lock:
@@ -638,7 +676,7 @@ class BookWorkspace:
         if task!='translate': raise ValueError('Operação de lote inválida.')
         if any(c['status']!='approved' for c in state['chunks']):
             raise ValueError('Aprove toda a revisão do escopo escolhido antes de traduzir.')
-        return [c['id'] for c in state['chunks'] if not c.get('translations')]
+        return [c['id'] for c in state['chunks'] if not c.get('translations') and not c.get('author_handled')]
 
     def run_sync(self, pid, task, *, limit=None):
         if task not in {'review','translate'}: raise ValueError('Use start para o processamento completo.')
@@ -720,6 +758,7 @@ class BookWorkspace:
         warnings = []; glossary = self._glossary(project,state)
         for chunk in state['chunks']:
             if chunk_id is not None and chunk['id']!=chunk_id: continue
+            if chunk.get('author_handled'): continue  # The author's own Spanish is not second-guessed.
             for text in chunk.get('translations',{}).values():
                 if re.search(r'\b(vosotros|vosotras|vuestro|vuestra)\b',text,re.I):
                     warnings.append({'chunk_id':chunk['id'],'message':'Confira o uso de formas próprias do espanhol da Espanha.'}); break

@@ -669,3 +669,72 @@ class ChangedOnlyWorkflowTests(unittest.TestCase):
                 self.assertEqual(sizes, [32, 32, 7, 2])
             finally:
                 ws.close()
+
+
+class AuthorHandledChunkTests(unittest.TestCase):
+    """A chunk the model will not process stays with the author; the rest of the book is delivered."""
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(); self.root = Path(self.temp.name)
+        self.source = self.root/'pt.docx'; fixture(self.source)
+        self.calls = []
+        def refusing(**kwargs):
+            data = json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])
+            sensitive = any('estavam' in p['text'] for p in data['paragraphs'])
+            self.calls.append((data['task'], sensitive))
+            if sensitive and data['task'] == 'check_pt':
+                return {'paragraphs': [{'paragraph_id': p['id'], 'text': p['draft'], 'reason': '', 'category': ''} for p in data['paragraphs']],
+                        'issues': ['Não realizei a revisão deste trecho.'], 'notes': []}
+            return automatic_runner(**kwargs)
+        self.ws = BookWorkspace(self.root, runner=refusing)
+        self.pid = self.ws.import_book(self.source)['id']
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        detail = self.ws.detail(self.pid)
+        self.assertEqual(detail['job']['status'], 'needs_attention')
+        self.chunk = detail['job']['problems'][0]['chunk_id']
+
+    def tearDown(self):
+        self.ws.close(); self.temp.cleanup()
+
+    def current(self):
+        return self.ws.detail(self.pid, self.chunk)
+
+    def test_author_approves_the_proposal_and_writes_the_spanish(self):
+        detail = self.current()
+        proposal = detail['current']['revised']
+        self.ws.author_approve(self.pid, self.chunk, proposal, detail['revision'])
+        chunk = self.current()['current']
+        self.assertEqual((chunk['status'], chunk['author_handled']), ('approved', True))
+        self.assertEqual(chunk['revised'], proposal)
+        self.calls.clear()
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        detail = self.current()
+        self.assertFalse([task for task, sensitive in self.calls if sensitive])  # Nothing of this chunk reaches the model.
+        self.assertEqual(detail['job']['status'], 'needs_attention')
+        self.assertEqual([p['chunk_id'] for p in detail['job']['problems']], [self.chunk])
+        spanish = {pid: 'Ella estaba aquí. ― ¡Hola!' for pid in detail['current']['revised']}
+        self.ws.author_translate(self.pid, self.chunk, spanish, detail['revision'])
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        final = self.ws.detail(self.pid)
+        self.assertEqual(final['job']['status'], 'completed')
+        self.assertTrue(final['automatic_result'])
+        self.assertFalse([task for task, sensitive in self.calls if sensitive])
+
+    def test_author_can_keep_the_original_text(self):
+        detail = self.current()
+        original = {str(p['id']): p['text'] for p in detail['current']['paragraphs']}
+        self.ws.author_approve(self.pid, self.chunk, original, detail['revision'])
+        chunk = self.current()['current']
+        self.assertEqual(chunk['revised'], original)
+        self.assertEqual(chunk['edits'], [])
+
+    def test_invalid_author_input_changes_nothing(self):
+        detail = self.current(); revision = detail['revision']; revised = detail['current']['revised']
+        first = next(iter(revised))
+        for value in ({**revised, first: ' '}, {k: v for k, v in list(revised.items())[1:]}):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                self.ws.author_approve(self.pid, self.chunk, value, revision)
+        with self.assertRaises(ValueError):
+            self.ws.author_approve(self.pid, self.chunk, revised, revision - 1)
+        with self.assertRaises(ValueError):
+            self.ws.author_translate(self.pid, self.chunk, {first: 'x'}, revision)  # Not with the author yet.
+        self.assertEqual(self.current()['current']['status'], 'ready')

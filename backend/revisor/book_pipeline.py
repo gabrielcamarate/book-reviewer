@@ -111,6 +111,10 @@ def _run_stages(workspace, pid, job):
             job.update(status='paused',message='Progresso salvo. Continue para preparar os arquivos.')
             return
         _,project,state=workspace._load(pid)
+        for index,chunk in enumerate(state['chunks'],1):
+            if chunk.get('author_handled') and not chunk.get('translations'):
+                job['problems'].append({'chunk_id':chunk['id'],'index':index,'title':chunk['title'],'phase':'Tradução para espanhol','author_handled':True,
+                                        'message':'Este trecho está com você. Escreva o espanhol dele para gerar os arquivos Word.'})
         for warning in workspace._warnings(project,state):
             job['problems'].append(warning | {'phase':'Consistência do espanhol'})
         if job['problems']:
