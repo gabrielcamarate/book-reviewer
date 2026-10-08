@@ -57,3 +57,11 @@ export function steps(progress: ProgressState, running: boolean) {
     state: index < current ? "done" as const : index === current && running ? "current" as const : "waiting" as const,
   }))
 }
+
+/** Problems still open: a chunk the author already finished drops out at once, before the next run clears the list. */
+export function openProblems(book: BookDetail) {
+  return (book.job?.problems ?? []).filter(problem => {
+    const chunk = book.chunks.find(item => item.id === problem.chunk_id)
+    return !(chunk?.author_handled && chunk.translated)
+  })
+}

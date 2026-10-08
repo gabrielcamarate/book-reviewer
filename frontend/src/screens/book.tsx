@@ -9,7 +9,7 @@ import { Steps } from "@/components/ui/steps"
 import { SummaryRows } from "@/components/ui/summary-row"
 import type { BookDetail } from "@/book-types"
 import { cn } from "@/lib/utils"
-import { stageOf, stageTitle, steps } from "@/lib/screens"
+import { openProblems, stageOf, stageTitle, steps } from "@/lib/screens"
 import { useIsMobile } from "@/lib/viewport"
 import { STAGE_NAMES, scopeLabel, termsLabel } from "@/lib/copy"
 import { CardTitle, Columns, NumberedList, PageTitle } from "@/screens/parts"
@@ -189,8 +189,20 @@ export function StoppedScreen({ book, busy, go, onContinue, disabled, failed }: 
 
 /** precisa-de-atencao: some chunks could not be finished. */
 export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk, onManual, onSpanish, onTakeSpanish }: StoppedProps & { onOpenChunk: (chunkId: string) => unknown; onManual: (chunkId: string) => unknown; onSpanish: (chunkId: string) => unknown; onTakeSpanish: (chunkId: string) => unknown }) {
-  const problems = book.job?.problems ?? []
+  const problems = openProblems(book)
   const count = problems.length
+  if (count === 0) return (
+    <>
+      <PageTitle eyebrow="Livro aberto">{book.name}</PageTitle>
+      <Card aria-labelledby="atencao-titulo">
+        <div className="rv-stack">
+          <CardTitle id="atencao-titulo">Pendências resolvidas</CardTitle>
+          <p className="rv-muted">Você completou os trechos que precisavam de atenção. Continue para conferir o livro e gerar os arquivos Word.</p>
+          <Button variant="primary" size="lg" block onClick={onContinue} disabled={busy || disabled}>Gerar os arquivos Word</Button>
+        </div>
+      </Card>
+    </>
+  )
   return (
     <>
       <PageTitle eyebrow="Livro aberto">{book.name}</PageTitle>
@@ -208,7 +220,6 @@ export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk,
                 </span>
                 {(() => {
                   const chunk = book.chunks.find(item => item.id === problem.chunk_id)
-                  if (chunk?.author_handled && chunk.translated) return <span className="rv-small rv-muted">Revisado por você</span>
                   return (
                     <div className="rv-actions">
                       {chunk?.author_handled ? <Button onClick={() => onSpanish(problem.chunk_id)} disabled={busy}>Escrever o espanhol</Button>

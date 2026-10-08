@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.22.1] - 2026-10-08
+
+### Corrigido
+
+- Depois de escrever o espanhol de um trecho, ele continuava na lista de pendências até o processamento rodar de novo. Agora sai da lista na hora; sem pendências abertas, a tela mostra "Pendências resolvidas" e o botão "Gerar os arquivos Word".
+
 ## [0.22.0] - 2026-10-08
 
 ### Adicionado
