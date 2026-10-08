@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-10-08
+
+### Corrigido
+
+- As traduções que o modelo escolhia num trecho viravam regra para o livro inteiro: "traição" → "infidelidad" ou "sinal" → "lunar" passavam a ser exigidos em todo lugar, gerando centenas de alertas falsos e pendências na revisão do espanhol. Agora só o glossário que você escreve é regra e gera alertas. As escolhas do modelo seguem como dicas de consistência, enviadas só aos trechos que usam o termo e seguidas apenas quando o sentido é o mesmo. A revisão do espanhol roda de novo nos trechos já traduzidos, sem retraduzir.
+
 ## [0.21.0] - 2026-10-08
 
 ### Alterado

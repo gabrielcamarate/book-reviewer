@@ -1,7 +1,7 @@
 """Typed editorial operations for a complete manuscript or selected sections."""
 import json
 
-VERSION = 'book-workflows-2026-10-07.1'
+VERSION = 'book-workflows-2026-10-08.1'
 
 
 def object_schema(properties):
@@ -91,6 +91,8 @@ def prompt(task, paragraphs, *, previous, following, title, settings, feedback='
             'Use issues somente para problemas da proposta/tradução que não conseguiu corrigir nem reverter com segurança. Uma dúvida original preservada deve aparecer apenas em notes. Sem observações, retorne notes vazio; sem falhas remanescentes, issues vazio.',
             'Um parágrafo sem correções vai para unchanged. Se você o puser em paragraphs, text que difira de draft em qualquer caractere, inclusive espaços finais, precisa de reason e category não vazios explicando a mudança.',
         ]
+    if task in {'translate','check_es'}:
+        rules.append('terminology_hints traz traduções escolhidas antes, em outros trechos do livro, para termos deste trecho. Use-as quando o termo tiver o mesmo sentido, para manter a consistência. Se o contexto pedir outro sentido, traduza pelo sentido: não são regras do glossário nem pendências.')
     if may_decline:
         rules=[r for r in rules if not r.startswith('Retorne exatamente uma tradução')]
         rules.append('O autor revisou este trecho à mão. Traduza todos os parágrafos que puder, na ordem da entrada, preservando quebras internas. Se não for traduzir algum parágrafo, ponha o paragraph_id dele em declined e deixe-o fora de translations; o autor escreve esse espanhol. Nunca escreva recusa, aviso ou resumo no lugar de uma tradução. Cada paragraph_id aparece uma única vez, em translations ou em declined.')
@@ -102,6 +104,7 @@ def prompt(task, paragraphs, *, previous, following, title, settings, feedback='
             'section':title, 'previous_context':previous, 'next_context':following,
             'editorial_instructions':settings.get('instructions',''), 'glossary':settings.get('glossary',{}),
             'protected_spellings':settings.get('protected_spellings',[]),
+            'terminology_hints':settings.get('terminology_hints',{}),
             'rejection_feedback':feedback, 'existing_spanish_context':destination_context}
     if paragraph_output: data['response_format']='paragraphs'
     if may_decline: data['may_decline']=True

@@ -173,7 +173,17 @@ class BookWorkspace:
 
     @staticmethod
     def _glossary(project,state):
-        return canonical_glossary(state['terms'],state.get('glossary_override',project['settings']['glossary']))
+        # Only the author's glossary is a rule. Terms the model chose while translating are hints (see _hints).
+        return canonical_glossary({},state.get('glossary_override',project['settings']['glossary']))
+
+    @staticmethod
+    def _hints(project, state, texts):
+        """Earlier translation choices for terms in these paragraphs: consistency hints, never requirements."""
+        explicit = {k.casefold() for k in state.get('glossary_override',project['settings']['glossary'])}
+        learned = {k:v for k,v in canonical_glossary(state['terms'],{}).items() if k.casefold() not in explicit}
+        if not learned: return {}
+        found = {term for text in texts for term,_ in source_terms(text,learned)}
+        return {k:v for k,v in learned.items() if k in found}
 
     def _progress(self, project, state):
         chunks = state['chunks']; total = sum(len(c['paragraph_ids']) for c in chunks)
@@ -234,7 +244,8 @@ class BookWorkspace:
             chosen = [p | {'text':chunk['revised'][str(p['id'])]} for p in chosen]
         first = next(i for i,p in enumerate(paragraphs) if p['id'] == chunk['paragraph_ids'][0])
         last = next(i for i,p in enumerate(paragraphs) if p['id'] == chunk['paragraph_ids'][-1])
-        settings = project['settings'] | {'glossary':self._glossary(project,state),'protected_spellings':self._protected(project,state)}
+        settings = project['settings'] | {'glossary':self._glossary(project,state),'protected_spellings':self._protected(project,state),
+                                          'terminology_hints':self._hints(project,state,[p['text'] for p in chosen])}
         dest_context = ''
         if project['destination']:
             # Bounded, source-grounded context from existing Spanish near the selected sections.
@@ -311,7 +322,7 @@ class BookWorkspace:
                 chunk.get('checks',{}).pop('es',None)
                 for eid,text in chunk['translations'].items(): self._validate_model_breaks(by_id[eid],text)
                 if not isinstance(terms,list): raise InvalidModelResponse('Glossário devolvido inválido.')
-                known = self._glossary(project,state)
+                known = canonical_glossary(state['terms'],self._glossary(project,state))
                 for term in terms:
                     if not isinstance(term,dict): raise InvalidModelResponse('Glossário devolvido inválido.')
                     source, target = term.get('source',''), term.get('target','')
@@ -846,7 +857,7 @@ class BookWorkspace:
                 if chunk.get('translations') and any(term.casefold() in pt for term in changed):
                     chunk.pop('translations'); invalidated+=1
             state['audit'].append({'action':'glossary','previous':before,'new':glossary,'invalidated_chunks':invalidated,'at':time.time()})
-            state['terms']={}; state['glossary_override']=glossary; state['revision']+=1
+            state['glossary_override']=glossary; state['revision']+=1
             save_json(folder/'state.json',state)
             return {'ok':True,'invalidated_chunks':invalidated}
 

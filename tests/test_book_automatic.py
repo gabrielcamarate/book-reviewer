@@ -392,19 +392,32 @@ class AutomaticBookTests(unittest.TestCase):
         self.assertIsNone(detail['automatic_result'])
         self.assertFalse((self.ws._folder(self.pid)/'deliverables').exists())
 
-    def test_translation_review_uses_final_shared_glossary_after_parallel_generation(self):
-        glossaries={'translate':[], 'check_es':[]}
+    def test_learned_terms_are_hints_and_never_block_delivery(self):
+        """A choice the model made once for one context ("traição" → "infidelidad") is not a rule for the book."""
+        sent={'translate':[], 'check_es':[]}
         def terms(**kwargs):
             data=json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])
-            if data['task'] in glossaries: glossaries[data['task']].append(data['glossary'])
+            if data['task'] in sent: sent[data['task']].append((data['glossary'], data.get('terminology_hints')))
             result=automatic_runner(**kwargs)
             if data['task']=='translate' and any('preservado' in p['text'] for p in data['paragraphs']):
-                result['terms']=[{'source':'preservado','target':'preservado'}]
+                result['translations'][0]['text']+=' conservado'
+                result['terms']=[{'source':'preservado','target':'conservado'}]
             return result
         self.ws.runner=terms
-        detail=self.run_job(); self.assertTrue(detail['automatic_result'])
-        self.assertTrue(all(g=={} for g in glossaries['translate']))
-        self.assertTrue(all(g=={'preservado':'preservado'} for g in glossaries['check_es']))
+        detail=self.run_job()
+        self.assertEqual(read_json(self.ws._folder(self.pid)/'state.json')['terms'],{'preservado':'conservado'})
+        self.assertEqual(detail['job']['status'],'completed',detail['job']['problems'])
+        self.assertEqual(detail['consistency_warnings'],[])
+        self.assertEqual(detail['glossary'],{})  # Only the author's glossary is shown and enforced.
+        self.assertTrue(all(glossary=={} for glossary,_ in sent['translate']+sent['check_es']))
+        hinted=[hints for _,hints in sent['check_es'] if hints]
+        self.assertTrue(hinted and all(hints=={'preservado':'conservado'} for hints in hinted))  # Only for chunks that use the term.
+
+    def test_author_glossary_is_still_enforced(self):
+        self.ws.configure(self.pid, {'glossary': {'preservado': 'conservado'}})
+        detail=self.run_job()
+        self.assertEqual(detail['job']['status'],'needs_attention')
+        self.assertTrue(any('preservado' in w['message'] for w in detail['consistency_warnings']))
 
     def test_untrusted_extra_xml_blocks_word_delivery(self):
         with zipfile.ZipFile(self.source,'a') as archive:
