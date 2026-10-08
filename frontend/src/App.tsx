@@ -129,7 +129,9 @@ function App() {
     const resume = () => books.action("start", { task: "automatic" })
     if (screen === "pausado" || screen === "parou-no-meio") return <StoppedScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} failed={screen === "parou-no-meio"} />
     if (screen === "precisa-de-atencao") return <AttentionScreen book={book} busy={busy} go={go} onContinue={resume} disabled={other} onOpenChunk={openChunk}
-      onManual={chunkId => go("revisar-manual", chunkId)} onSpanish={chunkId => go("escrever-espanhol", chunkId)} />
+      onManual={chunkId => go("revisar-manual", chunkId)} onSpanish={chunkId => go("escrever-espanhol", chunkId)}
+      // The model then translates what it accepts in this chunk; only the rest is left for the author.
+      onTakeSpanish={async chunkId => { if (await act("author-take-spanish", { chunk_id: chunkId, revision: book.revision })) await resume() }} />
     return <ManualScreen book={book} busy={busy} act={act} onAutomatic={() => setManual(book.id, false)} onNext={openChunk} onList={() => go("trechos")} onDownload={language => void books.download(language)} />
   }
 

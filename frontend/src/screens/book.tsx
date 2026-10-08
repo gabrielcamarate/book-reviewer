@@ -188,7 +188,7 @@ export function StoppedScreen({ book, busy, go, onContinue, disabled, failed }: 
 }
 
 /** precisa-de-atencao: some chunks could not be finished. */
-export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk, onManual, onSpanish }: StoppedProps & { onOpenChunk: (chunkId: string) => unknown; onManual: (chunkId: string) => unknown; onSpanish: (chunkId: string) => unknown }) {
+export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk, onManual, onSpanish, onTakeSpanish }: StoppedProps & { onOpenChunk: (chunkId: string) => unknown; onManual: (chunkId: string) => unknown; onSpanish: (chunkId: string) => unknown; onTakeSpanish: (chunkId: string) => unknown }) {
   const problems = book.job?.problems ?? []
   const count = problems.length
   return (
@@ -212,7 +212,8 @@ export function AttentionScreen({ book, busy, onContinue, disabled, onOpenChunk,
                   return (
                     <div className="rv-actions">
                       {chunk?.author_handled ? <Button onClick={() => onSpanish(problem.chunk_id)} disabled={busy}>Escrever o espanhol</Button>
-                        : chunk?.status !== "approved" && <Button onClick={() => onManual(problem.chunk_id)} disabled={busy}>Revisar manualmente</Button>}
+                        : chunk?.status !== "approved" ? <Button onClick={() => onManual(problem.chunk_id)} disabled={busy}>Revisar manualmente</Button>
+                        : chunk.translated && <Button onClick={() => onTakeSpanish(problem.chunk_id)} disabled={busy || disabled}>Escrever o espanhol à mão</Button>}
                       <TextLink onClick={() => onOpenChunk(problem.chunk_id)}>Abrir este trecho</TextLink>
                     </div>
                   )

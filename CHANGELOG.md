@@ -5,6 +5,12 @@ aplicativo inteiro (interface e backend). Fluxo em [RELEASES.md](RELEASES.md).
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-10-08
+
+### Adicionado
+
+- "Escrever o espanhol à mão" nos trechos já traduzidos em que a revisão do espanhol encontra uma recusa do modelo no lugar da tradução. O trecho passa para você, o processamento continua, o modelo traduz os parágrafos que aceita e você escreve só os que ele recusa. Nova operação `author-take-spanish`.
+
 ## [0.21.1] - 2026-10-08
 
 ### Corrigido

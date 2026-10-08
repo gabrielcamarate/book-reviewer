@@ -663,6 +663,21 @@ class BookWorkspace:
             for key in ('translations','model_translations','author_paragraphs','checks','feedback'): chunk.pop(key,None)
             state['revision']+=1; save_json(folder/'state.json',state)
 
+    def author_take_spanish(self, pid, chunk_id, expected_revision):
+        """The model wrote something other than a translation (a refusal) in an approved chunk. The Spanish goes to
+        the author: on the next run the model translates what it accepts and leaves the rest to them."""
+        with self.lock:
+            self._idle(); folder, _, state = self._load(pid)
+            if state['revision'] != expected_revision: raise ValueError('O trecho mudou. Atualize a tela antes de continuar.')
+            chunk = next((c for c in state['chunks'] if c['id']==chunk_id),None)
+            if not chunk or chunk['status']!='approved' or chunk.get('author_handled'):
+                raise ValueError('Só dá para assumir o espanhol de um trecho aprovado que ainda não está com você.')
+            state['audit'].append({'action':'author-take-spanish','chunk':chunk_id,'previous':chunk.get('translations'),'at':time.time()})
+            chunk['author_handled'] = True
+            for key in ('translations','model_translations','author_paragraphs'): chunk.pop(key,None)
+            chunk.get('checks',{}).pop('es',None)
+            state['revision']+=1; save_json(folder/'state.json',state)
+
     def author_translate(self, pid, chunk_id, translations, expected_revision):
         """The author writes the Spanish of a chunk that stays with them; it goes to the Word file as written."""
         with self.lock:

@@ -784,6 +784,37 @@ class AuthorHandledChunkTests(unittest.TestCase):
             return {'translations': [{'paragraph_id': p['id'], 'text': 'ES ' + p['text']} for p in data['paragraphs']], 'declined': [], 'terms': []}
         self.assert_only_declined_paragraph_left(self.keep_original_and_process(refusing))
 
+    def test_a_translated_chunk_with_refusals_goes_to_the_author_for_only_those_paragraphs(self):
+        """The model wrote a refusal instead of a translation; the Spanish check caught it."""
+        detail = self.current()
+        self.ws.author_approve(self.pid, self.chunk, {str(p['id']): p['text'] for p in detail['current']['paragraphs']}, detail['revision'])
+        state_file = self.ws._folder(self.pid)/'state.json'
+        state = read_json(state_file)
+        chunk = next(c for c in state['chunks'] if c['id'] == self.chunk)
+        for key in ('author_handled', 'model_translations', 'author_paragraphs'): chunk.pop(key, None)
+        chunk['translations'] = {pid: 'No puedo traducir esto.' for pid in chunk['revised']}
+        state['revision'] += 1
+        from revisor.workspace import save_json
+        save_json(state_file, state)
+        revision = self.ws.detail(self.pid)['revision']
+        with self.assertRaises(ValueError): self.ws.author_take_spanish(self.pid, self.chunk, revision - 1)
+        self.ws.author_take_spanish(self.pid, self.chunk, revision)
+        chunk = self.current()['current']
+        self.assertTrue(chunk['author_handled'])
+        self.assertEqual(chunk['status'], 'approved')
+        self.assertNotIn('translations', chunk)
+        def declining(data):
+            return {'translations': [{'paragraph_id': p['id'], 'text': 'ES ' + p['text']} for p in data['paragraphs'] if 'estavam' not in p['text']],
+                    'declined': [p['id'] for p in data['paragraphs'] if 'estavam' in p['text']], 'terms': []}
+        fallback = self.ws.runner
+        def runner(**kwargs):
+            data = json.loads(kwargs['prompt'].split('INPUT_JSON\n')[1])
+            if data['task'] == 'translate' and data.get('may_decline'): return declining(data)
+            return fallback(**kwargs)
+        self.ws.runner = runner
+        self.ws.start(self.pid, 'automatic'); self.ws.thread.join(5)
+        self.assertEqual(self.current()['current']['author_paragraphs'], [str(p['id']) for p in chunk['paragraphs'] if 'estavam' in p['text']])
+
     def test_author_can_keep_the_original_text(self):
         detail = self.current()
         original = {str(p['id']): p['text'] for p in detail['current']['paragraphs']}
